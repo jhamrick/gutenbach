@@ -1,7 +1,7 @@
 #!/usr/athena/bin/perl
 # Play the data on STDIN as an audio file
 #
-# $Id: sipbmp3-filter,v 1.4 2003-01-22 05:00:00 unknown Exp $
+# $Id: sipbmp3-filter,v 1.5 2003-01-22 05:00:01 unknown Exp $
 #
 # TODO
 # ----
@@ -444,6 +444,11 @@ sub play_ogg_audio {
     delete $lessinfo{'rg_radio'};
     delete $lessinfo{'rg_audiophile'};
     delete $lessinfo{'rg_peak'};
+    delete $lessinfo{'replaygain_album_peak'};
+    delete $lessinfo{'replaygain_track_peak'};
+    delete $lessinfo{'replaygain_album_gain'};
+    delete $lessinfo{'replaygain_track_gain'};
+
     while (($key,$val) = each %lessinfo) {
       printf ZEPHYR "%-15s: %s\n", $key, $val;
     }
