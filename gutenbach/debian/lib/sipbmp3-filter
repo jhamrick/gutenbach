@@ -1,7 +1,7 @@
 #!/usr/athena/bin/perl
 # Play the data on STDIN as an audio file
 #
-# $Id: sipbmp3-filter,v 1.11 2003-10-24 20:31:42 jtwang Exp $
+# $Id: sipbmp3-filter,v 1.12 2004-02-22 16:50:57 arolfe Exp $
 # $Source: /tmp/tmp.UFBNno9997/RCS/sipbmp3-filter,v $
 #
 # TODO
@@ -477,10 +477,10 @@ sub play_mpeg_audio {
 }
 
 # Play an OggVorbis audio stream (doesn't support auth!)
-# play_ogg_stream(URI, userpass)
+# play_ogg_stream(URI)
+#  Mostly copied from play_ogg_audio
 sub play_ogg_stream {
   my $uri = shift(@_);
-  my $userpass = shift(@_);
 
   system("chmod a+rw /dev/audio");
   system("ps -aef | grep ogg123 | awk '{print $2}' | xargs kill -9");
@@ -488,35 +488,39 @@ sub play_ogg_stream {
 
   # Prepare to write status:
   open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c sipb-auto -i sipbmp3@xcb -s "SIPB LPR music spooler"');
+  system("/mit/sipb/bin/ogg123 -b 40000 -dau -q -f - $uri 2> /tmp/ogg123.out | audioplay");
 
-  # fork for ogg123
-  my $pid = open(OGGSTATUS, "-|");
-  unless (defined $pid) {
-      print ZEPHYR "Couldn't fork: $!\n";
-      close(ZEPHYR);
-      return;
-  }
-  if ($pid) { # parent
-      # Check if there were any errors
-      if ($_ = <OGGSTATUS>) {
-	  print ZEPHYR "Playback completed with the following errors:\n";
-	  print ZEPHYR $_;
-	  while (<OGGSTATUS>) {
-	      print ZEPHYR $_;
-	  }
-      } else {
-	  print ZEPHYR "Playback completed successfully.\n";
+  # Check if there were any errors
+  open(OGGSTATUS, "/tmp/ogg123.out");
+  if ($_ = <OGGSTATUS>) {
+    print ZEPHYR "Playback completed with the following errors:\n";
+    print ZEPHYR $_;
+    while (<OGGSTATUS>) {
+      print ZEPHYR $_;
+    }
+  } else {
+    print ZEPHYR "Playback completed successfully.\n";
+    # Repeat tag data for those playing at home
+    if (!$ogginfo{'title'}) {
+      print ZEPHYR "No ogginfo data found\n";
+      print ZEPHYR "Filename: $opts{'J'}\n\n";
+    } else {
+      print ZEPHYR "Title          : $ogginfo{'title'}\n";
+      print ZEPHYR "Artist         : $ogginfo{'artist'}\n";
+      print ZEPHYR "Album          : $ogginfo{'album'}\n";
+      print ZEPHYR "Track #        : $ogginfo{'tracknumber'}\n";
+
+      # others
+      while (($key,$val) = each %lessinfo) {
+	printf ZEPHYR "%-15s: %s\n", $key, $val;
       }
-      close(OGGSTATUS) || print ZEPHYR "ogg123 exited $?\n";
-            
-      close(ZEPHYR);
+    }
   }
-  else { #child
-      # redirect STDERR to STDOUT
-      open STDERR, '>&STDOUT';
-      exec("/mit/sipb/bin/ogg123","-b40000","-dau","-q","-f","-",$uri) ||
-	  die "Couldn't exec";
-  }
+
+  close(OGGSTATUS);
+  unlink(OGGSTATUS);
+
+  close(ZEPHYR);
 }
 
 # Play an OggVorbis audio file
