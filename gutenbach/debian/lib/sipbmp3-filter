@@ -1,7 +1,7 @@
 #!/usr/athena/bin/perl
 # Play the data on STDIN as an audio file
 #
-# $Id: sipbmp3-filter,v 1.8 2003-08-11 02:11:28 jhawk Exp $
+# $Id: sipbmp3-filter,v 1.9 2003-10-22 20:27:44 jtwang Exp $
 # $Source: /tmp/tmp.UFBNno9997/RCS/sipbmp3-filter,v $
 #
 # TODO
@@ -144,24 +144,36 @@ sub play_external_reference {
   } elsif ("$magic" eq "htt") {
       if (<STDIN> =~ /^(\S*)\s*(.*)$/) {
 	  $uri=$1;
-	  open(W3M, "/mit/sipb/bin/w3m -dump_head $uri|");
-	  $contenttype="unknown";
-	  while (<W3M>) {
-	      if ($_ =~ /^Content-Type:\s(\S*)/) {
-		  $contenttype=$1;
-	      }
-	  }
-	     if ($contenttype eq "audio/mpeg") { $format="MP3" }
-	  elsif ($contenttype eq "application/x-ogg") { $format="OGG" }
-	  elsif ($contenttype eq "application/ogg") { $format="OGG" }
-	  else {
-	      print ZEPHYR "Unknown Content-Type $contenttype for URI $uri\n";
+	  my $pid = open(W3M, "-|");
+	  unless (defined $pid) {
+	      print ZEPHYR "Couldn't fork: $!\n";
 	      close(ZEPHYR);
+	      return;
+	  }
+
+	  if ($pid) { #parent
+	      $contenttype="unknown";
+	      while (<W3M>) {
+		  if ($_ =~ /^Content-Type:\s(\S*)/) {
+		      $contenttype=$1;
+		  }
+	      }
+	      if ($contenttype eq "audio/mpeg") { $format="MP3" }
+	      elsif ($contenttype eq "application/x-ogg") { $format="OGG" }
+	      elsif ($contenttype eq "application/ogg") { $format="OGG" }
+	      else {
+		  print ZEPHYR "Unknown Content-Type $contenttype for URI $uri\n";
+		  close(ZEPHYR);
+	      }
+	      close(W3M) || print ZEPHYR "w3m exited $?\n";
+	  }
+	  else { # child
+	      exec("/mit/sipb/bin/w3m","-dump_head",$uri) || die "Couldn't exec";
 	  }
       } else {
         print ZEPHYR "Couldn't read URI for external reference\n";
         close(ZEPHYR);
-      }
+    }
   } else {
       print ZEPHYR "Unknown syntax in play_external_reference(): $magic\n";
       close(ZEPHYR);
@@ -206,26 +218,38 @@ sub play_mpeg_stream {
   system("ps ax | grep ogg123 | awk '{print $2}' | xargs kill -9");
   system("ps ax | grep mpg123 | awk '{print $2}' | xargs kill -9");
   system("chmod a+rw /dev/audio");
-  system("/mit/infoagents/bin/mpg123 -b 16384 -q $up $uri >/tmp/mpg123.out 2>&1");
 
-  # Done. Status:
+  # Prepare to write status:
   open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c sipb-auto -i sipbmp3@xcb -s "SIPB LPR music spooler"');
-
-  # Check if there were any errors
-  open(MP3STATUS, "/tmp/mpg123.out");
-  if ($_ = <MP3STATUS>) {
-    print ZEPHYR "Playback completed with the following errors:\n";
-    print ZEPHYR $_;
-    while (<MP3STATUS>) {
-      print ZEPHYR $_;
-    }
-  } else {
-    print ZEPHYR "Playback completed successfully.\n";
+      
+  # fork for mpg123
+  my $pid = open(MP3STATUS, "-|");
+  unless (defined $pid) {
+      print ZEPHYR "Couldn't fork: $!\n";
+      close(ZEPHYR);
+      return;
   }
-  close(MP3STATUS);
-  unlink(MP3STATUS);
-
-  close(ZEPHYR);
+  
+  if ($pid) { #parent
+      # Check if there were any errors
+      if ($_ = <MP3STATUS>) {
+	  print ZEPHYR "Playback completed with the following errors:\n";
+	  print ZEPHYR $_;
+	  while (<MP3STATUS>) {
+	      print ZEPHYR $_;
+	  }
+      } else {
+	  print ZEPHYR "Playback completed successfully.\n";
+      }
+      close(MP3STATUS) || print ZEPHYR "mpg123 exited $?\n";
+      
+      close(ZEPHYR);
+  }
+  else { # child
+      # redirect STDERR to STDOUT
+      open STDERR, '>&STDOUT';
+      exec("/mit/infoagents/bin/mpg123","-b16384","-q",$up,$uri) or die "Couldn't exec";
+  }
 }
 
 # ID3 comments often have useless crap because tools like iTunes were
@@ -406,28 +430,38 @@ sub play_ogg_stream {
   system("chmod a+rw /dev/audio");
   system("ps -aef | grep ogg123 | awk '{print $2}' | xargs kill -9");
   system("ps -aef | grep mpg123 | awk '{print $2}' | xargs kill -9");
-  system("/mit/sipb/bin/ogg123 -b 40000 -dau -q -f - $uri 2> /tmp/ogg123.out | audioplay");
 
-  # Done. Status:
+  # Prepare to write status:
   open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c sipb-auto -i sipbmp3@xcb -s "SIPB LPR music spooler"');
 
-  # Check if there were any errors
-  open(OGGSTATUS, "/tmp/ogg123.out");
-  if ($_ = <OGGSTATUS>) {
-    print ZEPHYR "Playback completed with the following errors:\n";
-    print ZEPHYR $_;
-    while (<OGGSTATUS>) {
-      print ZEPHYR $_;
-    }
-  } else {
-    print ZEPHYR "Playback completed successfully.\n";
+  # fork for ogg123
+  my $pid = open(OGGSTATUS, "-|");
+  unless (defined $pid) {
+      print ZEPHYR "Couldn't fork: $!\n";
+      close(ZEPHYR);
+      return;
   }
-  close(OGGSTATUS);
-  unlink(OGGSTATUS);
-
-  close(ZEPHYR);
+  if ($pid) { # parent
+      # Check if there were any errors
+      if ($_ = <OGGSTATUS>) {
+	  print ZEPHYR "Playback completed with the following errors:\n";
+	  print ZEPHYR $_;
+	  while (<OGGSTATUS>) {
+	      print ZEPHYR $_;
+	  }
+      } else {
+	  print ZEPHYR "Playback completed successfully.\n";
+      }
+      close(OGGSTATUS) || print ZEPHYR "ogg123 exited $?\n";
+            
+      close(ZEPHYR);
+  }
+  else { #child
+      # redirect STDERR to STDOUT
+      open STDERR, '>&STDOUT';
+      exec("/mit/sipb/bin/ogg123","-b40000","-dau","-q","-f","-",$uri);
+  }
 }
-
 
 # Play an OggVorbis audio file
 sub play_ogg_audio {
