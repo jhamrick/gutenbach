@@ -1,7 +1,7 @@
 #!/usr/athena/bin/perl
 # Play the data on STDIN as an audio file
 #
-# $Id: sipbmp3-filter,v 1.1 2002-12-13 03:04:17 arolfe Exp $
+# $Id: sipbmp3-filter,v 1.2 2002-12-21 03:58:23 arolfe Exp $
 #
 # TODO
 # ----
@@ -20,6 +20,8 @@ require MP3::Info;
 import MP3::Info;
 &use_winamp_genres();
 
+print STDERR "STDERR FROM SPOOL FILTER\n";
+
 # set real uid to be effective uid
 $< = $>;
 
@@ -27,7 +29,7 @@ $< = $>;
 system("/bin/athena/attach -h -n -q infoagents sipb outland consult 2>&1 > /dev/null");
 
 # Select the correct output device and set the volume
-system("/mit/outland/bin/audio_setdevice -out headphones -volume 100 2>&1 </dev/null > /dev/null");
+system("/usr/local/bin/audio_setdevice -out headphones 2>&1 </dev/null > /dev/null");
 
 # The command line we get from lpd is (no spaces between options and args):
 #  -C lpr -C class
@@ -55,7 +57,7 @@ system("/mit/outland/bin/audio_setdevice -out headphones -volume 100 2>&1 </dev/
 getopt('ACFHJLPQRZacdefhijklnprswxy', \%opts);
 
 # Status messages at start of playback
-open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c sipb-auto -i sipbmp3 -s "SIPB LPR music spooler"');
+open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c sipb-auto -i sipbmp3@xcb -s "SIPB LPR music spooler"');
 print(ZEPHYR "User $opts{'n'} on host $opts{'H'} is playing:\n");
 
 # So, the file we're currently processing is "-d/-e".
@@ -169,13 +171,13 @@ sub play_mpeg_stream {
     $up = '-u ' . $userpass;
   }
 
-  system("ps -aef | grep ogg123 | awk '{print $2}' | xargs kill -9");
-  system("ps -aef | grep mpg123 | awk '{print $2}' | xargs kill -9");
+  system("ps ax | grep ogg123 | awk '{print $2}' | xargs kill -9");
+  system("ps ax | grep mpg123 | awk '{print $2}' | xargs kill -9");
   system("chmod a+rw /dev/audio");
   system("/mit/infoagents/bin/mpg123 -b 16384 -q $up $uri >/tmp/mpg123.out 2>&1");
 
   # Done. Status:
-  open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c sipb-auto -i sipbmp3 -s "SIPB LPR music spooler"');
+  open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c sipb-auto -i sipbmp3@xcb -s "SIPB LPR music spooler"');
 
   # Check if there were any errors
   open(MP3STATUS, "/tmp/mpg123.out");
@@ -302,12 +304,12 @@ sub play_mpeg_audio {
     # or it SEGVs. Really.
 
     system("chmod a+rw /dev/audio");
-    system("ps -aef | grep ogg123 | awk '{print $2}' | xargs kill -9");
-    system("ps -aef | grep mpg123 | awk '{print $2}' | xargs kill -9");
+    system("ps ax | grep ogg123 | awk '{print $2}' | xargs kill -9");
+    system("ps ax | grep mpg123 | awk '{print $2}' | xargs kill -9");
     system("/mit/infoagents/bin/mpg123 -b 16384 -q - >/tmp/mpg123.out 2>&1");
 
     # Done. Status:
-    open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c sipb-auto -i sipbmp3 -s "SIPB LPR music spooler"');
+    open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c sipb-auto -i sipbmp3@xcb -s "SIPB LPR music spooler"');
 
     # Check if there were any errors
     open(MP3STATUS, "/tmp/mpg123.out");
@@ -375,7 +377,7 @@ sub play_ogg_stream {
   system("/mit/sipb/bin/ogg123 -b 40000 -dau -q -f - $uri 2> /tmp/ogg123.out | audioplay");
 
   # Done. Status:
-  open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c sipb-auto -i sipbmp3 -s "SIPB LPR music spooler"');
+  open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c sipb-auto -i sipbmp3@xcb -s "SIPB LPR music spooler"');
 
   # Check if there were any errors
   open(OGGSTATUS, "/tmp/ogg123.out");
@@ -460,7 +462,7 @@ sub play_ogg_audio {
   system("/mit/sipb/bin/ogg123 -b 40000 -dau -q -f - - 2> /tmp/ogg123.out | audioplay");
 
   # Done. Status:
-  open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c sipb-auto -i sipbmp3 -s "SIPB LPR music spooler"');
+  open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c sipb-auto -i sipbmp3@xcb -s "SIPB LPR music spooler"');
 
   # Check if there were any errors
   open(OGGSTATUS, "/tmp/ogg123.out");
