@@ -1,7 +1,7 @@
 #!/usr/athena/bin/perl
 # Play the data on STDIN as an audio file
 #
-# $Id: sipbmp3-filter,v 1.9 2003-10-22 20:27:44 jtwang Exp $
+# $Id: sipbmp3-filter,v 1.10 2003-10-22 20:36:08 jhawk Exp $
 # $Source: /tmp/tmp.UFBNno9997/RCS/sipbmp3-filter,v $
 #
 # TODO
@@ -27,10 +27,12 @@ print STDERR "STDERR FROM SPOOL FILTER\n";
 $< = $>;
 
 # Attach necessary lockers
-system("/bin/athena/attach -h -n -q infoagents sipb outland consult 2>&1 > /dev/null");
+system("/bin/athena/attach -h -n -q infoagents sipb outland ' .
+    'consult 2>&1 > /dev/null");
 
 # Select the correct output device and set the volume
-system("/usr/local/bin/audio_setdevice -out headphones 100 2>&1 </dev/null > /dev/null");
+system("/usr/local/bin/audio_setdevice -out headphones 100 ' .
+    '2>&1 </dev/null > /dev/null");
 
 # The command line we get from lpd is (no spaces between options and args):
 #  -C lpr -C class
@@ -58,7 +60,8 @@ system("/usr/local/bin/audio_setdevice -out headphones 100 2>&1 </dev/null > /de
 getopt('ACFHJLPQRZacdefhijklnprswxy', \%opts);
 
 # Status messages at start of playback
-open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c sipb-auto -i sipbmp3@xcb -s "SIPB LPR music spooler"');
+open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c sipb-auto -i ' .
+  'sipbmp3@xcb -s "SIPB LPR music spooler"');
 print(ZEPHYR "User $opts{'n'} on host $opts{'H'} is playing:\n");
 
 # So, the file we're currently processing is "-d/-e".
@@ -162,13 +165,15 @@ sub play_external_reference {
 	      elsif ($contenttype eq "application/x-ogg") { $format="OGG" }
 	      elsif ($contenttype eq "application/ogg") { $format="OGG" }
 	      else {
-		  print ZEPHYR "Unknown Content-Type $contenttype for URI $uri\n";
+		  print ZEPHYR
+		      "Unknown Content-Type $contenttype for URI $uri\n";
 		  close(ZEPHYR);
 	      }
 	      close(W3M) || print ZEPHYR "w3m exited $?\n";
 	  }
 	  else { # child
-	      exec("/mit/sipb/bin/w3m","-dump_head",$uri) || die "Couldn't exec";
+	      exec("/mit/sipb/bin/w3m", "-dump_head", $uri)
+		  || die "Couldn't exec";
 	  }
       } else {
         print ZEPHYR "Couldn't read URI for external reference\n";
@@ -220,7 +225,8 @@ sub play_mpeg_stream {
   system("chmod a+rw /dev/audio");
 
   # Prepare to write status:
-  open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c sipb-auto -i sipbmp3@xcb -s "SIPB LPR music spooler"');
+  open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c sipb-auto -i ' .
+       'sipbmp3@xcb -s "SIPB LPR music spooler"');
       
   # fork for mpg123
   my $pid = open(MP3STATUS, "-|");
@@ -248,7 +254,8 @@ sub play_mpeg_stream {
   else { # child
       # redirect STDERR to STDOUT
       open STDERR, '>&STDOUT';
-      exec("/mit/infoagents/bin/mpg123","-b16384","-q",$up,$uri) or die "Couldn't exec";
+      exec("/mit/infoagents/bin/mpg123", "-b16384", "-q", $up, $uri) ||
+	  die "Couldn't exec";
   }
 }
 
@@ -365,7 +372,8 @@ sub play_mpeg_audio {
     system("/mit/infoagents/bin/mpg123 -b 16384 -q - >/tmp/mpg123.out 2>&1");
 
     # Done. Status:
-    open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c sipb-auto -i sipbmp3@xcb -s "SIPB LPR music spooler"');
+    open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c sipb-auto -i ' .
+	 'sipbmp3@xcb -s "SIPB LPR music spooler"');
 
     # Check if there were any errors
     open(MP3STATUS, "/tmp/mpg123.out");
@@ -459,7 +467,8 @@ sub play_ogg_stream {
   else { #child
       # redirect STDERR to STDOUT
       open STDERR, '>&STDOUT';
-      exec("/mit/sipb/bin/ogg123","-b40000","-dau","-q","-f","-",$uri);
+      exec("/mit/sipb/bin/ogg123","-b40000","-dau","-q","-f","-",$uri) ||
+	  die "Couldn't exec";
   }
 }
 
