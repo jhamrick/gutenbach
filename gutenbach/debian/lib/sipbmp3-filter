@@ -1,7 +1,7 @@
 #!/usr/athena/bin/perl
 # Play the data on STDIN as an audio file
 #
-# $Id: sipbmp3-filter,v 1.10 2003-10-22 20:36:08 jhawk Exp $
+# $Id: sipbmp3-filter,v 1.11 2003-10-24 20:31:42 jtwang Exp $
 # $Source: /tmp/tmp.UFBNno9997/RCS/sipbmp3-filter,v $
 #
 # TODO
@@ -42,6 +42,7 @@ system("/usr/local/bin/audio_setdevice -out headphones 100 ' .
 #  -L lpr -U username
 #  -P logname
 #  -Q queuename (lpr -Q)
+#  -Z random user-specified options
 #  -a printcap af (accounting file name)
 #  -d printcap sd entry (spool dir)
 #  -e print job data file name (currently being processed)
@@ -121,8 +122,8 @@ sub play_external_reference {
     # EOF
     #
     # Where <URI> is a valid URI for the stream, and <format> is a
-    # recognized format name (currently 'MP3' or 'OGG'). <user:pass>
-    # is an optional user and password pair for HTTP Basic Auth.
+    # recognized format name (currently 'MP3' or 'OGG' or 'SHOUTCAST').
+    # <user:pass> is an optional user and password pair for HTTP Basic Auth.
     my $format, $uri, $userpass;
 
     if ("$magic" eq "EXT") {
@@ -151,7 +152,7 @@ sub play_external_reference {
 	  unless (defined $pid) {
 	      print ZEPHYR "Couldn't fork: $!\n";
 	      close(ZEPHYR);
-	      return;
+	      die;
 	  }
 
 	  if ($pid) { #parent
@@ -164,6 +165,7 @@ sub play_external_reference {
 	      if ($contenttype eq "audio/mpeg") { $format="MP3" }
 	      elsif ($contenttype eq "application/x-ogg") { $format="OGG" }
 	      elsif ($contenttype eq "application/ogg") { $format="OGG" }
+	      elsif ($contenttype eq "audio/x-scpls") { $format="SHOUTCAST" }
 	      else {
 		  print ZEPHYR
 		      "Unknown Content-Type $contenttype for URI $uri\n";
@@ -193,12 +195,20 @@ sub play_external_reference {
     # Play the thing the right way
     if (($format eq "MP3") ||
 	($format eq "mp3")) {
-      print ZEPHYR "Playing MP3 audio stream...\n";
+      print ZEPHYR "MP3 audio stream...\n";
       close(ZEPHYR);
       &play_mpeg_stream($uri, $userpass);
-    } elsif (($format eq "OGG") ||
+    }
+    elsif ($format eq "SHOUTCAST") {
+	print ZEPHYR "Shoutcast playlist...\n";
+	#Don't close ZEPHYR yet, will print the name of the stream if available
+	$uri = &get_shoutcast($uri);
+	close(ZEPHYR);
+	&play_mpeg_stream($uri, undef);
+    }	
+    elsif (($format eq "OGG") ||
 	     ($format eq "ogg")) {
-      print ZEPHYR "Playing OggVorbis audio stream...\n";
+      print ZEPHYR "OggVorbis stream...\n";
       close(ZEPHYR);
       &play_ogg_stream($uri, $userpass);
     } else {
@@ -207,6 +217,37 @@ sub play_external_reference {
     }
 }
 
+# Process a Shoutcast playlist
+# get_shoutcast(URI)
+sub get_shoutcast {
+  my $uri = shift(@_);
+  
+  # grab the shoutcast .pls file
+  my $pid = open(W3M, "-|");
+  unless (defined $pid) {
+      print ZEPHYR "Couldn't fork: $!\n";
+      close(ZEPHYR);
+      die;
+  }
+  if (!$pid) { # child
+      exec("/mit/sipb/bin/w3m","-dump_source",$uri) || die "Couldn't fork";
+  }
+  while (<W3M>) {
+      if (/^File\d+=(\S+)/) {
+	  push(@uris, $1);
+      }
+      if (/^Title\d+=(.+)$/) {
+	  push(@titles, $1);
+      }
+  }
+  close(W3M);
+  
+  # choose a random server
+  $server = int(rand scalar(@uris));
+  # print the name of the stream if available
+  print ZEPHYR "$titles[$server]\n";
+  return $uris[$server];
+}
 
 # Play an MPEG audio stream
 # play_mpeg_stream(URI, userpass)
@@ -254,7 +295,13 @@ sub play_mpeg_stream {
   else { # child
       # redirect STDERR to STDOUT
       open STDERR, '>&STDOUT';
-      exec("/mit/infoagents/bin/mpg123", "-b16384", "-q", $up, $uri) ||
+
+      # disabling the buffer seems to improve streaming performances
+      # (files don't get cut in the middle) - perhaps mpg123 fails to
+      # wait for OS TCP buffer to be filled. -- jtwang 22 Oct 2003
+      #exec("/mit/infoagents/bin/mpg123", "-b16384", "-q", $up, $uri ||
+      #   die "Couldn't exec";
+      exec("/mit/infoagents/bin/mpg123", "-q", $up, $uri) ||
 	  die "Couldn't exec";
   }
 }
