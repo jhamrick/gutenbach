@@ -1,7 +1,8 @@
 #!/usr/athena/bin/perl
 # Play the data on STDIN as an audio file
 #
-# $Id: sipbmp3-filter,v 1.5 2003-01-22 05:00:01 unknown Exp $
+# $Id: sipbmp3-filter,v 1.6 2003-08-11 02:07:06 jhawk Exp $
+# $Source: /tmp/tmp.UFBNno9997/RCS/sipbmp3-filter,v $
 #
 # TODO
 # ----
@@ -80,7 +81,11 @@ if ((($magic0 & 0xff) == 0xff) &&
   # Fall through
 } elsif ($magic eq "EXT") {
   # This is an external stream reference (a jered-special)
-  &play_external_reference(\%opts);
+  &play_external_reference(\%opts, $magic);
+  exit 0;
+} elsif ($magic eq "htt") {
+  # This is an external stream reference (a jered-special)
+  &play_external_reference(\%opts, $magic);
   exit 0;
 } elsif ($magic eq "Ogg") {
   # Ogg-Vorbis audio file
@@ -100,6 +105,7 @@ if ((($magic0 & 0xff) == 0xff) &&
 sub play_external_reference {
     # Retrieve those command line opts.
     my %opts = %{shift(@_)};
+    my $magic = shift(@_);
 
     # External references are *not* playlists; they only support
     # a single URL in order to be fair.  A reference is structured as
@@ -116,24 +122,49 @@ sub play_external_reference {
     # is an optional user and password pair for HTTP Basic Auth.
     my $format, $uri, $userpass;
 
-    if (<STDIN> =~ /^EXT (.*)$/) {
-      # Found the header
-      $format = $1;
-    } else {
-      print ZEPHYR "Couldn't read EXT header\n";
-      close(ZEPHYR);
-    }
-
-    if (<STDIN> =~ /^(\S*)\s*(.*)$/) {
-      # Found the URI (and optionally user:pass)
-      $uri = $1;
-      if ($2) {
-	$userpass = $2;
+    if ("$magic" eq "EXT") {
+      if (<STDIN> =~ /^EXT (.*)$/) {
+        # Found the header
+        $format = $1;
+      } else {
+        print ZEPHYR "Couldn't read EXT header\n";
+        close(ZEPHYR);
       }
-    } else {
-      print ZEPHYR "Couldn't read URI for external reference\n";
+  
+      if (<STDIN> =~ /^(\S*)\s*(.*)$/) {
+        # Found the URI (and optionally user:pass)
+        $uri = $1;
+        if ($2) {
+  	$userpass = $2;
+        }
+      } else {
+        print ZEPHYR "Couldn't read URI for external reference\n";
+        close(ZEPHYR);
+      }
+  } elsif ("$magic" eq "htt") {
+      if (<STDIN> =~ /^(\S*)\s*(.*)$/) {
+	  $uri=$1;
+	  open(W3M, "/mit/sipb/bin/w3m -dump_head $uri|");
+	  $contenttype="unknown";
+	  while (<W3M>) {
+	      if ($_ =~ /^Content-Type:\s(\S*)/) {
+		  $contenttype=$1;
+	      }
+	  }
+	     if ($contenttype eq "audio/mpeg") { $format="MP3" }
+	  elsif ($contenttype eq "audio/ogg") { $format="OGG" }
+	  else {
+	      print ZEPHYR "Unknown Content-Type $contenttype trying to /mit/sipb/bin/w3m -dump_head $uri\n";
+	      close(ZEPHYR);
+	  }
+      } else {
+        print ZEPHYR "Couldn't read URI for external reference\n";
+        close(ZEPHYR);
+      }
+  } else {
+      print ZEPHYR "Unknown syntax in play_external_reference(): $magic\n";
       close(ZEPHYR);
-    }
+  }
 
     # Echo the rest to the zephyr
     while (<STDIN>) {
