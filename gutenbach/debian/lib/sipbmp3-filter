@@ -1,7 +1,7 @@
 #!/usr/athena/bin/perl
 # Play the data on STDIN as an audio file
 #
-# $Id: sipbmp3-filter,v 1.7 2003-08-11 02:10:04 jhawk Exp $
+# $Id: sipbmp3-filter,v 1.8 2003-08-11 02:11:28 jhawk Exp $
 # $Source: /tmp/tmp.UFBNno9997/RCS/sipbmp3-filter,v $
 #
 # TODO
@@ -155,7 +155,7 @@ sub play_external_reference {
 	  elsif ($contenttype eq "application/x-ogg") { $format="OGG" }
 	  elsif ($contenttype eq "application/ogg") { $format="OGG" }
 	  else {
-	      print ZEPHYR "Unknown Content-Type $contenttype trying to /mit/sipb/bin/w3m -dump_head $uri\n";
+	      print ZEPHYR "Unknown Content-Type $contenttype for URI $uri\n";
 	      close(ZEPHYR);
 	  }
       } else {
