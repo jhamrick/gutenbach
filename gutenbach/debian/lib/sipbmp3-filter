@@ -1,7 +1,7 @@
 #!/usr/athena/bin/perl
 # Play the data on STDIN as an audio file
 #
-# $Id: sipbmp3-filter,v 1.2 2002-12-21 03:58:23 arolfe Exp $
+# $Id: sipbmp3-filter,v 1.3 2002-12-21 03:59:00 unknown Exp $
 #
 # TODO
 # ----
@@ -29,7 +29,7 @@ $< = $>;
 system("/bin/athena/attach -h -n -q infoagents sipb outland consult 2>&1 > /dev/null");
 
 # Select the correct output device and set the volume
-system("/usr/local/bin/audio_setdevice -out headphones 2>&1 </dev/null > /dev/null");
+system("/usr/local/bin/audio_setdevice -out headphones 100 2>&1 </dev/null > /dev/null");
 
 # The command line we get from lpd is (no spaces between options and args):
 #  -C lpr -C class
