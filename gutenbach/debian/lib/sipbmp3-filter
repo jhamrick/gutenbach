@@ -1,7 +1,7 @@
 #!/usr/athena/bin/perl
 # Play the data on STDIN as an audio file
 #
-# $Id: sipbmp3-filter,v 1.12 2004-02-22 16:50:57 arolfe Exp $
+# $Id: sipbmp3-filter,v 1.13 2007-04-20 08:49:58 presbrey Exp $
 # $Source: /tmp/tmp.UFBNno9997/RCS/sipbmp3-filter,v $
 #
 # TODO
@@ -488,7 +488,7 @@ sub play_ogg_stream {
 
   # Prepare to write status:
   open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c sipb-auto -i sipbmp3@xcb -s "SIPB LPR music spooler"');
-  system("/mit/sipb/bin/ogg123 -b 40000 -dau -q -f - $uri 2> /tmp/ogg123.out | audioplay");
+  system("/mit/sipb/bin/ogg123 -dau -q -f - $uri 2> /tmp/ogg123.out | audioplay");
 
   # Check if there were any errors
   open(OGGSTATUS, "/tmp/ogg123.out");
