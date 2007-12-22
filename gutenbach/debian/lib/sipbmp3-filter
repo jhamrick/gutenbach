@@ -1,7 +1,7 @@
 #!/usr/athena/bin/perl
 # Play the data on STDIN as an audio file
 #
-# $Id: sipbmp3-filter,v 1.14 2007-12-20 13:36:37 unknown Exp $
+# $Id: sipbmp3-filter,v 1.15 2007-12-22 04:20:29 jhawk Exp $
 # $Source: /tmp/tmp.UFBNno9997/RCS/sipbmp3-filter,v $
 #
 # TODO
@@ -94,6 +94,9 @@ if ((($magic0 & 0xff) == 0xff) &&
 } elsif ($magic eq "Ogg") {
   # Ogg-Vorbis audio file
   &play_ogg_audio(\%opts);
+  exit 0;
+} elsif ($magic0 == 0x52 && $magic1 == 0x49) {
+  &play_wav_audio(\%opts);
   exit 0;
 } else {
     # add more cases later, whine for now
@@ -626,4 +629,20 @@ sub play_ogg_audio {
   unlink(OGGSTATUS);
 
   close(ZEPHYR);
+}
+
+# Play a WAV audio file
+sub play_wav_audio {
+  # Retrieve those command line opts.
+  my %opts = %{shift(@_)};
+
+  print ZEPHYR "No info\n";
+  print ZEPHYR "Filename: $opts{'J'}\n";
+  close(ZEPHYR);
+
+  # Play the file
+
+  system("chmod a+rw /dev/audio");
+  system("ps -aef | grep audioplay | awk '{print $2}' | xargs kill -9");
+  system("/usr/bin/audioplay $opts{'J'}");
 }
