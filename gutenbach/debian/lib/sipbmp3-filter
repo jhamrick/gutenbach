@@ -1,7 +1,7 @@
 #!/usr/athena/bin/perl
 # Play the data on STDIN as an audio file
 #
-# $Id: sipbmp3-filter,v 1.15 2007-12-22 04:20:29 jhawk Exp $
+# $Id: sipbmp3-filter,v 1.16 2008-09-27 09:00:41 root Exp $
 # $Source: /tmp/tmp.UFBNno9997/RCS/sipbmp3-filter,v $
 #
 # TODO
@@ -15,24 +15,25 @@
 
 use Getopt::Std;
 
-# Get the MP3Info module from this directory, because I suck.
-unshift(@INC, "/usr/local/bin");
-require MP3::Info;
-import MP3::Info;
-&use_winamp_genres();
+use Image::ExifTool qw(ImageInfo);
+use File::Spec::Functions;
+use LWP::UserAgent;
+use Data::Dumper;
+
+my $ua = new LWP::UserAgent;
+
+close(STDERR);
+open(STDERR, ">>", "/tmp/sipbmp3.log") or warn "Couldn't open log: $!";
+
+$ENV{"TERM"}="vt100";
 
 print STDERR "STDERR FROM SPOOL FILTER\n";
 
 # set real uid to be effective uid
 $< = $>;
 
-# Attach necessary lockers
-system("/bin/athena/attach -h -n -q infoagents sipb outland ' .
-    'consult 2>&1 > /dev/null");
-
 # Select the correct output device and set the volume
-system("/usr/local/bin/audio_setdevice -out headphones 100 ' .
-    '2>&1 </dev/null > /dev/null");
+#system("amixer -q set Headphone 100\% unmute");
 
 # The command line we get from lpd is (no spaces between options and args):
 #  -C lpr -C class
@@ -62,162 +63,67 @@ getopt('ACFHJLPQRZacdefhijklnprswxy', \%opts);
 
 # Status messages at start of playback
 open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c sipb-auto -i ' .
-  'sipbmp3@xcb -s "SIPB LPR music spooler"');
+  'sipbmp3@zsr -s "SIPB LPR music spooler"');
 print(ZEPHYR "User $opts{'n'} on host $opts{'H'} is playing:\n");
 
 # So, the file we're currently processing is "-d/-e".
-# Do some magic to make sure it's an MP3, and get the important bits
-# to zephyr out.
-open(DATAFILE, "$opts{'d'}/$opts{'e'}");
-sysread(DATAFILE, $magic, 3);
-close(DATAFILE);
 
-# MPEG header is beshort &0xffe0
-# meditate upon the header:
-($magic0, $magic1, @magic2) = unpack("C3", $magic);
-if ((($magic0 & 0xff) == 0xff) &&
-    (($magic1 & 0xe0) == 0xe0)) {
-  # MPEG audio file, we like it
-  # Fall through
-} elsif ($magic eq "ID3") {
-  # ID3 v2 does sketchy things with "garbage" beginning with ID3 at file start.
-  # MPEG audio file with ID3 tag, we like it
-  # Fall through
-} elsif ($magic eq "EXT") {
-  # This is an external stream reference (a jered-special)
-  &play_external_reference(\%opts, $magic);
-  exit 0;
-} elsif ($magic eq "htt") {
-  # This is an external stream reference (a jered-special)
-  &play_external_reference(\%opts, $magic);
-  exit 0;
-} elsif ($magic eq "Ogg") {
-  # Ogg-Vorbis audio file
-  &play_ogg_audio(\%opts);
-  exit 0;
-} elsif ($magic0 == 0x52 && $magic1 == 0x49) {
-  &play_wav_audio(\%opts);
-  exit 0;
-} else {
-    # add more cases later, whine for now
-    printf(ZEPHYR "I don't think this is an MPEG audio file... %02x %02x\n",
-	   $magic0, $magic1);
-    print ZEPHYR "I'm going to try playing it as one anyway.\n";
+# Read the metadata information from the file.
+my ($filepath) = catfile($opts{'d'}, $opts{'e'});
+my ($fileinfo) = ImageInfo($filepath);
+my ($magic) = $fileinfo->{FileType};
+
+if ($magic) {
+    printf(ZEPHYR "A file of type %s.", $magic);
+    foreach my $key (sort keys %$fileinfo) {
+	printf(ZEPHYR "%s: %s\n", $key, $fileinfo->{$key});
+    }
 }
-# Default
-&play_mpeg_audio(\%opts);
-
+elsif (-T $filepath) {
+    $filepath = resolve_external_reference($filepath, \%opts);
+}
+close(ZEPHYR);
+play_mplayer_audio($filepath, \%opts);
 
 # Play an external stream reference
-sub play_external_reference {
+sub resolve_external_reference {
     # Retrieve those command line opts.
-    my %opts = %{shift(@_)};
-    my $magic = shift(@_);
+    my ($filepath, $opts) = @_;
 
-    # External references are *not* playlists; they only support
-    # a single URL in order to be fair.  A reference is structured as
-    # follows:
-    #
-    # EXT <format>\n
-    # <URI>[ <user:pass>]\n
-    # Descriptive text of the file that will be\n
-    # played; this may span multiple lines until the\n
-    # EOF
-    #
-    # Where <URI> is a valid URI for the stream, and <format> is a
-    # recognized format name (currently 'MP3' or 'OGG' or 'SHOUTCAST').
-    # <user:pass> is an optional user and password pair for HTTP Basic Auth.
     my $format, $uri, $userpass;
 
-    if ("$magic" eq "EXT") {
-      if (<STDIN> =~ /^EXT (.*)$/) {
-        # Found the header
-        $format = $1;
-      } else {
-        print ZEPHYR "Couldn't read EXT header\n";
-        close(ZEPHYR);
-      }
-  
-      if (<STDIN> =~ /^(\S*)\s*(.*)$/) {
-        # Found the URI (and optionally user:pass)
-        $uri = $1;
-        if ($2) {
-  	$userpass = $2;
-        }
-      } else {
+    if (<STDIN> =~ /^(\S+)/) {
+	$uri=$1;
+
+	my $response = $ua->head($uri);
+	
+	$contenttype=($response->content_type() or "unknown");
+	
+	if ($contenttype eq "audio/mpeg") { $format="MP3" }
+	elsif ($contenttype eq "application/x-ogg") { $format="OGG" }
+	elsif ($contenttype eq "application/ogg") { $format="OGG" }
+	elsif ($contenttype eq "audio/x-scpls") { $format="SHOUTCAST" }
+	else {
+	    print ZEPHYR
+		"Unknown Content-Type $contenttype for URI $uri\n";
+	    close(ZEPHYR);
+	}
+    } else {
         print ZEPHYR "Couldn't read URI for external reference\n";
         close(ZEPHYR);
-      }
-  } elsif ("$magic" eq "htt") {
-      if (<STDIN> =~ /^(\S*)\s*(.*)$/) {
-	  $uri=$1;
-	  my $pid = open(W3M, "-|");
-	  unless (defined $pid) {
-	      print ZEPHYR "Couldn't fork: $!\n";
-	      close(ZEPHYR);
-	      die;
-	  }
-
-	  if ($pid) { #parent
-	      $contenttype="unknown";
-	      while (<W3M>) {
-		  if ($_ =~ /^Content-Type:\s(\S*)/) {
-		      $contenttype=$1;
-		  }
-	      }
-	      if ($contenttype eq "audio/mpeg") { $format="MP3" }
-	      elsif ($contenttype eq "application/x-ogg") { $format="OGG" }
-	      elsif ($contenttype eq "application/ogg") { $format="OGG" }
-	      elsif ($contenttype eq "audio/x-scpls") { $format="SHOUTCAST" }
-	      else {
-		  print ZEPHYR
-		      "Unknown Content-Type $contenttype for URI $uri\n";
-		  close(ZEPHYR);
-	      }
-	      close(W3M) || print ZEPHYR "w3m exited $?\n";
-	  }
-	  else { # child
-	      exec("/mit/sipb/bin/w3m", "-dump_head", $uri)
-		  || die "Couldn't exec";
-	  }
-      } else {
-        print ZEPHYR "Couldn't read URI for external reference\n";
-        close(ZEPHYR);
+	return $filepath;
     }
-  } else {
-      print ZEPHYR "Unknown syntax in play_external_reference(): $magic\n";
-      close(ZEPHYR);
-  }
 
-    # Echo the rest to the zephyr
-    while (<STDIN>) {
-      print ZEPHYR $_;
-    }
-    print ZEPHYR "\n";
-
-    # Play the thing the right way
-    if (($format eq "MP3") ||
-	($format eq "mp3")) {
-      print ZEPHYR "MP3 audio stream...\n";
-      close(ZEPHYR);
-      &play_mpeg_stream($uri, $userpass);
-    }
-    elsif ($format eq "SHOUTCAST") {
+    if ($format eq "SHOUTCAST") {
 	print ZEPHYR "Shoutcast playlist...\n";
 	#Don't close ZEPHYR yet, will print the name of the stream if available
-	$uri = &get_shoutcast($uri);
-	close(ZEPHYR);
-	&play_mpeg_stream($uri, undef);
-    }	
-    elsif (($format eq "OGG") ||
-	     ($format eq "ogg")) {
-      print ZEPHYR "OggVorbis stream...\n";
-      close(ZEPHYR);
-      &play_ogg_stream($uri, $userpass);
+	return &get_shoutcast($uri);
+    } elsif ($format eq "MP3") {
+    } elsif ($format eq "OGG") {
     } else {
       print ZEPHYR "Unrecognized stream format: $format\n";
-      close(ZEPHYR);
     }
+    return $uri;
 }
 
 # Process a Shoutcast playlist
@@ -225,17 +131,9 @@ sub play_external_reference {
 sub get_shoutcast {
   my $uri = shift(@_);
   
-  # grab the shoutcast .pls file
-  my $pid = open(W3M, "-|");
-  unless (defined $pid) {
-      print ZEPHYR "Couldn't fork: $!\n";
-      close(ZEPHYR);
-      die;
-  }
-  if (!$pid) { # child
-      exec("/mit/sipb/bin/w3m","-dump_source",$uri) || die "Couldn't fork";
-  }
-  while (<W3M>) {
+  my $response = $ua->get($uri);
+
+  foreach (split("\n", $response->content())) {
       if (/^File\d+=(\S+)/) {
 	  push(@uris, $1);
       }
@@ -243,7 +141,6 @@ sub get_shoutcast {
 	  push(@titles, $1);
       }
   }
-  close(W3M);
   
   # choose a random server
   $server = int(rand scalar(@uris));
@@ -252,59 +149,44 @@ sub get_shoutcast {
   return $uris[$server];
 }
 
-# Play an MPEG audio stream
-# play_mpeg_stream(URI, userpass)
-sub play_mpeg_stream {
-  my $uri = shift(@_);
-  my $userpass = shift(@_);
+sub play_mplayer_audio {
+    my ($filepath, $opts) = @_;
 
-  # Add the user:pass argument if is was given to us
-  my $up = '';
-  if ($userpass) {
-    $up = '-u ' . $userpass;
-  }
-
-  system("ps ax | grep ogg123 | awk '{print $2}' | xargs kill -9");
-  system("ps ax | grep mpg123 | awk '{print $2}' | xargs kill -9");
-  system("chmod a+rw /dev/audio");
-
-  # Prepare to write status:
-  open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c sipb-auto -i ' .
-       'sipbmp3@xcb -s "SIPB LPR music spooler"');
-      
-  # fork for mpg123
-  my $pid = open(MP3STATUS, "-|");
-  unless (defined $pid) {
-      print ZEPHYR "Couldn't fork: $!\n";
-      close(ZEPHYR);
-      return;
-  }
-  
-  if ($pid) { #parent
-      # Check if there were any errors
-      if ($_ = <MP3STATUS>) {
-	  print ZEPHYR "Playback completed with the following errors:\n";
-	  print ZEPHYR $_;
-	  while (<MP3STATUS>) {
-	      print ZEPHYR $_;
-	  }
-      } else {
-	  print ZEPHYR "Playback completed successfully.\n";
-      }
-      close(MP3STATUS) || print ZEPHYR "mpg123 exited $?\n";
-      
-      close(ZEPHYR);
-  }
+    # Prepare to write status:
+    open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c sipb-auto -i ' .
+	 'sipbmp3@zsr -s "SIPB LPR music spooler"');
+    
+    # fork for mpg123
+    my $pid = open(MP3STATUS, "-|");
+    unless (defined $pid) {
+	print ZEPHYR "Couldn't fork: $!\n";
+	close(ZEPHYR);
+	return;
+    }
+    
+    if ($pid) { #parent
+	# Check if there were any errors
+	if ($_ = <MP3STATUS>) {
+	    print ZEPHYR "Playback completed with the following errors:\n";
+	    print ZEPHYR $_;
+	    while (<MP3STATUS>) {
+		print ZEPHYR $_;
+	    }
+	} else {
+	    print ZEPHYR "Playback completed successfully.\n";
+	}
+	close(MP3STATUS) || print ZEPHYR "mplayer exited $?\n";
+	
+	close(ZEPHYR);
+    }
   else { # child
       # redirect STDERR to STDOUT
       open STDERR, '>&STDOUT';
-
-      # disabling the buffer seems to improve streaming performances
-      # (files don't get cut in the middle) - perhaps mpg123 fails to
-      # wait for OS TCP buffer to be filled. -- jtwang 22 Oct 2003
-      #exec("/mit/infoagents/bin/mpg123", "-b16384", "-q", $up, $uri ||
-      #   die "Couldn't exec";
-      exec("/mit/infoagents/bin/mpg123", "-q", $up, $uri) ||
+      # make sure that mplayer doesn't try to intepret the file as keyboard input
+      close(STDIN);
+      open(STDIN, "/dev/null");
+      #print STDERR Dumper([qw|/usr/bin/mplayer -nolirc -ao alsa -quiet|, $filepath]);
+      exec(qw|/usr/bin/mplayer -nolirc -ao alsa -quiet|, $filepath) ||
 	  die "Couldn't exec";
   }
 }
@@ -321,328 +203,3 @@ sub filter_comment {
 }
 
 
-# Play an MPEG audio file
-sub play_mpeg_audio {
-    # Retrieve those command line opts.
-    my %opts = %{shift(@_)};
-
-    my %MPEGModes = ( 0 => "stereo",
-		      1 => "joint-stereo",
-		      2 => "dual-channel",
-		      3 => "single-channel");
-
-    # If it's an MP3 file, try to extract useful data
-    my $tag = get_mp3tag("$opts{'d'}/$opts{'e'}");
-    if (!$tag) {
-	print ZEPHYR "No ID3 tag found\n";
-        my @fnamearray = split /,/, $opts{'J'};
-        foreach $fname (@fnamearray) {
-            print ZEPHYR "Filename: $fname\n";
-        }
-#	    print ZEPHYR "Filename: $opts{'J'}\n\n";
-    } else {
-      print ZEPHYR "Title          : $tag->{TITLE}\n";
-      print ZEPHYR "Artist         : $tag->{ARTIST}\n";
-      print ZEPHYR "Album          : $tag->{ALBUM}\n";
-      if ($tag->{TRACKNUM} =~ /(.*)\/.*/) {
-	  $tag->{TRACKNUM} = $1;
-      }
-      if ($tag->{TRACKNUM}) {
-	  print ZEPHYR "Track #        : $tag->{TRACKNUM}\n";
-      }
-      if ($tag->{YEAR}) {
-	print ZEPHYR "Year           : $tag->{YEAR}\n";
-      }
-      if ($tag->{GENRE}) {
-	# iTunes (?) does something weird with genres, leaving them
-	# as the string "(##)" where ## is the genre type. Let's deal
-	# with this.
-	if ($tag->{GENRE} =~ /^\((\d*)\)$/) {
-	  $tag->{GENRE} = $MP3::Info::mp3_genres[$1];
-	}
-	if ($tag->{GENRE} =~ /^(\d*)$/) {
-	  $tag->{GENRE} = $MP3::Info::mp3_genres[$1];
-	}
-	print ZEPHYR "Genre          : $tag->{GENRE}\n";
-      }
-      if (ref $tag->{COMMENT} eq 'ARRAY') {
-	foreach $index (0 .. $#{$tag->{COMMENT}}) {
-	  if ($comment = filter_comment(@{$tag->{COMMENT}}[$index])) {
-	    print ZEPHYR "Comment        : $comment\n";
-	  }
-	}
-      } elsif ($tag->{COMMENT}) {
-	if ($comment = filter_comment($tag->{COMMENT})) {
-	  print ZEPHYR "Comment        : $comment\n";
-	}
-      }
-
-      # Maybe get some extended ID3v2 info?
-      my $v2tag = get_mp3tag("$opts{'d'}/$opts{'e'}", 2, 1);
-      %lessinfo = %$v2tag;
-      foreach $dtag (keys %MP3::Info::v2_to_v1_names) {
-	delete $lessinfo{$dtag};
-      }
-      delete $lessinfo{'GENRE'};
-      # Delete annoying useless crap
-      my @bad_tags = ('GEO', 'GEOB', # General encapsulated object
-		      'PIC', 'APIC', # Attached picture.
-		      );
-      foreach $dtag (@bad_tags) {
-	  delete $lessinfo{$dtag};
-      }
-      while (($key,$val) = each %lessinfo) {
-	printf ZEPHYR "%-15s: %s\n", $MP3::Info::v2_tag_names{$key}, $val;
-      }
-      print ZEPHYR "\n";
-    }
-
-    my $info = get_mp3info("$opts{'d'}/$opts{'e'}");
-    if (!$info) {
-	print ZEPHYR "No MPEG header found\n";
-    } else {
-	print ZEPHYR "MPEG $info->{VERSION} layer $info->{LAYER}, ";
-	if ($info->{VBR}) {
-	    print ZEPHYR "VBR ";
-	}
-	print ZEPHYR "$info->{BITRATE} kbit/s, $info->{FREQUENCY} kHz ";
-	print ZEPHYR $MPEGModes{$info->{STEREO}};
-	print ZEPHYR "\n\n";
-	printf ZEPHYR "Track length: %d:%02ds\n", $info->{MM}, $info->{SS};
-    }
-    close(ZEPHYR);
-
-    # Play the file
-    # mpg123 is a crock.  If you don't give it -q, it needs to be on a pty
-    # or it SEGVs. Really.
-
-    system("chmod a+rw /dev/audio");
-    system("ps ax | grep ogg123 | awk '{print $2}' | xargs kill -9");
-    system("ps ax | grep mpg123 | awk '{print $2}' | xargs kill -9");
-    system("/mit/infoagents/bin/mpg123 -b 16384 -q - >/tmp/mpg123.out 2>&1");
-
-    # Done. Status:
-    open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c sipb-auto -i ' .
-	 'sipbmp3@xcb -s "SIPB LPR music spooler"');
-
-    # Check if there were any errors
-    open(MP3STATUS, "/tmp/mpg123.out");
-    if ($_ = <MP3STATUS>) {
-	print ZEPHYR "Playback completed with the following errors:\n";
-	print ZEPHYR $_;
-	while (<MP3STATUS>) {
-	    print ZEPHYR $_;
-	}
-    } else {
-	print ZEPHYR "Playback completed successfully.\n";
-	# Repeat tag data for those playing at home
-	if (!$tag) {
-	  print ZEPHYR "No ID3 tag found\n";
-	  print ZEPHYR "Filename: $opts{'J'}\n\n";
-	} else {
-	  print ZEPHYR "Title          : $tag->{TITLE}\n";
-	  print ZEPHYR "Artist         : $tag->{ARTIST}\n";
-	  print ZEPHYR "Album          : $tag->{ALBUM}\n";
-	  if ($tag->{TRACKNUM} =~ /(.*)\/.*/) {
-	      $tag->{TRACKNUM} = $1;
-	  }
-	  if ($tag->{TRACKNUM}) {
-	      print ZEPHYR "Track #        : $tag->{TRACKNUM}\n";
-	  }
-	  if ($tag->{YEAR}) {
-	    print ZEPHYR "Year           : $tag->{YEAR}\n";
-	  }
-	  if ($tag->{GENRE}) {
-	      print ZEPHYR "Genre          : $tag->{GENRE}\n";
-	  }
-	  if (ref $tag->{COMMENT} eq 'ARRAY') {
-	    foreach $index (0 .. $#{$tag->{COMMENT}}) {
-	      if ($comment = filter_comment(@{$tag->{COMMENT}}[$index])) {
-		print ZEPHYR "Comment        : $comment\n";
-	      }
-	    }
-	  } elsif ($tag->{COMMENT}) {
-	    if ($comment = filter_comment($tag->{COMMENT})) {
-	      print ZEPHYR "Comment        : $comment\n";
-	    }
-	  }
-
-	  # others
-	  while (($key,$val) = each %lessinfo) {
-	    printf ZEPHYR "%-15s: %s\n", $MP3::Info::v2_tag_names{$key}, $val;
-	  }
-	}
-    }
-    close(MP3STATUS);
-    unlink(MP3STATUS);
-
-    close(ZEPHYR);
-}
-
-# Play an OggVorbis audio stream (doesn't support auth!)
-# play_ogg_stream(URI)
-#  Mostly copied from play_ogg_audio
-sub play_ogg_stream {
-  my $uri = shift(@_);
-
-  system("chmod a+rw /dev/audio");
-  system("ps -aef | grep ogg123 | awk '{print $2}' | xargs kill -9");
-  system("ps -aef | grep mpg123 | awk '{print $2}' | xargs kill -9");
-
-  # Prepare to write status:
-  open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c sipb-auto -i sipbmp3@xcb -s "SIPB LPR music spooler"');
-  system("/mit/sipb/bin/ogg123 -b 256 -dau -q -f - $uri 2> /tmp/ogg123.out | audioplay");
-
-  # Check if there were any errors
-  open(OGGSTATUS, "/tmp/ogg123.out");
-  if ($_ = <OGGSTATUS>) {
-    print ZEPHYR "Playback completed with the following errors:\n";
-    print ZEPHYR $_;
-    while (<OGGSTATUS>) {
-      print ZEPHYR $_;
-    }
-  } else {
-    print ZEPHYR "Playback completed successfully.\n";
-    # Repeat tag data for those playing at home
-    if (!$ogginfo{'title'}) {
-      print ZEPHYR "No ogginfo data found\n";
-      print ZEPHYR "Filename: $opts{'J'}\n\n";
-    } else {
-      print ZEPHYR "Title          : $ogginfo{'title'}\n";
-      print ZEPHYR "Artist         : $ogginfo{'artist'}\n";
-      print ZEPHYR "Album          : $ogginfo{'album'}\n";
-      print ZEPHYR "Track #        : $ogginfo{'tracknumber'}\n";
-
-      # others
-      while (($key,$val) = each %lessinfo) {
-	printf ZEPHYR "%-15s: %s\n", $key, $val;
-      }
-    }
-  }
-
-  close(OGGSTATUS);
-  unlink(OGGSTATUS);
-
-  close(ZEPHYR);
-}
-
-# Play an OggVorbis audio file
-sub play_ogg_audio {
-  # Retrieve those command line opts.
-  my %opts = %{shift(@_)};
-
-  # Get ogginfo stuff
-  open(OGGINFO, "/mit/sipb/bin/ogginfo $opts{'d'}/$opts{'e'}|");
-  while (<OGGINFO>) {
-    if (/(.*)=(.*)/) {
-      $ogginfo{lc("$1")} = $2;
-    }
-  }
-  close(OGGINFO);
-
-  # If there's no title, print the filename
-  if (!$ogginfo{'title'}) {
-    print ZEPHYR "No ogginfo data found\n";
-    print ZEPHYR "Filename: $opts{'J'}\n";
-  } else {
-    print ZEPHYR "Title          : $ogginfo{'title'}\n";
-    print ZEPHYR "Artist         : $ogginfo{'artist'}\n";
-    print ZEPHYR "Album          : $ogginfo{'album'}\n";
-    print ZEPHYR "Track #        : $ogginfo{'tracknumber'}\n";
-
-    # others
-    %lessinfo = %ogginfo;
-    delete $lessinfo{'filename'};
-    delete $lessinfo{'title'};
-    delete $lessinfo{'artist'};
-    delete $lessinfo{'album'};
-    delete $lessinfo{'tracknumber'};
-    delete $lessinfo{'header_integrity'};
-    delete $lessinfo{'stream_integrity'};
-    delete $lessinfo{'file_truncated'};
-    delete $lessinfo{'version'};
-    delete $lessinfo{'channels'};
-    delete $lessinfo{'bitrate_upper'};
-    delete $lessinfo{'bitrate_nominal'};
-    delete $lessinfo{'bitrate_lower'};
-    delete $lessinfo{'bitrate_average'};
-    delete $lessinfo{'length'};
-    delete $lessinfo{'playtime'};
-    delete $lessinfo{'kbps'};
-    delete $lessinfo{'time'};
-    delete $lessinfo{'rg_radio'};
-    delete $lessinfo{'rg_audiophile'};
-    delete $lessinfo{'rg_peak'};
-    delete $lessinfo{'replaygain_album_peak'};
-    delete $lessinfo{'replaygain_track_peak'};
-    delete $lessinfo{'replaygain_album_gain'};
-    delete $lessinfo{'replaygain_track_gain'};
-
-    while (($key,$val) = each %lessinfo) {
-      printf ZEPHYR "%-15s: %s\n", $key, $val;
-    }
-  }
-
-  printf ZEPHYR "\nOgg Vorbis, average %.1f kbit/s, %d channels\n\n",
-    $ogginfo{'bitrate_average'}/1024, $ogginfo{'channels'};
-  print ZEPHYR "Track length: $ogginfo{'playtime'}s\n";
-  close(ZEPHYR);
-
-  # Play the file
-
-  system("chmod a+rw /dev/audio");
-  system("ps -aef | grep ogg123 | awk '{print $2}' | xargs kill -9");
-  system("ps -aef | grep mpg123 | awk '{print $2}' | xargs kill -9");
-  system("/mit/sipb/bin/ogg123 -b 40000 -dau -q -f - - 2> /tmp/ogg123.out | audioplay");
-
-  # Done. Status:
-  open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c sipb-auto -i sipbmp3@xcb -s "SIPB LPR music spooler"');
-
-  # Check if there were any errors
-  open(OGGSTATUS, "/tmp/ogg123.out");
-  if ($_ = <OGGSTATUS>) {
-    print ZEPHYR "Playback completed with the following errors:\n";
-    print ZEPHYR $_;
-    while (<OGGSTATUS>) {
-      print ZEPHYR $_;
-    }
-  } else {
-    print ZEPHYR "Playback completed successfully.\n";
-    # Repeat tag data for those playing at home
-    if (!$ogginfo{'title'}) {
-      print ZEPHYR "No ogginfo data found\n";
-      print ZEPHYR "Filename: $opts{'J'}\n\n";
-    } else {
-      print ZEPHYR "Title          : $ogginfo{'title'}\n";
-      print ZEPHYR "Artist         : $ogginfo{'artist'}\n";
-      print ZEPHYR "Album          : $ogginfo{'album'}\n";
-      print ZEPHYR "Track #        : $ogginfo{'tracknumber'}\n";
-
-      # others
-      while (($key,$val) = each %lessinfo) {
-	printf ZEPHYR "%-15s: %s\n", $key, $val;
-      }
-    }
-  }
-
-  close(OGGSTATUS);
-  unlink(OGGSTATUS);
-
-  close(ZEPHYR);
-}
-
-# Play a WAV audio file
-sub play_wav_audio {
-  # Retrieve those command line opts.
-  my %opts = %{shift(@_)};
-
-  print ZEPHYR "No info\n";
-  print ZEPHYR "Filename: $opts{'J'}\n";
-  close(ZEPHYR);
-
-  # Play the file
-
-  system("chmod a+rw /dev/audio");
-  system("ps -aef | grep audioplay | awk '{print $2}' | xargs kill -9");
-  system("/usr/bin/audioplay $opts{'J'}");
-}
