@@ -1,7 +1,7 @@
 #!/usr/athena/bin/perl
 # Play the data on STDIN as an audio file
 #
-# $Id: sipbmp3-filter,v 1.17 2008-09-27 21:35:09 root Exp $
+# $Id: sipbmp3-filter,v 1.18 2008-09-28 23:36:26 geofft Exp $
 # $Source: /tmp/tmp.UFBNno9997/RCS/sipbmp3-filter,v $
 #
 # TODO
@@ -12,6 +12,7 @@
 # License, cleanup and package
 #
 # Jered Floyd <jered@mit.edu> takes very little credit for this code
+# apparently neither does Quentin Smith <quentin@mit.edu>
 
 use Getopt::Std;
 
@@ -64,7 +65,7 @@ getopt('ACFHJLPQRZacdefhijklnprswxy', \%opts);
 # Status messages at start of playback
 open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c sipb-auto -i ' .
   'sipbmp3@zsr -s "SIPB LPR music spooler"');
-print(ZEPHYR "User $opts{'n'} on host $opts{'H'} is playing:\n");
+print(ZEPHYR "$opts{'n'}\@$opts{'H'} is playing:\n");
 
 # So, the file we're currently processing is "-d/-e".
 
@@ -74,9 +75,10 @@ my ($fileinfo) = ImageInfo($filepath);
 my ($magic) = $fileinfo->{FileType};
 
 if ($magic) {
-    printf(ZEPHYR "A file of type %s.\n", $magic);
-    foreach my $key (qw/Title Artist Album AlbumArtist Tracknumber TrackDuration MIMEType/) {
-	printf(ZEPHYR "%s: %s\n", $key, $fileinfo->{$key}) if exists $fileinfo->{$key};
+    printf(ZEPHYR "%s file %s\n", $magic, $opts{'J'});
+    printf(ZEPHYR "\@b(%s)\n", $fileinfo->{'Title'}) if exists $fileinfo->{'Title'};
+    foreach my $key (qw/Artist Album AlbumArtist Tracknumber TrackDuration/) {
+	printf(ZEPHYR "%s\n", $fileinfo->{$key}) if exists $fileinfo->{$key};
     }
 }
 elsif (-T $filepath) {
@@ -186,7 +188,7 @@ sub play_mplayer_audio {
       close(STDIN);
       open(STDIN, "/dev/null");
       #print STDERR Dumper([qw|/usr/bin/mplayer -nolirc -ao alsa -quiet|, $filepath]);
-      exec(qw|/usr/bin/mplayer -nolirc -ao alsa -quiet|, $filepath) ||
+      exec(qw|/usr/bin/mplayer -nolirc -ao alsa -really-quiet|, $filepath) ||
 	  die "Couldn't exec";
   }
 }
