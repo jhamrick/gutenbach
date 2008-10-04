@@ -1,7 +1,7 @@
 #!/usr/athena/bin/perl
 # Play the data on STDIN as an audio file
 #
-# $Id: sipbmp3-filter,v 1.18 2008-09-28 23:36:26 geofft Exp $
+# $Id: sipbmp3-filter,v 1.19 2008-10-04 07:50:26 root Exp $
 # $Source: /tmp/tmp.UFBNno9997/RCS/sipbmp3-filter,v $
 #
 # TODO
@@ -81,9 +81,17 @@ if ($magic) {
 	printf(ZEPHYR "%s\n", $fileinfo->{$key}) if exists $fileinfo->{$key};
     }
 }
-elsif (-T $filepath) {
+elsif ($opts{'C'} eq 'Z') {
     $filepath = resolve_external_reference($filepath, \%opts);
 }
+elsif (-T $filepath) {
+    split_playlist($filepath, \%opts);
+    close(ZEPHYR);
+    exit 0;
+}
+#printf(STDERR Dumper(\%opts));
+#printf(STDERR "Job priority %s\n", $opts{'C'}) if $opts{'C'} eq 'Z';
+#printf(ZEPHYR "Job priority %s\n", $opts{'C'}) if ($opts{'C'} && ($opts{'C'} ne 'A'));
 close(ZEPHYR);
 play_mplayer_audio($filepath, \%opts);
 
@@ -126,6 +134,24 @@ sub resolve_external_reference {
       print ZEPHYR "Unrecognized stream format: $format\n";
     }
     return $uri;
+}
+
+sub split_playlist {
+    my ($file, $opts) = @_;
+
+    my $i = 0;
+    
+    while (<STDIN>) {
+	chomp;
+	if (/^([^#]\S+)/) {
+	    printf (STDERR "Found line: %s\n", $_);
+	    open(LPR, "|-", qw/mit-lpr -Psipbmp3@localhost -CZ/, '-J'.$opts->{J});
+	    print LPR $1;
+	    close(LPR);
+	$i++;
+	}
+    }
+    printf(ZEPHYR "Playlist containing %d valid entries, split into separate jobs.\n", $i);
 }
 
 # Process a Shoutcast playlist
