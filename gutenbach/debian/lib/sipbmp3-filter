@@ -1,7 +1,7 @@
 #!/usr/athena/bin/perl
 # Play the data on STDIN as an audio file
 #
-# $Id: sipbmp3-filter,v 1.20 2008-10-04 07:51:29 root Exp $
+# $Id: sipbmp3-filter,v 1.21 2008-10-05 23:55:59 quentin Exp $
 # $Source: /tmp/tmp.UFBNno9997/RCS/sipbmp3-filter,v $
 #
 # TODO
@@ -13,8 +13,6 @@
 #
 # Jered Floyd <jered@mit.edu> takes very little credit for this code
 # apparently neither does Quentin Smith <quentin@mit.edu>
-
-use Getopt::Std;
 
 use Image::ExifTool qw(ImageInfo);
 use File::Spec::Functions;
@@ -59,8 +57,21 @@ $< = $>;
 #  -y printcap py (page y dimension)
 # accounting file name
 
-# All the filter_options from lpd
-getopt('ACFHJLPQRZacdefhijklnprswxy', \%opts);
+printf(STDERR "Got \@ARGV: %s\n", Dumper(\@ARGV));
+
+my %opts;
+
+my @NEWARGV;
+
+foreach my $arg (@ARGV) {
+  if ($arg =~ m/^-([a-zA-Z])(.*)$/) {
+    $opts{$1} = $2;
+  } else {
+    push @NEWARGV, @ARGV;
+  }
+}
+
+@ARGV = @NEWARGV;
 
 # Status messages at start of playback
 open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c sipb-auto -i ' .
@@ -89,7 +100,7 @@ elsif (-T $filepath) {
     close(ZEPHYR);
     exit 0;
 }
-#printf(STDERR Dumper(\%opts));
+printf(STDERR Dumper(\%opts));
 #printf(STDERR "Job priority %s\n", $opts{'C'}) if $opts{'C'} eq 'Z';
 #printf(ZEPHYR "Job priority %s\n", $opts{'C'}) if ($opts{'C'} && ($opts{'C'} ne 'A'));
 close(ZEPHYR);
