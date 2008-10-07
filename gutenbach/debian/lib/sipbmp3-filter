@@ -1,7 +1,7 @@
 #!/usr/athena/bin/perl
 # Play the data on STDIN as an audio file
 #
-# $Id: sipbmp3-filter,v 1.21 2008-10-05 23:55:59 quentin Exp $
+# $Id: sipbmp3-filter,v 1.22 2008-10-07 00:20:36 quentin Exp $
 # $Source: /tmp/tmp.UFBNno9997/RCS/sipbmp3-filter,v $
 #
 # TODO
@@ -94,6 +94,7 @@ if ($magic) {
 }
 elsif ($opts{'C'} eq 'Z') {
     $filepath = resolve_external_reference($filepath, \%opts);
+    printf(ZEPHYR "%s\n", $filepath);
 }
 elsif (-T $filepath) {
     split_playlist($filepath, \%opts);
