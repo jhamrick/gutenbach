@@ -1,7 +1,7 @@
 #!/usr/athena/bin/perl
 # Play the data on STDIN as an audio file
 #
-# $Id: sipbmp3-filter,v 1.22 2008-10-07 00:20:36 quentin Exp $
+# $Id: sipbmp3-filter,v 1.23 2008-10-14 10:20:50 quentin Exp $
 # $Source: /tmp/tmp.UFBNno9997/RCS/sipbmp3-filter,v $
 #
 # TODO
@@ -73,6 +73,8 @@ foreach my $arg (@ARGV) {
 
 @ARGV = @NEWARGV;
 
+printf(STDERR Dumper(\%opts));
+
 # Status messages at start of playback
 open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c sipb-auto -i ' .
   'sipbmp3@zsr -s "SIPB LPR music spooler"');
@@ -94,14 +96,15 @@ if ($magic) {
 }
 elsif ($opts{'C'} eq 'Z') {
     $filepath = resolve_external_reference($filepath, \%opts);
+    print STDERR "Resolved external reference to $filepath\n";
     printf(ZEPHYR "%s\n", $filepath);
+    close(ZEPHYR);
 }
 elsif (-T $filepath) {
     split_playlist($filepath, \%opts);
     close(ZEPHYR);
     exit 0;
 }
-printf(STDERR Dumper(\%opts));
 #printf(STDERR "Job priority %s\n", $opts{'C'}) if $opts{'C'} eq 'Z';
 #printf(ZEPHYR "Job priority %s\n", $opts{'C'}) if ($opts{'C'} && ($opts{'C'} ne 'A'));
 close(ZEPHYR);
@@ -128,11 +131,9 @@ sub resolve_external_reference {
 	else {
 	    print ZEPHYR
 		"Unknown Content-Type $contenttype for URI $uri\n";
-	    close(ZEPHYR);
 	}
     } else {
         print ZEPHYR "Couldn't read URI for external reference\n";
-        close(ZEPHYR);
 	return $filepath;
     }
 
@@ -226,7 +227,9 @@ sub play_mplayer_audio {
       close(STDIN);
       open(STDIN, "/dev/null");
       #print STDERR Dumper([qw|/usr/bin/mplayer -nolirc -ao alsa -quiet|, $filepath]);
-      exec(qw|/usr/bin/mplayer -nolirc -ao alsa -really-quiet|, $filepath) ||
+      my @args = (qw|/usr/bin/mplayer -vo null -nolirc -ao alsa -cache 512 -really-quiet|, $filepath);
+      #print STDERR "About to exec: ", Dumper([@args]);
+      exec(@args) ||
 	  die "Couldn't exec";
   }
 }
