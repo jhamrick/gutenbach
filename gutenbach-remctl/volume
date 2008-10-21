@@ -1,0 +1,15 @@
+volume set  /usr/local/bin/volume-set	 ANYUSER 
+volume get  /usr/local/bin/volume-get    ANYUSER
+volume mute /usr/local/bin/volume-mute   ANYUSER 
+volume up   /usr/local/bin/volume-up     ANYUSER 
+volume down /usr/local/bin/volume-down   ANYUSER 
+
+v set  /usr/local/bin/volume-set    ANYUSER 
+v get  /usr/local/bin/volume-get    ANYUSER
+v mute /usr/local/bin/volume-mute   ANYUSER 
+v up   /usr/local/bin/volume-up     ANYUSER 
+v down /usr/local/bin/volume-down   ANYUSER 
+
+volume help /usr/local/bin/volume-help ANYUSER
+v      help /usr/local/bin/volume-help ANYUSER
+help   ALL  /usr/local/bin/volume-help ANYUSER
