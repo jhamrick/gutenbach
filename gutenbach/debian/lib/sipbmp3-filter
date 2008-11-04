@@ -1,7 +1,7 @@
 #!/usr/athena/bin/perl
 # Play the data on STDIN as an audio file
 #
-# $Id: sipbmp3-filter,v 1.23 2008-10-14 10:20:50 quentin Exp $
+# $Id: sipbmp3-filter,v 1.24 2008-11-04 04:21:19 geofft Exp $
 # $Source: /tmp/tmp.UFBNno9997/RCS/sipbmp3-filter,v $
 #
 # TODO
@@ -89,7 +89,7 @@ my ($magic) = $fileinfo->{FileType};
 
 if ($magic) {
     printf(ZEPHYR "%s file %s\n", $magic, $opts{'J'});
-    printf(ZEPHYR "\@b(%s)\n", $fileinfo->{'Title'}) if exists $fileinfo->{'Title'};
+    printf(ZEPHYR "\@b{%s}\n", $fileinfo->{'Title'}) if exists $fileinfo->{'Title'};
     foreach my $key (qw/Artist Album AlbumArtist/) {
 	printf(ZEPHYR "%s\n", $fileinfo->{$key}) if exists $fileinfo->{$key};
     }
