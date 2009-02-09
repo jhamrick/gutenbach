@@ -1,7 +1,7 @@
 #!/usr/athena/bin/perl
 # Play the data on STDIN as an audio file
 #
-# $Id: sipbmp3-filter,v 1.24 2008-11-04 04:21:19 geofft Exp $
+# $Id: sipbmp3-filter,v 1.25 2009-02-09 00:07:49 geofft Exp $
 # $Source: /tmp/tmp.UFBNno9997/RCS/sipbmp3-filter,v $
 #
 # TODO
@@ -16,6 +16,8 @@
 
 use Image::ExifTool qw(ImageInfo);
 use File::Spec::Functions;
+use File::Temp qw{tempdir};
+use File::Basename qw(basename);
 use LWP::UserAgent;
 use Data::Dumper;
 
@@ -205,6 +207,9 @@ sub play_mplayer_audio {
 	return;
     }
     
+    my $tempdir = tempdir();
+    my $newpath = $tempdir . '/' . basename($opts{'J'});
+    symlink($filepath, $newpath);
     if ($pid) { #parent
 	# Check if there were any errors
 	if ($_ = <MP3STATUS>) {
@@ -219,6 +224,8 @@ sub play_mplayer_audio {
 	close(MP3STATUS) || print ZEPHYR "mplayer exited $?\n";
 	
 	close(ZEPHYR);
+        unlink($newpath);
+        rmdir($tempdir);
     }
   else { # child
       # redirect STDERR to STDOUT
@@ -227,7 +234,7 @@ sub play_mplayer_audio {
       close(STDIN);
       open(STDIN, "/dev/null");
       #print STDERR Dumper([qw|/usr/bin/mplayer -nolirc -ao alsa -quiet|, $filepath]);
-      my @args = (qw|/usr/bin/mplayer -vo null -nolirc -ao alsa -cache 512 -really-quiet|, $filepath);
+      my @args = (qw|/usr/bin/mplayer -vo null -nolirc -ao alsa -cache 512 -really-quiet|, $newpath);
       #print STDERR "About to exec: ", Dumper([@args]);
       exec(@args) ||
 	  die "Couldn't exec";
