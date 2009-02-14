@@ -1,0 +1,50 @@
+-----------------
+iTunes -> sipbmp3
+-----------------
+This is a simple little script which sends
+music from an iTunes library to the sipbmp3
+lpr server.
+
+* Changelog
+9 Jan 2009 -> price added 'quoted form'
+7 Jan 2009 -> kmill created initial version
+
+* System Requirements
+This script will only work under Mac OS X as
+it uses AppleScript.
+
+* Installation
+There are two parts:
+
+1) Launch the Printer Setup Utility and add
+   an IP Printer with the LPD protocol with
+   the following information:
+    Address: zygorthian-space-raiders.mit.edu
+    Queue: sipbmp3
+   It is not necessary to specify the driver.
+
+2) Create the directory ~/Library/iTunes/Scripts
+   and place the "Send to sipbmp3.scpt" file
+   within.
+
+* Usage
+When in iTunes, select the songs which you
+would like to hear in the office, and click
+"Send to sipbmp3" in the script menu from
+the menu bar.  The script menu looks like a
+little scroll icon.  There will be no
+feedback beyond the pleasant sounds you now
+hear around you.
+
+* Todo
+As it is, there is no feedback, even in the
+event of failure.  This is decidedly not
+optimal.
+
+* And so...
+Do whatever you want with it.  I'd like to
+have a copy if you extend it.
+
+Kyle Miller
+kmill@mit.edu
+
