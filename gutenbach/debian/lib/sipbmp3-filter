@@ -1,7 +1,7 @@
 #!/usr/athena/bin/perl
 # Play the data on STDIN as an audio file
 #
-# $Id: sipbmp3-filter,v 1.25 2009-02-09 00:07:49 geofft Exp $
+# $Id: sipbmp3-filter,v 1.26 2009-02-20 00:27:17 geofft Exp $
 # $Source: /tmp/tmp.UFBNno9997/RCS/sipbmp3-filter,v $
 #
 # TODO
@@ -95,6 +95,10 @@ if ($magic) {
     foreach my $key (qw/Artist Album AlbumArtist/) {
 	printf(ZEPHYR "%s\n", $fileinfo->{$key}) if exists $fileinfo->{$key};
     }
+    my $tempdir = tempdir();
+    my $newpath = $tempdir . '/' . basename($opts{'J'});
+    symlink($filepath, $newpath);
+    $filepath = $newpath;
 }
 elsif ($opts{'C'} eq 'Z') {
     $filepath = resolve_external_reference($filepath, \%opts);
@@ -107,10 +111,16 @@ elsif (-T $filepath) {
     close(ZEPHYR);
     exit 0;
 }
+
 #printf(STDERR "Job priority %s\n", $opts{'C'}) if $opts{'C'} eq 'Z';
 #printf(ZEPHYR "Job priority %s\n", $opts{'C'}) if ($opts{'C'} && ($opts{'C'} ne 'A'));
 close(ZEPHYR);
 play_mplayer_audio($filepath, \%opts);
+
+if ($magic) {
+    unlink($newpath);
+    rmdir($tempdir);
+}
 
 # Play an external stream reference
 sub resolve_external_reference {
@@ -207,9 +217,6 @@ sub play_mplayer_audio {
 	return;
     }
     
-    my $tempdir = tempdir();
-    my $newpath = $tempdir . '/' . basename($opts{'J'});
-    symlink($filepath, $newpath);
     if ($pid) { #parent
 	# Check if there were any errors
 	if ($_ = <MP3STATUS>) {
@@ -224,8 +231,6 @@ sub play_mplayer_audio {
 	close(MP3STATUS) || print ZEPHYR "mplayer exited $?\n";
 	
 	close(ZEPHYR);
-        unlink($newpath);
-        rmdir($tempdir);
     }
   else { # child
       # redirect STDERR to STDOUT
@@ -234,7 +239,7 @@ sub play_mplayer_audio {
       close(STDIN);
       open(STDIN, "/dev/null");
       #print STDERR Dumper([qw|/usr/bin/mplayer -nolirc -ao alsa -quiet|, $filepath]);
-      my @args = (qw|/usr/bin/mplayer -vo null -nolirc -ao alsa -cache 512 -really-quiet|, $newpath);
+      my @args = (qw|/usr/bin/mplayer -vo null -nolirc -ao alsa -cache 512 -really-quiet|, $filepath);
       #print STDERR "About to exec: ", Dumper([@args]);
       exec(@args) ||
 	  die "Couldn't exec";
