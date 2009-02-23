@@ -1,0 +1,7 @@
+*.pyc
+dispatch.fcgi
+tg2env
+*.pyo
+*~
+.python-eggs/*
+devdata.db

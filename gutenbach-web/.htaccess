@@ -1,0 +1,14 @@
+AddDefaultCharset utf-8
+
+Options +FollowSymLinks +ExecCGI
+
+# It's very useful to run dispatch.fcgi as a regular CGI module when
+# doing development work, as useful error messages are then dumped
+# to error.log
+#AddHandler cgi-script .fcgi
+#AddHandler fastcgi-script .fcgi
+
+RewriteEngine On
+RewriteRule ^(dispatch\.fcgi/.*)$ - [L]
+RewriteRule ^(static/.*)$ - [L]
+RewriteRule ^(.*)$ dispatch\.fcgi/$1 [L]

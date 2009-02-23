@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+# If you're using virtualenv, make sure you edit the shebang to use
+# that binary.
+
+# This is a sample dispatch.fcgi file. You will need to copy it to
+# a web accessible directory, and change some of the configuration
+# options.
+
+# This is an ugly hack for some Fedora specific beahvior
+__requires__ = ''
+
+import sys, os
+
+# Where is the actual application turbogears code located?
+turbogears = "/path/to/turbogears"
+
+sys.path.insert(0, turbogears)
+
+# Load the WSGI application from the config file
+from paste.deploy import loadapp
+wsgi_app = loadapp('config:' + turbogears + '/development.ini')
+
+# Deploy it using FastCGI
+if __name__ == '__main__':
+    from flup.server.fcgi import WSGIServer
+    WSGIServer(wsgi_app).run()
+
+

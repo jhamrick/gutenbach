@@ -1,0 +1,20 @@
+#!/bin/bash
+easy_install -i http://www.turbogears.org/2.0/downloads/current/index tg.devtools
+easy_install tg.devtools
+easy_install tg.devtools
+easy_install flup
+
+# Install remctl
+wget http://archives.eyrie.org/software/kerberos/remctl-2.13.tar.gz
+tar -xf remctl-2.13.tar.gz
+rm remctl-2.13.tar.gz
+cd remctl-2.13
+./configure --enable-python
+make
+cd python
+python setup.py build
+python setup.py install
+cd ../..
+rm -rf remctl-2.13
+
+paster --help
