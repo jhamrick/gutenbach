@@ -18,7 +18,7 @@ class RootController(BaseController):
     @expose('sipbmp3web.templates.index')
     def index(self):
         out = dict()
-        out["volume"] = remctl("zsr", command=["v", "get"]).stdout
+        out["volume"] = remctl("zygorthian-space-raiders.mit.edu", command=["v", "get"]).stdout
         return out
 
     @expose('sipbmp3web.templates.about')
