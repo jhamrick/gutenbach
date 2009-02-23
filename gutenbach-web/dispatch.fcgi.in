@@ -18,7 +18,7 @@ sys.path.insert(0, turbogears)
 
 # Load the WSGI application from the config file
 from paste.deploy import loadapp
-wsgi_app = loadapp('config:' + turbogears + '/development.ini')
+wsgi_app = loadapp('config:' + turbogears + '/production.ini')
 
 # Deploy it using FastCGI
 if __name__ == '__main__':
