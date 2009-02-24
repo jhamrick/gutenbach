@@ -1,6 +1,6 @@
 """Main Controller"""
 from sipbmp3web.lib.base import BaseController
-from tg import expose, flash, require, url, request, redirect
+from tg import expose, flash, require, url, request, redirect, validate
 from pylons.i18n import ugettext as _
 #from tg import redirect, validate
 from sipbmp3web.model import DBSession, metadata
@@ -10,16 +10,34 @@ from catwalk.tg2 import Catwalk
 from repoze.what import predicates
 from sipbmp3web.controllers.secure import SecureController
 from remctl import remctl
+import tw.forms as twf
+
+volume_form = twf.TableForm('volume_form', action='volume', children=[
+    twf.TextField('volume', validator=twf.validators.Int(not_empty=True,min=1,max=31))
+])
+
+server = "zygorthian-space-raiders.mit.edu"
 
 class RootController(BaseController):
     admin = Catwalk(model, DBSession)
     error = ErrorController()
 
     @expose('sipbmp3web.templates.index')
-    def index(self):
+    def index(self, **kw):
         out = dict(page="index")
-        out["volume"] = remctl("zygorthian-space-raiders.mit.edu", command=["v", "get"]).stdout
-        return out
+        volume = int(remctl(server, command=["volume", "get"]).stdout.rstrip())
+        if not "volume" in kw: kw["volume"] = volume
+        return dict(
+                    page="index",
+                    volume=volume,
+                    volume_form=volume_form(kw),
+                )
+
+    @validate(form=volume_form, error_handler=index)
+    @expose()
+    def volume(self, **kw):
+        remctl(server, command=["volume", "set", kw["volume"]])
+        redirect('index')
 
     @expose('sipbmp3web.templates.about')
     def about(self):
