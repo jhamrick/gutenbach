@@ -17,11 +17,11 @@ class RootController(BaseController):
 
     @expose('sipbmp3web.templates.index')
     def index(self):
-        out = dict()
+        out = dict(page="index")
         out["volume"] = remctl("zygorthian-space-raiders.mit.edu", command=["v", "get"]).stdout
         return out
 
     @expose('sipbmp3web.templates.about')
     def about(self):
-        return dict()
+        return dict(page="about")
 
