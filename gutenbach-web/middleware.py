@@ -27,7 +27,10 @@ class KinitMiddleware(object):
     """Performs Kerberos authentication with a keytab"""
     def __init__(self, app, global_conf=None):
         self.app = app
-        self.keytab = config["keytab"]
+        try:
+            self.keytab = config["keytab"]
+        except KeyError:
+            self.keytab = None
     def __call__(self, environ, start_response):
         if self.keytab:
             subprocess.call(["/usr/kerberos/bin/kinit", "ezyang/extra", "-k", "-t", self.keytab])
