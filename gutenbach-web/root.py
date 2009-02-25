@@ -11,9 +11,10 @@ from repoze.what import predicates
 from sipbmp3web.controllers.secure import SecureController
 from remctl import remctl
 import tw.forms as twf
+from sipbmp3web.widgets.slider import UISlider
 
 volume_form = twf.TableForm('volume_form', action='volume', children=[
-    twf.TextField('volume', validator=twf.validators.Int(not_empty=True,min=1,max=31))
+    UISlider('volume', min=1, max=31, validator=twf.validators.NotEmpty())
 ])
 
 server = "zygorthian-space-raiders.mit.edu"
@@ -30,7 +31,8 @@ class RootController(BaseController):
         return dict(
                     page="index",
                     volume=volume,
-                    volume_form=volume_form(kw),
+                    volume_form=volume_form,
+                    volume_data=kw,
                 )
 
     @validate(form=volume_form, error_handler=index)

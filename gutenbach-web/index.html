@@ -13,8 +13,8 @@
 
 <body>
     <div id="status">
-        <p>The volume is <span class="volume">$volume</span></p>
-        <div py:replace="volume_form"></div>
+        <p>The volume is <span id="volume">$volume</span></p>
+        <div py:replace="volume_form(volume_data)"></div>
     </div>
     <div class="clearingdiv" />
 </body>

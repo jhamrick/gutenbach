@@ -91,9 +91,15 @@ div.clearingdiv {
 }
 
 /* Content CSS */
-.volume {
+#volume {
     color: #009;
     font-family: Helvetica;
     font-weight: bold;
     font-size: 1.1em;
+}
+.labelcol {
+    padding-right: 2em;
+}
+#volume_form_volume_container {
+    width: 18em;
 }

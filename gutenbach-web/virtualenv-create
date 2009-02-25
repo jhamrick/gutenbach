@@ -1,5 +1,6 @@
 #!/bin/bash
 easy_install -i http://www.turbogears.org/2.0/downloads/current/index tg.devtools
+# deal with bugs that happen during install
 easy_install tg.devtools
 easy_install tg.devtools
 easy_install flup
