@@ -1,8 +1,8 @@
 #!/usr/athena/bin/perl
 # Play the data on STDIN as an audio file
 #
-# $Id: sipbmp3-filter,v 1.26 2009-02-20 00:27:17 geofft Exp $
-# $Source: /tmp/tmp.UFBNno9997/RCS/sipbmp3-filter,v $
+# $Id: sipbmp3-filter,v 1.26 2009/02/20 00:27:17 geofft Exp root $
+# $Source: /usr/local/bin/RCS/sipbmp3-filter,v $
 #
 # TODO
 # ----
@@ -96,6 +96,7 @@ if ($magic) {
 	printf(ZEPHYR "%s\n", $fileinfo->{$key}) if exists $fileinfo->{$key};
     }
     my $tempdir = tempdir();
+    $opts{'J'} =~ s/_mp3/.mp3/; #awful hack -- geofft
     my $newpath = $tempdir . '/' . basename($opts{'J'});
     symlink($filepath, $newpath);
     $filepath = $newpath;
