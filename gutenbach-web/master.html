@@ -15,6 +15,9 @@
 </head>
 
 <body py:match="body" py:attrs="select('@*')">
+  <script type="text/javascript">
+      document.body.className += ' has_js';
+  </script>
   <div class="wrapper">
   ${header()}
   <ul id="mainmenu">

@@ -103,3 +103,6 @@ div.clearingdiv {
 #volume_form_volume_container {
     width: 18em;
 }
+.has_js #volume_form_volume {
+    display:none;
+}
