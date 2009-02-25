@@ -11,4 +11,12 @@ Options +FollowSymLinks +ExecCGI
 RewriteEngine On
 RewriteRule ^(dispatch\.fcgi/.*)$ - [L]
 RewriteRule ^(static/.*)$ - [L]
+RewriteRule ^toscawidgets/resources/(sipbmp3web/public/.*)$ $1
+RewriteRule ^sipbmp3web/.*$ - [L]
 RewriteRule ^(.*)$ dispatch\.fcgi/$1 [L]
+
+ExpiresActive On
+ExpiresByType image/png "access plus 1 month"
+ExpiresByType application/x-javascript "access plus 1 month"
+ExpiresByType text/css "access plus 1 month"
+
