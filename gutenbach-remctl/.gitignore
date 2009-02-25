@@ -2,4 +2,5 @@
 vm*
 ksplice*
 voldaemon
-
+log
+printcap
