@@ -21,6 +21,19 @@ use File::Basename qw(basename);
 use LWP::UserAgent;
 use Data::Dumper;
 
+my $zephyr_class = "sipb-auto";
+my $host = "zsr";
+
+# Configuration
+my $config_file = "/etc/sipbmp3-filter-config.pl";
+if (-r $config_file) {
+    # Inline the configuration file
+    local $/;
+    my $fh;
+    open $fh, $config_file;
+    eval <$fh>;
+}
+
 my $ua = new LWP::UserAgent;
 
 close(STDERR);
@@ -78,8 +91,8 @@ foreach my $arg (@ARGV) {
 printf(STDERR Dumper(\%opts));
 
 # Status messages at start of playback
-open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c sipb-auto -i ' .
-  'sipbmp3@zsr -s "SIPB LPR music spooler"');
+open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c '. $zephyr_class .' -i ' .
+  'sipbmp3@'.$host.' -s "SIPB LPR music spooler"');
 print(ZEPHYR "$opts{'n'}\@$opts{'H'} is playing:\n");
 
 # So, the file we're currently processing is "-d/-e".
@@ -207,8 +220,8 @@ sub play_mplayer_audio {
     my ($filepath, $opts) = @_;
 
     # Prepare to write status:
-    open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c sipb-auto -i ' .
-	 'sipbmp3@zsr -s "SIPB LPR music spooler"');
+    open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c '.$zephyr_class.' -i ' .
+	 'sipbmp3@'.$host.' -s "SIPB LPR music spooler"');
     
     # fork for mpg123
     my $pid = open(MP3STATUS, "-|");
