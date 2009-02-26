@@ -93,10 +93,12 @@ printf(STDERR Dumper(\%opts));
 # Status messages at start of playback
 open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c '. $zephyr_class .' -i ' .
   'sipbmp3@'.$host.' -s "SIPB LPR music spooler"');
-print(ZEPHYR "$opts{'n'}\@$opts{'H'} is playing:\n");
 
 # For the Now Playing remctl command
 open(STATUS, '>', '/var/run/sipbmp3/status') or die("Can't open status file /var/run/sipbmp3/status");
+
+print(ZEPHYR "$opts{'n'}\@$opts{'H'} is playing:\n");
+print(STATUS "User: $opts{'n'}\@$opts{'H'}\n");
 
 # SIGHUP handler
 sub clear_status {
