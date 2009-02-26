@@ -95,6 +95,9 @@ open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c '. $zephyr_class .' -i ' .
   'sipbmp3@'.$host.' -s "SIPB LPR music spooler"');
 print(ZEPHYR "$opts{'n'}\@$opts{'H'} is playing:\n");
 
+# For the Now Playing remctl command
+open(STATUS, '>', '/var/run/sipbmp3/status') or die("Can't open status file /var/run/sipbmp3/status");
+
 # So, the file we're currently processing is "-d/-e".
 
 # Read the metadata information from the file.
@@ -104,9 +107,17 @@ my ($magic) = $fileinfo->{FileType};
 
 if ($magic) {
     printf(ZEPHYR "%s file %s\n", $magic, $opts{'J'});
-    printf(ZEPHYR "\@b{%s}\n", $fileinfo->{'Title'}) if exists $fileinfo->{'Title'};
+    printf(STATUS "Filetype: %s\n", $magic);
+    printf(STATUS "Filename: %s\n", $opts{'J'});
+    if (exists $fileinfo->{'Title'}) {
+        printf(ZEPHYR "\@b{%s}\n", $fileinfo->{'Title'}) if exists $fileinfo->{'Title'};
+        printf(STATUS "Title: %s\n", $fileinfo->{'Title'});
+    }
     foreach my $key (qw/Artist Album AlbumArtist/) {
-	printf(ZEPHYR "%s\n", $fileinfo->{$key}) if exists $fileinfo->{$key};
+        if (exists $fileinfo->{$key}) {
+            printf(ZEPHYR "%s\n", $fileinfo->{$key}) if exists $fileinfo->{$key};
+            printf(STATUS "%s: %s\n", $key, $fileinfo->{$key});
+        }
     }
     my $tempdir = tempdir();
     $opts{'J'} =~ s/_mp3/.mp3/; #awful hack -- geofft
@@ -118,17 +129,19 @@ elsif ($opts{'C'} eq 'Z') {
     $filepath = resolve_external_reference($filepath, \%opts);
     print STDERR "Resolved external reference to $filepath\n";
     printf(ZEPHYR "%s\n", $filepath);
-    close(ZEPHYR);
+    printf(STATUS "External: %s\n", $filepath);
 }
 elsif (-T $filepath) {
     split_playlist($filepath, \%opts);
     close(ZEPHYR);
+    close(STATUS);
     exit 0;
 }
 
 #printf(STDERR "Job priority %s\n", $opts{'C'}) if $opts{'C'} eq 'Z';
 #printf(ZEPHYR "Job priority %s\n", $opts{'C'}) if ($opts{'C'} && ($opts{'C'} ne 'A'));
 close(ZEPHYR);
+close(STATUS);
 play_mplayer_audio($filepath, \%opts);
 
 if ($magic) {
@@ -245,6 +258,8 @@ sub play_mplayer_audio {
 	close(MP3STATUS) || print ZEPHYR "mplayer exited $?\n";
 	
 	close(ZEPHYR);
+        open(STATUS, '>', '/var/run/sipbmp3/status');
+        close(STATUS);
     }
   else { # child
       # redirect STDERR to STDOUT
