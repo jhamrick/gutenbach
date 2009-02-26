@@ -27,9 +27,13 @@ class RootController(BaseController):
     def index(self, **kw):
         out = dict(page="index")
         volume = int(remctl(server, command=["volume", "get"]).stdout.rstrip())
+        playing = remctl(server, command=["status", "get"]).stdout
+        # Todo: add better parsing
+        if not playing: playing = "Nothing playing"
         if not "volume" in kw: kw["volume"] = volume
         return dict(
                     page="index",
+                    playing=playing,
                     volume=volume,
                     volume_form=volume_form,
                     volume_data=kw,
