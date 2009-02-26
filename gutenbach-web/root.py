@@ -49,3 +49,7 @@ class RootController(BaseController):
     def about(self):
         return dict(page="about")
 
+    @expose('sipbmp3web.templates.todo')
+    def todo(self):
+        return dict(page="todo")
+

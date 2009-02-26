@@ -1,0 +1,42 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/"
+      xmlns:xi="http://www.w3.org/2001/XInclude">
+
+  <xi:include href="master.html" />
+
+<head>
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type" py:replace="''"/>
+  <title>Todo / sipbmp3 web</title>
+</head>
+
+<body>
+    <div>
+        <h2>Fixes</h2>
+        <ul>
+            <li>Create sipbmp3 adapter to hide remctl interface</li>
+            <li>Make server configurable</li>
+            <li>Parse and format song status</li>
+            <li>Reconsider ToscaWidgets JavaScript and CSS setup, especially
+            dealing with minified JavaScript in production, also
+            the ToscaWidgets middleware.</li>
+            <li>Package, as part of the export sipbmp3 project</li>
+            <li>Document concrete dependencies with package versions</li>
+            <li>Certificate authentication, or at the very least htaccess
+            limiting.</li>
+            <li>Contribute improvements upstream</li>
+            <li>Make other pages less sipbmp3@zsr specific</li>
+        </ul>
+        <h2>Features</h2>
+        <ul>
+            <li>Create song model, and keep track of songs</li>
+            <li>Have zsr ping this server when a song is being served</li>
+            <li>Aggregate statistics (who plays/what is played the most?)</li>
+            <li>Comet updates for songs and volume</li>
+            <li>Album art support</li>
+            <li>Interface for submitting URLs</li>
+        </ul>
+    </div>
+</body>
+</html>
