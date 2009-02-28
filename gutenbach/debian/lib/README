@@ -163,8 +163,19 @@ You will also need to add this line:
 
     lpd_listen_port=515
 
-XXX: I don't think this configuration handles users wanting to lprm their
-own items correctly yet.
+By default, printers don't allow other users to remove other people's print
+jobs.  For an MP3 spooler, however, this may be a desirable trait, especially
+if someone trys to rickroll you.  You can let everyone lprm jobs by
+commenting out the line:
+
+    REJECT SERVICE=M
+
+XXX: On scourge, ACCEPT SERVICE=M SAMEHOST SAMEUSER doesn't seem to work
+properly, so removing the REJECT line is a must!
+
+XXXXXX: sipbmp3 accepts no responsibility for social faux pas that may
+be committed with this system.  It is consider good etiquette, however,
+to clear the status file if you're on zsr.
 
 
 7. Test, round one
