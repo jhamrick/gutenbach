@@ -1,0 +1,279 @@
+sipbmp3
+    The SIPB MP3 Music Spooler
+
+We would love you forever if you took this README/INSTALL document and made
+a Debian package out of it.  That would be uber-awesome.  But otherwise, we're
+assuming that you just want to get sipbmp3 up and running on your own
+system.  Well, maybe we shouldn't assume that.
+
+
+What does sipbmp3 do?
+---------------------
+
+sipbmp3 is a music spooler.  As it turns out, streaming music is a hard
+problem, with lots of proprietary protocols, client and server software.
+All of these jiggety bits are kind of a pain to get working correctly,
+so, we built sipbmp3 on top of... a printer system.  It's very simple:
+you print an mp3 file to a special "printer", and it gets played on
+whatever speakers you're hooked up to.
+
+
+Prerequisites
+-------------
+
+You'll need a server hooked up to an audio system that you want to use, with
+Debathena installed on top of it.  Ubuntu Server Edition tends to work
+well.
+
+
+Installing sipbmp3
+------------------
+
+
+1. Configuring your sound
+
+If you're installing sipbmp3 on a server environment, it's highly likely
+that you have a bare bones audio setup and everything is muted.  Make sure
+your sound works!  One common problem is that the daemon user (the user which
+will be actually playing the songs, or the user that your lpd, the print server,
+will be running under), isn't in the group audio, and thus can't play
+anything. If you're on Ubuntu Desktop, you'll probably have pulse-audio
+installed, in which case you should add lpd to the pulse-audio group
+as well, and make pulse-audio a single, system-wide instance. See
+this URL for detailed instructions:
+
+    http://www.pulseaudio.org/wiki/SystemWideInstance
+
+
+2. Install some prerequisite software
+
+On a vanilla Ubuntu server install, sipbmp3 will also need the following
+packages to work properly:
+
+    * mplayer
+    * libimage-exiftool-perl
+
+mpg123 can also be useful for testing, but is not strictly necessary.
+
+
+3. Setup sipbmp3
+
+The Git repository for sipbmp3 is located in:
+
+    /afs/sipb/project/sipbmp3/sipbmp3.git
+
+While sudo'ed as root, you should git clone this somewhere; zsr has
+it dumped in /usr/local/bin, while scourge puts it the more cordoned
+off /root/sipbmp3.
+
+
+4. Configure sipbmp3
+
+sipbmp3 will send zephyrs during playback start and end.  Since you don't
+want to be spamming sipb-auto (which is the default zephyr class these
+are sent to), you should create a configuration file:
+
+    /etc/sipbmp3-filter-config.pl
+
+That looks like:
+
+    $zephyr_class = "my-auto-class"
+    $host = "hostname"
+
+XXX: Auto-detect hostname and invent a sane default zephyr class off of it.
+
+
+5. Configure sipbmp3 init scripts
+
+sipbmp3 will attempt to drop some information into /var/run/sipbmp3, which
+needs to exist and you can't simply mkdir since /var/run on Ubuntu is
+a tempfs. Thus, add the following lines to a new file, /etc/init.d/sipbmp3:
+
+#!/bin/sh
+mkdir /var/run/sipbmp3
+touch /var/run/sipbmp3/status
+chmod 0777 /var/run/sipbmp3/status
+
+You should also run these commands yourself. :-)
+
+XXX: We need better permissions for status. Also, quentin wants to put this
+file in AFS.
+
+
+6. Configure lpd
+
+You'll need to setup a printcap file so that your machine will be actually
+running a printer! The magic lines are:
+
+    :if=|/path/to/sipbmp3-filter
+    :lp=/dev/null
+
+Which mean that we pipe the mp3 files through sipbmp3-filter (which does
+the actual playing), and then dump the rest of the output into /dev/null,
+since we don't actually care about it.
+
+A standard printcap entry looks like this:
+
+printername
+  :server
+  :cm=Human Readable Printer Name
+  :lp=/dev/null
+  :if=|/path/to/sipbmp3-filter
+  :sd=/var/spool/lpd/printername
+  :ml=0:mx=0:sh:sf
+  :auth_forward=kerberos5
+  :use_auth=kerberos5
+  :create_files
+
+printcap is located in /etc/printcap, but you can also edit the symlink
+in /etc/lprng/printcap.
+
+To check your modifications, and create the necessary files and folders,
+you should run:
+
+    checkpc -V -f
+
+(As root, of course). You might get a failure on a directory
+/var/spool/lpd/%P doesn't exist; simply mkdir it and run checkpc -V -f
+again.
+
+With recent versions of lprng, you will also need to make lpd less paranoid
+about accepting connections.  This usually means the following two changes:
+
+In /etc/lprng/lpd.perms:
+
+    REJECT NOT SERVER
+
+should be commented out, as:
+
+    #REJECT NOT SERVER
+
+And, in /etc/lprng/lpd.conf:
+
+    printcap_path=...
+
+add /etc/lprng/printcap to the beginning of the pathlist, so it looks like:
+
+    printcap_path=/etc/lprng/printcap:|/usr/lib/get_hesiod_pcap
+
+/etc/printcap will also work, assuming lprng doesn't do something funky
+in the future.
+
+You will also need to add this line:
+
+    lpd_listen_port=515
+
+XXX: I don't think this configuration handles users wanting to lprm their
+own items correctly yet.
+
+
+7. Test, round one
+
+The first test you should do to make sure sipbmp3 is configured properly is
+to attempt to play an mp3 file locally, via lpr.  The command you should use
+is:
+
+    mit-lpr -Pprintername@localhost filename.mp3
+
+Note the "mit-" prefix; Debathena defaults to CUPS, which we have not set
+up yet.
+
+See below for troubleshooting tips.
+
+
+8. Test, round two
+
+The second test you should do is try playing an MP3 remotely. The appropriate
+command is:
+
+    mit-lpr -Pprintername@hostname filename.mp3
+
+(Once again, with "mit-").  See below for troubleshooting tips.
+
+
+9. Troubleshooting
+
+So, it didn't work.  How did it fail?
+
+----
+sending job 'ezyang@vivace+800' to asdfasdf@localhost
+ connecting to 'localhost', attempt 1
+ cannot open connection to localhost - No such file or directory
+----
+
+This means that lpd is not accepting connections properly.  Check to see
+if you configured lpd.perms and lpd.conf correctly.  Try rebooting lpd
+by pkill lpd && lpd.  Use nmap to check of port 515 is open, both on the
+local machine and on a remote machine.  Check if networking is working
+on the server.  Use netstat to see what programs are listening to port
+515, and from which hosts.  Check iptables.
+
+----
+lpr: The printer or class was not found.
+----
+
+You're using lpr, not mit-lpr.
+
+----
+(no output, but no sound)
+----
+
+It looks like you managed to send the file over.  To diagnose the problems
+further:
+
+    * Check the zephyr logs of the class sipbmp3 was configured to
+      send messages to:
+
+        - If you see a reasonably full and formatted message, that means
+          that either: 1. your volume is turned off, or 2. mplayer is
+          horribly broken (XXX: it probably isn't, but I don't know what
+          error message it gives in that case)
+
+          By the way, be sure to check both the *hardware* and the
+          *software* volume.
+
+        - If you see a blank zephyr, that means that sipbmp3-filter died
+          trying to get a handle to /var/run/sipbmp3/status and failing.
+          Check if you created the file correctly, and that daemon has
+          permissions to write to it. If you rebooted recently, check if
+          you have the appropriate init.d script setup.
+
+    * Otherwise, check /var/spool/lpd/printername/status.pr (most of all the
+      other files are useless, especially including log):
+
+        - If you see a Perl error, fix it. The most common cause is because
+          exiftools is not installed.
+
+    * Otherwise, double check the userland code in sipbmp3-filter. XXX: There
+      are some edge-cases that don't give nice error messages, for example
+      the failed write to /var/run/sipbmp3/status
+
+
+10. Deploying CUPS
+------------------
+
+The final step is to give your newfangled printer a cups.mit.edu record.
+In order to do this, you will need to ask IS&T for a Moira pcap entry
+request.  Send mail to hesreq@mit.edu, specifying that you are setting
+up a sipbmp3 clone, that you want a Moira pcap entry, the printer name
+and server name of your queue, and that you want hwtype=LOCAL. It wouldn't
+hurt to also tell them where your print queue is, and a contact list.
+
+Once you get the pcap entry, ping sipb-cups@mit.edu to add your machine
+to the public list.
+
+
+X. Setting up remctl commands
+-----------------------------
+
+It's useful to be able to control the volume. Remctl is the way to do
+this without asking people to ssh in, and then alsamix(er). XXX: These
+batch scripts and remctl files are not yet public.
+
+
+X. Deploying sipbmp3web
+------------------------
+
+sipbmp3 web provides a nice and user-friendly interface for some common
+tasks. XXX: It is currently not portable beyond zsr. Stay tuned!
+
