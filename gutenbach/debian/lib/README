@@ -79,6 +79,7 @@ That looks like:
 
     $zephyr_class = "my-auto-class"
     $host = "hostname"
+    $queue = "printername"
 
 XXX: Auto-detect hostname and invent a sane default zephyr class off of it.
 
