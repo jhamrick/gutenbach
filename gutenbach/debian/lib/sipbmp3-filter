@@ -24,6 +24,7 @@ use IPC::Open2;
 
 my $zephyr_class = "sipb-auto";
 my $host = "zsr";
+my $queue = "sipbmp3";
 
 # Configuration
 my $config_file = "/etc/sipbmp3-filter-config.pl";
@@ -93,7 +94,7 @@ printf(STDERR Dumper(\%opts));
 
 # Status messages at start of playback
 open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c '. $zephyr_class .' -i ' .
-  'sipbmp3@'.$host.' -s "SIPB LPR music spooler"');
+  $queue.'@'.$host.' -s "SIPB LPR music spooler"');
 
 # For the Now Playing remctl command
 open(STATUS, '>', '/var/run/sipbmp3/status') or die("Can't open status file /var/run/sipbmp3/status");
@@ -227,7 +228,7 @@ sub split_playlist {
 	chomp;
 	if (/^([^#]\S+)/) {
 	    printf (STDERR "Found line: %s\n", $_);
-	    open(LPR, "|-", qw/mit-lpr -Psipbmp3@localhost -CZ/, '-J'.$opts->{J});
+	    open(LPR, "|-", 'mit-lpr', '-P'.$queue.'@localhost', '-CZ', '-J'.$opts->{J});
 	    print LPR $1;
 	    close(LPR);
 	$i++;
