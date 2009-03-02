@@ -1,0 +1,19 @@
+#!/bin/sh
+
+die () {
+    echo "$@";
+    exit 1;
+}
+
+CACHE=$(cd-cddb-get) || die "Unable to fetch CDDB information."
+
+. "$CACHE"
+
+echo "Artist: $DARTIST";
+echo "Album: $DALBUM";
+echo "Tracks: $TRACKS";
+
+for i in $(seq 1 $TRACKS); do
+    echo -n "Track $i: "
+    eval 'echo $TRACK'$i
+done
