@@ -1,0 +1,2 @@
+#!/bin/sh
+volume-set . $(( $(volume-get .) + 1 ))
