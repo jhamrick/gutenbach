@@ -1,0 +1,2 @@
+status get   /usr/local/bin/status-get   ANYUSER
+status clear /usr/local/bin/status-clear ANYUSER

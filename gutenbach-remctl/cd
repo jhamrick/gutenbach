@@ -1,0 +1,3 @@
+cd cddb     /usr/local/bin/cd-cddb     ANYUSER
+cd cddb-get /usr/local/bin/cd-cddb-get ANYUSER
+cd play     /usr/local/bin/cd-play     ANYUSER
