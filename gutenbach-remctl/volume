@@ -14,7 +14,7 @@ v u /usr/local/bin/volume-up   ANYUSER
 v d /usr/local/bin/volume-down ANYUSER
 
 volume u /usr/local/bin/volume-up   ANYUSER
-voluem d /usr/local/bin/volume-down ANYUSER
+volume d /usr/local/bin/volume-down ANYUSER
 
 volume help /usr/local/bin/volume-help ANYUSER
 v      help /usr/local/bin/volume-help ANYUSER
