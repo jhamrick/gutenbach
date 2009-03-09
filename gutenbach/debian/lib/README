@@ -122,8 +122,6 @@ printername
   :if=|/path/to/sipbmp3-filter
   :sd=/var/spool/lpd/printername
   :ml=0:mx=0:sh:sf
-  :auth_forward=kerberos5
-  :use_auth=kerberos5
   :create_files
 
 printcap is located in /etc/printcap, but you can also edit the symlink
@@ -275,12 +273,47 @@ Once you get the pcap entry, ping sipb-cups@mit.edu to add your machine
 to the public list.
 
 
-X. Setting up remctl commands
+11. Setting up keytabs on the machine
+-------------------------------------
+
+Email accounts@mit.edu and ask them for two keytabs: one for your machine,
+and one for "daemon" at your machine.  When you get the keytab, reset their
+passwords by running:
+
+    k5srvutil change -f your.keytab
+    k5srvutil delold -f your.keytab
+
+Now, install the machine-wide keytab in /etc/krb5.keytab, and install the
+daemon keytab as /etc/daemon.keytab.  (The first filename is required; the
+second can be changed.)
+
+Finally, edit /etc/printcap and give it information about the Kerberos:
+
+sipbmp3: server
+    :cm=SIPB MP3 Spooler
+    ...
+    :auth_forward=kerberos5
+    :use_auth=kerberos5
+    :kerberos_id=daemon/your-machine-name.mit.edu@ATHENA.MIT.EDU
+    :kerberos_keytab=/etc/daemon.keytab
+
+
+12. Setting up remctl commands
 -----------------------------
 
 It's useful to be able to control the volume. Remctl is the way to do
-this without asking people to ssh in, and then alsamix(er). XXX: These
-batch scripts and remctl files are not yet public.
+this without asking people to ssh in, and then alsamix(er). The important
+remctl scripts come with a sipbmp3 checkout, but you must add symlinks
+to it from /usr/local/bin and/or do another checkout in sipbmp3.
+
+You will probably need to apt-get install remctl-server. Then, replace
+the /etc/remctl/conf.d directory with a Git checkout of
+/afs/sipb/project/sipbmp3/sipbmp3-remctl.git.
+
+Please note that remctl will NOT work without a keytab setup.
+
+XXX: The fact that these *have* to be in /usr/local/bin is not very...
+nice.  We should fix this.
 
 
 X. Deploying sipbmp3web
