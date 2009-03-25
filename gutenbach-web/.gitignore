@@ -5,3 +5,4 @@ tg2env
 *~
 .python-eggs/*
 devdata.db
+production.ini
