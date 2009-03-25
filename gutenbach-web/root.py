@@ -6,7 +6,6 @@ from pylons.i18n import ugettext as _
 from sipbmp3web.model import DBSession, metadata
 from sipbmp3web.controllers.error import ErrorController
 from sipbmp3web import model
-from catwalk.tg2 import Catwalk
 from repoze.what import predicates
 from sipbmp3web.controllers.secure import SecureController
 from remctl import remctl
@@ -20,7 +19,6 @@ volume_form = twf.TableForm('volume_form', action='volume', children=[
 server = "zygorthian-space-raiders.mit.edu"
 
 class RootController(BaseController):
-    admin = Catwalk(model, DBSession)
     error = ErrorController()
 
     @expose('sipbmp3web.templates.index')

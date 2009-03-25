@@ -4,6 +4,7 @@ easy_install -i http://www.turbogears.org/2.0/downloads/current/index tg.devtool
 easy_install tg.devtools
 easy_install tg.devtools
 easy_install flup
+easy_install tw.forms
 
 # Install remctl
 wget http://archives.eyrie.org/software/kerberos/remctl-2.13.tar.gz
@@ -17,5 +18,7 @@ python setup.py build
 python setup.py install
 cd ../..
 rm -rf remctl-2.13
+
+python setup.py develop
 
 paster --help
