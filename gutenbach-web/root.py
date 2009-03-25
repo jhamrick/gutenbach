@@ -2,6 +2,7 @@
 from sipbmp3web.lib.base import BaseController
 from tg import expose, flash, require, url, request, redirect, validate
 from pylons.i18n import ugettext as _
+from pylons import config
 #from tg import redirect, validate
 from sipbmp3web.model import DBSession, metadata
 from sipbmp3web.controllers.error import ErrorController
@@ -16,13 +17,12 @@ volume_form = twf.TableForm('volume_form', action='volume', children=[
     UISlider('volume', min=1, max=31, validator=twf.validators.NotEmpty())
 ])
 
-server = "zygorthian-space-raiders.mit.edu"
-
 class RootController(BaseController):
     error = ErrorController()
 
     @expose('sipbmp3web.templates.index')
     def index(self, **kw):
+        server = config['sipbmp3.server']
         out = dict(page="index")
         volume = int(remctl(server, command=["volume", "get"]).stdout.rstrip())
         playing = remctl(server, command=["status", "get"]).stdout
