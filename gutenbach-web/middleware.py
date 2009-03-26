@@ -34,7 +34,10 @@ class KinitMiddleware(object):
             self.keytab = None
     def __call__(self, environ, start_response):
         if self.keytab:
-            subprocess.call(["kinit", self.krbname, "-k", "-t", self.keytab])
+            try:
+                subprocess.call(["kinit", self.krbname, "-k", "-t", self.keytab])
+            except OSError:
+                subprocess.call(["/usr/kerberos/bin/kinit", self.krbname, "-k", "-t", self.keytab])
         return self.app(environ, start_response)
 
 def make_app(global_conf, full_stack=True, **app_conf):
