@@ -29,11 +29,12 @@ class KinitMiddleware(object):
         self.app = app
         try:
             self.keytab = config["keytab"]
+            self.krbname = config["krbname"]
         except KeyError:
             self.keytab = None
     def __call__(self, environ, start_response):
         if self.keytab:
-            subprocess.call(["/usr/kerberos/bin/kinit", "ezyang/extra", "-k", "-t", self.keytab])
+            subprocess.call(["kinit", self.krbname, "-k", "-t", self.keytab])
         return self.app(environ, start_response)
 
 def make_app(global_conf, full_stack=True, **app_conf):
