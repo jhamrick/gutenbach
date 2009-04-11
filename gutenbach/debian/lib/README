@@ -62,9 +62,8 @@ The Git repository for sipbmp3 is located in:
 
     /afs/sipb/project/sipbmp3/sipbmp3.git
 
-While sudo'ed as root, you should git clone this somewhere; zsr has
-it dumped in /usr/local/bin, while scourge puts it the more cordoned
-off /root/sipbmp3.
+Place this in /root/sipbmp3; the remctl scripts will assume that the
+scripts can be found in this location.
 
 
 4. Configure sipbmp3
@@ -127,6 +126,26 @@ printername
 printcap is located in /etc/printcap, but you can also edit the symlink
 in /etc/lprng/printcap.
 
+In /etc/lprng/lpd.conf:
+
+    printcap_path=...
+
+add /etc/lprng/printcap to the beginning of the pathlist, so it looks like:
+
+    printcap_path=/etc/lprng/printcap:|/usr/lib/get_hesiod_pcap
+
+/etc/printcap will also work, assuming lprng doesn't do something funky
+in the future.
+
+WARNING: On a cluster machine, get_hesiod_pcap will clobber sipbmp3
+because it sets all:all=someotherprinter, making lpr not see sipbmp3.
+There are two ways of fixing this:
+
+1. Patch /usr/lib/get_hesiod_pcap to return a full pcap line instead
+of all when it gets "all" from stdin.
+
+2. Remove get_hesiod_pcap from the list.
+
 To check your modifications, and create the necessary files and folders,
 you should run:
 
@@ -134,7 +153,6 @@ you should run:
 
 (As root, of course). You might get a failure on a directory
 /var/spool/lpd/%P doesn't exist; simply mkdir it and run checkpc -V -f
-again.
 
 With recent versions of lprng, you will also need to make lpd less paranoid
 about accepting connections.  This usually means the following two changes:
@@ -147,18 +165,7 @@ should be commented out, as:
 
     #REJECT NOT SERVER
 
-And, in /etc/lprng/lpd.conf:
-
-    printcap_path=...
-
-add /etc/lprng/printcap to the beginning of the pathlist, so it looks like:
-
-    printcap_path=/etc/lprng/printcap:|/usr/lib/get_hesiod_pcap
-
-/etc/printcap will also work, assuming lprng doesn't do something funky
-in the future.
-
-You will also need to add this line:
+You will also need to add this line in lpd.conf:
 
     lpd_listen_port=515
 
@@ -285,7 +292,7 @@ passwords by running:
 
 Now, install the machine-wide keytab in /etc/krb5.keytab, and install the
 daemon keytab as /etc/daemon.keytab.  (The first filename is required; the
-second can be changed.)
+second can be changed.)  Make sure you chown and chgrp it to daemon.
 
 Finally, edit /etc/printcap and give it information about the Kerberos:
 
@@ -302,18 +309,13 @@ sipbmp3: server
 -----------------------------
 
 It's useful to be able to control the volume. Remctl is the way to do
-this without asking people to ssh in, and then alsamix(er). The important
-remctl scripts come with a sipbmp3 checkout, but you must add symlinks
-to it from /usr/local/bin and/or do another checkout in sipbmp3.
+this without asking people to ssh in, and then alsamix(er).
 
 You will probably need to apt-get install remctl-server. Then, replace
 the /etc/remctl/conf.d directory with a Git checkout of
 /afs/sipb/project/sipbmp3/sipbmp3-remctl.git.
 
 Please note that remctl will NOT work without a keytab setup.
-
-XXX: The fact that these *have* to be in /usr/local/bin is not very...
-nice.  We should fix this.
 
 
 X. Deploying sipbmp3web
