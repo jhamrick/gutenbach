@@ -1,2 +1,2 @@
-status get   /usr/local/bin/status-get   ANYUSER
-status clear /usr/local/bin/status-clear ANYUSER
+status get   /root/sipbmp3/status-get   ANYUSER
+status clear /root/sipbmp3/status-clear ANYUSER

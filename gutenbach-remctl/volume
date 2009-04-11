@@ -1,21 +1,21 @@
-volume set  /usr/local/bin/volume-set	 ANYUSER 
-volume get  /usr/local/bin/volume-get    ANYUSER
-volume mute /usr/local/bin/volume-mute   ANYUSER 
-volume up   /usr/local/bin/volume-up     ANYUSER 
-volume down /usr/local/bin/volume-down   ANYUSER 
+volume set  /root/sipbmp3/volume-set	 ANYUSER 
+volume get  /root/sipbmp3/volume-get    ANYUSER
+volume mute /root/sipbmp3/volume-mute   ANYUSER 
+volume up   /root/sipbmp3/volume-up     ANYUSER 
+volume down /root/sipbmp3/volume-down   ANYUSER 
 
-v set  /usr/local/bin/volume-set    ANYUSER 
-v get  /usr/local/bin/volume-get    ANYUSER
-v mute /usr/local/bin/volume-mute   ANYUSER 
-v up   /usr/local/bin/volume-up     ANYUSER 
-v down /usr/local/bin/volume-down   ANYUSER 
+v set  /root/sipbmp3/volume-set    ANYUSER 
+v get  /root/sipbmp3/volume-get    ANYUSER
+v mute /root/sipbmp3/volume-mute   ANYUSER 
+v up   /root/sipbmp3/volume-up     ANYUSER 
+v down /root/sipbmp3/volume-down   ANYUSER 
 
-v u /usr/local/bin/volume-up   ANYUSER
-v d /usr/local/bin/volume-down ANYUSER
+v u /root/sipbmp3/volume-up   ANYUSER
+v d /root/sipbmp3/volume-down ANYUSER
 
-volume u /usr/local/bin/volume-up   ANYUSER
-volume d /usr/local/bin/volume-down ANYUSER
+volume u /root/sipbmp3/volume-up   ANYUSER
+volume d /root/sipbmp3/volume-down ANYUSER
 
-volume help /usr/local/bin/volume-help ANYUSER
-v      help /usr/local/bin/volume-help ANYUSER
-help   ALL  /usr/local/bin/volume-help ANYUSER
+volume help /root/sipbmp3/volume-help ANYUSER
+v      help /root/sipbmp3/volume-help ANYUSER
+help   ALL  /root/sipbmp3/volume-help ANYUSER
