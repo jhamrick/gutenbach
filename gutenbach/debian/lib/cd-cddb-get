@@ -1,4 +1,5 @@
 #!/bin/sh
+PATH="$(dirname $0):$PATH"
 
 CDDBURL="http://freedb.freedb.org/~cddb/cddb.cgi"
 MYUSER="sipbmp3"

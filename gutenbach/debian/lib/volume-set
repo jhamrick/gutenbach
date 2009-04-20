@@ -1,3 +1,4 @@
 #!/bin/sh
+PATH="$(dirname $0):$PATH"
 amixer set Headphone "$2" \
  | perl -lne 'print $1 if (/Front Left: Playback ([0-9]+)/)'
