@@ -108,7 +108,7 @@ sub clear_status {
     open(STA, '>', '/var/run/sipbmp3/status');
     close(STA);
     open(ZEPH, '|/usr/athena/bin/zwrite -d -n -c '. $zephyr_class .' -i '.
-        'sipbmp3@'.$host.' -s "SIPB LPR music spooler"');
+        $queue.'@'.$host.' -s "SIPB LPR music spooler"');
     print(ZEPH "Playback aborted.\n");
     close(ZEPH);
     die;
@@ -265,7 +265,7 @@ sub play_mplayer_audio {
 
     # Prepare to write status:
     open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c '.$zephyr_class.' -i ' .
-	 'sipbmp3@'.$host.' -s "SIPB LPR music spooler"');
+	 $queue.'@'.$host.' -s "SIPB LPR music spooler"');
     
     # fork for mpg123
     my $pid = open(MP3STATUS, "-|");
