@@ -1,4 +1,5 @@
 #!/bin/bash
+PATH="$(dirname $0):$PATH"
 cat <<EOF
 Usage: remctl zsr.mit.edu <command> <subcommand> [..args..]
 Commands:

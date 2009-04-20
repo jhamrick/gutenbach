@@ -1,2 +1,3 @@
 #!/bin/sh
+PATH="$(dirname $0):$PATH"
 volume-set . $(( $(volume-get .) + 1 ))
