@@ -40,6 +40,7 @@ class RootController(BaseController):
     @validate(form=volume_form, error_handler=index)
     @expose()
     def volume(self, **kw):
+        server = config['sipbmp3.server']
         remctl(server, command=["volume", "set", kw["volume"]])
         redirect('index')
 
