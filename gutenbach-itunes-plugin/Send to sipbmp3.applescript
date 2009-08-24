@@ -7,6 +7,8 @@
 --
 -- Changelog:
 --
+-- 23 Aug 2009 -> broder spun loop into shell script instead of
+--     applescript so that iTunes doesn't hang
 -- 9 Jan 2009 -> price added 'quoted form'
 -- 7 Jan 2009 -> kmill created initial version
 --
@@ -33,17 +35,16 @@
 -- feedback beyond the pleasant sounds you now
 -- hear around you.
 
-set lista to {}
+set ts to ""
 
 tell application "iTunes"
 	repeat with t in selection
 		if class of t is (file track) then
 			set loc to POSIX path of (get location of t)
-			set end of lista to "lpr -o raw -Psipbmp3 " & (quoted form of loc)
+			set ts to ts & " " & (quoted form of loc)
 		end if
 	end repeat
 end tell
 
-repeat with com in lista
-	do shell script com
-end repeat
+set command to "(for t in " & ts & "; do lpr -o raw -Psipbmp3 \"$t\"; done) >/dev/null 2>&1 </dev/null &"
+do shell script command

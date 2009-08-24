@@ -6,6 +6,8 @@ music from an iTunes library to the sipbmp3
 lpr server.
 
 * Changelog
+23 Aug 2009 -> broder spun loop into shell script instead of
+    applescript so that iTunes doesn't hang
 9 Jan 2009 -> price added 'quoted form'
 7 Jan 2009 -> kmill created initial version
 
