@@ -96,6 +96,16 @@ chmod 0777 /var/run/sipbmp3/status
 
 You should also run these commands yourself. :-)
 
+XXX: Note from jhamrick: I would recomment actually setting this up as a nice startup script, with a switch case for {start|stop|restart} (where with stop you just remove the directory, and with restart you remove the directory and then recreate it).  Also, sipbmp3 won't actually run on startup unless there are scripts in the /etc/rc*.d directory, so we need to do:
+
+> ln -s ../init.d/sipbmp3 /etc/rc2.d/S61sipbmp3
+> ln -s ../init.d/sipbmp3 /etc/rc3.d/S61sipbmp3
+> ln -s ../init.d/sipbmp3 /etc/rc4.d/S61sipbmp3
+> ln -s ../init.d/sipbmp3 /etc/rc5.d/S61sipbmp3
+> ln -s ../init.d/sipbmp3 /etc/rc0.d/K39sipbmp3
+> ln -s ../init.d/sipbmp3 /etc/rc1.d/K39sipbmp3
+> ln -s ../init.d/sipbmp3 /etc/rc6.d/K39sipbmp3
+
 XXX: We need better permissions for status. Also, quentin wants to put this
 file in AFS.
 
@@ -183,6 +193,15 @@ XXXXXX: sipbmp3 accepts no responsibility for social faux pas that may
 be committed with this system.  It is consider good etiquette, however,
 to clear the status file if you're on zsr.
 
+XXXXXXXX: Another note from jhamrick (09/2009): debathena-lprng does not start up with the system by default.  debathena developers are currently deciding whether to change this, but in the meantine you will want to do:
+
+> ln -s ../etc/init.d/debathena-lprng /etc/rc2.d/S60debathena-lprng
+> ^rc2^rc3
+> ^rc3^rc4
+> ^rc4^rc5
+> ln -s ../etc/init.d/debathena-lprng /etc/rc0.d/K40debathena-lprng
+> ^rc0^rc1
+> ^rc1^rc6
 
 7. Test, round one
 
