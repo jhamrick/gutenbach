@@ -1,0 +1,22 @@
+#!/bin/sh
+
+case "$1" in
+  start)
+    mkdir /var/run/sipbmp3
+    touch /var/run/sipbmp3/status
+    chmod 0777 /var/run/sipbmp3/status
+    ;;
+  stop)
+    rm -r /var/run/sipbmp3
+    ;;
+  restart)
+    rm -r /var/run/sipbmp3
+    mkdir /var/run/sipbmp3
+    touch /var/run/sipbmp3/status
+    chmod 0777 /var/run/sipbmp3/status
+    ;;
+  *)
+    echo "Usage: /etc/init.d/sipbmp3 {start|stop|restart}" >&2
+    exit 1
+    ;;
+esac

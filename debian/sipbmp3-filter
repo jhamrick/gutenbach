@@ -1,0 +1,320 @@
+#!/usr/athena/bin/perl
+# Play the data on STDIN as an audio file
+#
+# $Id: sipbmp3-filter,v 1.26 2009/02/20 00:27:17 geofft Exp root $
+# $Source: /usr/local/bin/RCS/sipbmp3-filter,v $
+#
+# TODO
+# ----
+# Make this structured code. It's a mess.
+# Repeat what we just played for EXT files too
+# Support HTTP Auth on ogg streams
+# License, cleanup and package
+#
+# Jered Floyd <jered@mit.edu> takes very little credit for this code
+# apparently neither does Quentin Smith <quentin@mit.edu>
+
+use Image::ExifTool qw(ImageInfo);
+use File::Spec::Functions;
+use File::Temp qw{tempdir};
+use File::Basename qw(basename);
+use LWP::UserAgent;
+use Data::Dumper;
+use IPC::Open2;
+
+my $zephyr_class = "sipb-auto";
+my $host = "zsr";
+my $queue = "sipbmp3";
+
+# Configuration
+my $config_file = "/etc/sipbmp3-filter-config.pl";
+if (-r $config_file) {
+    # Inline the configuration file
+    local $/;
+    my $fh;
+    open $fh, $config_file;
+    eval <$fh>;
+}
+
+my $ua = new LWP::UserAgent;
+
+close(STDERR);
+open(STDERR, ">>", "/tmp/sipbmp3.log") or warn "Couldn't open log: $!";
+
+$ENV{"TERM"}="vt100";
+
+print STDERR "STDERR FROM SPOOL FILTER\n";
+
+# set real uid to be effective uid
+$< = $>;
+
+# Select the correct output device and set the volume
+#system("amixer -q set Headphone 100\% unmute");
+
+# The command line we get from lpd is (no spaces between options and args):
+#  -C lpr -C class
+#  -A LPRng internal identifier
+#  -H originating host
+#  -J lpr -J jobname (default: list of files)
+#  -L lpr -U username
+#  -P logname
+#  -Q queuename (lpr -Q)
+#  -Z random user-specified options
+#  -a printcap af (accounting file name)
+#  -d printcap sd entry (spool dir)
+#  -e print job data file name (currently being processed)
+#  -h print job originiating host (same as -H)
+#  -j job number in spool queue
+#  -k print job control file name
+#  -l printcap pl (page length)
+#  -n user name (same as -L)
+#  -s printcap sf (status file)
+#  -w printcap pw (page width)
+#  -x printcap px (page x dimension)
+#  -y printcap py (page y dimension)
+# accounting file name
+
+printf(STDERR "Got \@ARGV: %s\n", Dumper(\@ARGV));
+
+my %opts;
+
+my @NEWARGV;
+
+foreach my $arg (@ARGV) {
+  if ($arg =~ m/^-([a-zA-Z])(.*)$/) {
+    $opts{$1} = $2;
+  } else {
+    push @NEWARGV, @ARGV;
+  }
+}
+
+@ARGV = @NEWARGV;
+
+printf(STDERR Dumper(\%opts));
+
+# Status messages at start of playback
+open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c '. $zephyr_class .' -i ' .
+  $queue.'@'.$host.' -s "SIPB LPR music spooler"');
+
+# For the Now Playing remctl command
+open(STATUS, '>', '/var/run/sipbmp3/status') or die("Can't open status file /var/run/sipbmp3/status");
+
+print(ZEPHYR "$opts{'n'}\@$opts{'H'} is playing:\n");
+print(STATUS "User: $opts{'n'}\@$opts{'H'}\n");
+
+# SIGHUP handler
+sub clear_status {
+    # Possible race condition if the previous status is still going
+    open(STA, '>', '/var/run/sipbmp3/status');
+    close(STA);
+    open(ZEPH, '|/usr/athena/bin/zwrite -d -n -c '. $zephyr_class .' -i '.
+        $queue.'@'.$host.' -s "SIPB LPR music spooler"');
+    print(ZEPH "Playback aborted.\n");
+    close(ZEPH);
+    die;
+}
+$SIG{HUP} = \&clear_status;
+
+# So, the file we're currently processing is "-d/-e".
+
+# Read the metadata information from the file.
+my ($filepath) = catfile($opts{'d'}, $opts{'e'});
+my ($fileinfo) = ImageInfo($filepath);
+my ($magic) = $fileinfo->{FileType};
+
+if ($magic) {
+    printf(ZEPHYR "%s file %s\n", $magic, $opts{'J'});
+    printf(STATUS "Filetype: %s\n", $magic);
+    printf(STATUS "Filename: %s\n", $opts{'J'});
+    if (exists $fileinfo->{'Title'}) {
+        printf(ZEPHYR "\@b{%s}\n", $fileinfo->{'Title'}) if exists $fileinfo->{'Title'};
+        printf(STATUS "Title: %s\n", $fileinfo->{'Title'});
+    }
+    foreach my $key (qw/Artist Album AlbumArtist/) {
+        if (exists $fileinfo->{$key}) {
+            printf(ZEPHYR "%s\n", $fileinfo->{$key}) if exists $fileinfo->{$key};
+            printf(STATUS "%s: %s\n", $key, $fileinfo->{$key});
+        }
+    }
+    my $tempdir = tempdir();
+    $opts{'J'} =~ s/_mp3/.mp3/; #awful hack -- geofft
+    my $newpath = $tempdir . '/' . basename($opts{'J'});
+    symlink($filepath, $newpath);
+    $filepath = $newpath;
+}
+elsif ($opts{'C'} eq 'Z') {
+    $filepath = resolve_external_reference($filepath, \%opts);
+    if ($filepath =~ m|http://www\.youtube\.com/watch\?v=|) {
+        $pid = open2($out, $in, qw{youtube-dl -g2}, $filepath);
+        $title = <$out>;
+        print ZEPHYR "YouTube video $filepath\n$title";
+        print STATUS "YouTube video $filepath\n$title";
+        $filepath = <$out>;
+        chomp $filepath;
+        waitpid $pid, 0;
+    } else {
+        print STDERR "Resolved external reference to $filepath\n";
+        printf(ZEPHYR "%s\n", $filepath);
+        printf(STATUS "External: %s\n", $filepath);
+    }
+}
+elsif (-T $filepath) {
+    split_playlist($filepath, \%opts);
+    close(ZEPHYR);
+    close(STATUS);
+    exit 0;
+}
+
+#printf(STDERR "Job priority %s\n", $opts{'C'}) if $opts{'C'} eq 'Z';
+#printf(ZEPHYR "Job priority %s\n", $opts{'C'}) if ($opts{'C'} && ($opts{'C'} ne 'A'));
+close(ZEPHYR);
+close(STATUS);
+play_mplayer_audio($filepath, \%opts);
+
+if ($magic) {
+    unlink($newpath);
+    rmdir($tempdir);
+}
+
+# Play an external stream reference
+sub resolve_external_reference {
+    # Retrieve those command line opts.
+    my ($filepath, $opts) = @_;
+
+    my $format, $uri, $userpass;
+
+    if (<STDIN> =~ /^(\S+)/) {
+	$uri=$1;
+
+        if ($uri =~ m|http://www\.youtube\.com/watch\?v=|) {
+            return $uri;
+        }
+
+	my $response = $ua->head($uri);
+	
+	$contenttype=($response->content_type() or "unknown");
+	
+	if ($contenttype eq "audio/mpeg") { $format="MP3" }
+	elsif ($contenttype eq "application/x-ogg") { $format="OGG" }
+	elsif ($contenttype eq "application/ogg") { $format="OGG" }
+	elsif ($contenttype eq "audio/x-scpls") { $format="SHOUTCAST" }
+	else {
+	    print ZEPHYR
+		"Unknown Content-Type $contenttype for URI $uri\n";
+	}
+    } else {
+        print ZEPHYR "Couldn't read URI for external reference\n";
+	return $filepath;
+    }
+
+    if ($format eq "SHOUTCAST") {
+	print ZEPHYR "Shoutcast playlist...\n";
+	#Don't close ZEPHYR yet, will print the name of the stream if available
+	return &get_shoutcast($uri);
+    } elsif ($format eq "MP3") {
+    } elsif ($format eq "OGG") {
+    } else {
+      print ZEPHYR "Unrecognized stream format: $format\n";
+    }
+    return $uri;
+}
+
+sub split_playlist {
+    my ($file, $opts) = @_;
+
+    my $i = 0;
+    
+    while (<STDIN>) {
+	chomp;
+	if (/^([^#]\S+)/) {
+	    printf (STDERR "Found line: %s\n", $_);
+	    open(LPR, "|-", 'mit-lpr', '-P'.$queue.'@localhost', '-CZ', '-J'.$opts->{J});
+	    print LPR $1;
+	    close(LPR);
+	$i++;
+	}
+    }
+    printf(ZEPHYR "Playlist containing %d valid entries, split into separate jobs.\n", $i);
+}
+
+# Process a Shoutcast playlist
+# get_shoutcast(URI)
+sub get_shoutcast {
+  my $uri = shift(@_);
+  
+  my $response = $ua->get($uri);
+
+  foreach (split("\n", $response->content())) {
+      if (/^File\d+=(\S+)/) {
+	  push(@uris, $1);
+      }
+      if (/^Title\d+=(.+)$/) {
+	  push(@titles, $1);
+      }
+  }
+  
+  # choose a random server
+  $server = int(rand scalar(@uris));
+  # print the name of the stream if available
+  print ZEPHYR "$titles[$server]\n";
+  return $uris[$server];
+}
+
+sub play_mplayer_audio {
+    my ($filepath, $opts) = @_;
+
+    # Prepare to write status:
+    open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c '.$zephyr_class.' -i ' .
+	 $queue.'@'.$host.' -s "SIPB LPR music spooler"');
+    
+    # fork for mpg123
+    my $pid = open(MP3STATUS, "-|");
+    unless (defined $pid) {
+	print ZEPHYR "Couldn't fork: $!\n";
+	close(ZEPHYR);
+	return;
+    }
+    
+    if ($pid) { #parent
+	# Check if there were any errors
+	if ($_ = <MP3STATUS>) {
+	    print ZEPHYR "Playback completed with the following errors:\n";
+	    print ZEPHYR $_;
+	    while (<MP3STATUS>) {
+		print ZEPHYR $_;
+	    }
+	} else {
+	    print ZEPHYR "Playback completed successfully.\n";
+	}
+	close(MP3STATUS) || print ZEPHYR "mplayer exited $?\n";
+	
+	close(ZEPHYR);
+        open(STATUS, '>', '/var/run/sipbmp3/status');
+        close(STATUS);
+    }
+  else { # child
+      # redirect STDERR to STDOUT
+      open STDERR, '>&STDOUT';
+      # make sure that mplayer doesn't try to intepret the file as keyboard input
+      close(STDIN);
+      open(STDIN, "/dev/null");
+      #print STDERR Dumper([qw|/usr/bin/mplayer -nolirc -ao alsa -quiet|, $filepath]);
+      my @args = (qw|/usr/bin/mplayer -novideo -vo null -nolirc -ao alsa -cache 512 -really-quiet |, $filepath);
+      #print STDERR "About to exec: ", Dumper([@args]);
+      exec(@args) ||
+	  die "Couldn't exec";
+  }
+}
+
+# ID3 comments often have useless crap because tools like iTunes were
+# written by drooling idiots
+sub filter_comment {
+  my $comment = shift(@_);
+
+  if ($comment =~ /^engiTunes_CDDB/) {
+    return undef;
+  }
+  return $comment;
+}
+
+

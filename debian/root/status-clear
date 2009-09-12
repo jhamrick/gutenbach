@@ -1,0 +1,3 @@
+#!/bin/sh
+PATH="$(dirname $0):$PATH"
+> /var/run/sipbmp3/status
