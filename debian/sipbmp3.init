@@ -1,19 +1,51 @@
 #!/bin/sh
+### BEGIN INIT INFO
+# Provides:          sipbmp3
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Starts lpd for sipbmp3.
+# Description:       Starts lpd for sipbmp3 and creates
+#  files for use by sipbmp3.
+### END INIT INFO
 
 case "$1" in
   start)
     mkdir /var/run/sipbmp3
     touch /var/run/sipbmp3/status
     chmod 0777 /var/run/sipbmp3/status
+    if which invoke-rc.d >/dev/null 2>&1; then
+	invoke-rc.d lprng start
+    else
+	/etc/init.d/lprng start
+    fi
     ;;
   stop)
     rm -r /var/run/sipbmp3
+    if which invoke-rc.d >/dev/null 2>&1; then
+	invoke-rc.d lprng stop
+    else
+	/etc/init.d/lprng stop
+    fi
     ;;
   restart)
     rm -r /var/run/sipbmp3
+    if which invoke-rc.d >/dev/null 2>&1; then
+	invoke-rc.d lprng stop
+    else
+	/etc/init.d/lprng stop
+    fi
     mkdir /var/run/sipbmp3
     touch /var/run/sipbmp3/status
     chmod 0777 /var/run/sipbmp3/status
+    if which invoke-rc.d >/dev/null 2>&1; then
+	invoke-rc.d lprng start
+    else
+       /etc/init.d/lprng start
+    fi
+    ;;
+  reload|force-reload|status)
     ;;
   *)
     echo "Usage: /etc/init.d/sipbmp3 {start|stop|restart}" >&2
