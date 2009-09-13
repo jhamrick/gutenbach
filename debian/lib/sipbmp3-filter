@@ -22,9 +22,9 @@ use LWP::UserAgent;
 use Data::Dumper;
 use IPC::Open2;
 
-my $zephyr_class = "sipb-auto";
-my $host = "zsr";
-my $queue = "sipbmp3";
+my $zephyr_class = "lprmp3";
+my $host = "hostname";
+my $queue = "printername";
 
 # Configuration
 my $config_file = "/etc/sipbmp3-filter-config.pl";

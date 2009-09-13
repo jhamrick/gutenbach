@@ -1,25 +1,22 @@
 #!/bin/sh
 
 if [ ! -e /etc/printcap ]; then
-    echo "/etc/printcap does not exist, creating it..."
     touch /etc/printcap
 fi
 
 if [ ! -e /etc/lprng/printcap ]; then
-    echo "/etc/lprng/printcap does not exist, creating it..."
     ln -s /etc/printcap /etc/lprng/printcap
 fi
 
-printcap=$(cat /etc/printcap | grep '^sipbmp3')
+printcap=$(cat /etc/printcap | grep '^lprmp3')
 if [ ! -n "$printcap" ]; then
     # add the appropriate entry into /etc/printcap, /etc/lprng/printcap
-    echo "No entry for sipbmp3, adding one..."
-    echo "sipbmp3" >> /etc/printcap
+    echo "lprmp3" >> /etc/printcap
     echo "  :server" >> /etc/printcap
-    echo "  :cm=sipbmp3 music spooler" >> /etc/printcap
+    echo "  :cm=lprmp3 music spooler" >> /etc/printcap
     echo "  :lp=/dev/null" >> /etc/printcap
     echo "  :if=|/usr/lib/sipbmp3/sipbmp3-filter" >> /etc/printcap
-    echo "  :sd=/var/spool/lpd/sipbmp3" >> /etc/printcap
+    echo "  :sd=/var/spool/lpd/lprmp3" >> /etc/printcap
     echo "  :ml=0:mx=0:sh:sf" >> /etc/printcap
     echo "  :create_files" >> /etc/printcap
 fi

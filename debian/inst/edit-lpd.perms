@@ -11,12 +11,10 @@ if [ -e /etc/lprng/lpd.perms ]; then
     while read line; do
 	reject_not_server=$(echo "$line" | grep '^REJECT NOT SERVER')
 	if [ -n "$reject_not_server" ]; then
-	    echo "Found REJECT NOT SERVER, commenting it out..."
 	    echo "#$line" >> /etc/lprng/lpd.perms
       	else
 	    reject_service=$(echo "$line" | grep '^REJECT SERVICE=M')
 	    if [ -n "$reject_service" ]; then
-		echo "Found REJECT SERVICE=M, commenting it out..."
 		echo "#line" >> /etc/lprng/lpd.perms
 	    else
 		echo "$line" >> /etc/lprng/lpd.perms

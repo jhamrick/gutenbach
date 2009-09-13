@@ -11,5 +11,4 @@ else
 fi
 chmod og=rwx /var/spool/lpd
 chmod og=rwx /var/spool/lpd/%P
-echo "Running checkpc..."
-/usr/sbin/checkpc -V -f >> /dev/null
+/usr/sbin/checkpc -Plprmp3 -f

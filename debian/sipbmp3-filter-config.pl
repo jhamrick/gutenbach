@@ -1,3 +1,3 @@
-$zephyr_class = "my_auto_class"
+$zephyr_class = "jhamrick-test"
 $host = "hostname"
 $queue = "printername"

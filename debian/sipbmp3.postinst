@@ -28,6 +28,9 @@ case "$1" in
 	/usr/lib/sipbmp3/inst/edit-lpd.conf
 	/usr/lib/sipbmp3/inst/run-checkpc
 	/usr/lib/sipbmp3/inst/edit-lpd.perms
+
+	adduser daemon audio
+	adduser daemon pulse
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

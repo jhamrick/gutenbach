@@ -15,38 +15,68 @@ case "$1" in
     mkdir /var/run/sipbmp3
     touch /var/run/sipbmp3/status
     chmod 0777 /var/run/sipbmp3/status
-    if which invoke-rc.d >/dev/null 2>&1; then
-	invoke-rc.d lprng start
+    
+    if [ -x /etc/init.d/lprng ]; then
+	script="lprng"
+    elif [ -x /etc/init.d/debathena-lprng ]; then
+	script="debathena-lprng"
     else
-	/etc/init.d/lprng start
+	exit 1
+    fi
+
+    if which invoke-rc.d >/dev/null 2>&1; then
+	invoke-rc.d "$script" start
+    else
+	/etc/init.d/"$script" start
     fi
     ;;
+
   stop)
+    if [ -x /etc/init.d/lprng ]; then
+	script="lprng"
+    elif [ -x /etc/init.d/debathena-lprng ]; then
+	script="debathena-lprng"
+    else
+	exit 1
+    fi
+
     rm -r /var/run/sipbmp3
     if which invoke-rc.d >/dev/null 2>&1; then
-	invoke-rc.d lprng stop
+	invoke-rc.d "$script" stop
     else
-	/etc/init.d/lprng stop
+	/etc/init.d/"$script" stop
     fi
     ;;
+
   restart)
+    if [ -x /etc/init.d/lprng ]; then
+	script="lprng"
+    elif [ -x /etc/init.d/debathena-lprng ]; then
+	script="debathena-lprng"
+    else
+	exit 1
+    fi
+
     rm -r /var/run/sipbmp3
     if which invoke-rc.d >/dev/null 2>&1; then
-	invoke-rc.d lprng stop
+	invoke-rc.d "$script" stop
     else
-	/etc/init.d/lprng stop
+	/etc/init.d/"$script" stop
     fi
+
     mkdir /var/run/sipbmp3
     touch /var/run/sipbmp3/status
     chmod 0777 /var/run/sipbmp3/status
     if which invoke-rc.d >/dev/null 2>&1; then
-	invoke-rc.d lprng start
+	invoke-rc.d "$script" start
     else
-       /etc/init.d/lprng start
+       /etc/init.d/"$script" start
     fi
     ;;
+
   reload|force-reload|status)
     ;;
+
   *)
     echo "Usage: /etc/init.d/sipbmp3 {start|stop|restart}" >&2
     exit 1
