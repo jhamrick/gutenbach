@@ -7,8 +7,7 @@ Standards-Version: 3.8.0
 
 Package: sipbmp3
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, mplayer, libimage-exiftool-perl, debathena-lprng, sysv-rc
-Recommends: debathena-zephyr-config, libzephyr3-krb, zephyr-clients
+Depends: ${shlibs:Depends}, ${misc:Depends}, mplayer, libimage-exiftool-perl, lprng, sysv-rc, adduser, debathena-zephyr-config, libzephyr3-krb, zephyr-clients
 Description: Server for playing music files from a remote machine
  Allows remote machines to play music files on this machine
  by "printing" them with debathena-lprng.
