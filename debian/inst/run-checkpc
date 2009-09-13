@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# make sure directories exist for checkpc
+if [ ! -d /var/spool/lpd ]; then
+    mkdir /var/spool/lpd
+    mkdir /var/spool/lpd/%P
+else
+    if [ ! -d /var/spool/lpd/%P ]; then
+	mkdir /var/spool/lpd/%P
+    fi
+fi
+chmod og=rwx /var/spool/lpd
+chmod og=rwx /var/spool/lpd/%P
+echo "Running checkpc..."
+/usr/sbin/checkpc -V -f >> /dev/null

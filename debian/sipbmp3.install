@@ -1,2 +1,3 @@
 debian/lib/* /usr/lib/sipbmp3/
+debian/inst/* /usr/lib/sipbmp3/inst/
 debian/sipbmp3-filter-config.pl /etc/

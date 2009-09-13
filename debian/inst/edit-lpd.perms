@@ -1,0 +1,27 @@
+#!/bin/sh
+
+# make lpd less paranoid about accepting connections
+# (comment out REJECT NOT SERVER)
+# allow other users to dequeue music
+# (comment out REJECT SERVICE=M
+if [ -e /etc/lprng/lpd.perms ]; then
+    mv /etc/lprng/lpd.perms /etc/lprng/lpd.perms.bak
+    touch /etc/lprng/lpd.perms	
+
+    while read line; do
+	reject_not_server=$(echo "$line" | grep '^REJECT NOT SERVER')
+	if [ -n "$reject_not_server" ]; then
+	    echo "Found REJECT NOT SERVER, commenting it out..."
+	    echo "#$line" >> /etc/lprng/lpd.perms
+      	else
+	    reject_service=$(echo "$line" | grep '^REJECT SERVICE=M')
+	    if [ -n "$reject_service" ]; then
+		echo "Found REJECT SERVICE=M, commenting it out..."
+		echo "#line" >> /etc/lprng/lpd.perms
+	    else
+		echo "$line" >> /etc/lprng/lpd.perms
+	    fi
+	fi
+    done < /etc/lprng/lpd.perms.bak
+    rm /etc/lprng/lpd.perms.bak
+fi

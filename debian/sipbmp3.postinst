@@ -20,85 +20,14 @@ set -e
 
 case "$1" in
     configure)
-	if [ ! -e /etc/printcap ]; then
-	    echo "/etc/printcap does not exist, creating it..."
-	    touch /etc/printcap
-	fi
-
-	if [ ! -e /etc/lprng/printcap ]; then
-	    echo "/etc/lprng/printcap does not exist, creating it..."
-	    ln -s /etc/printcap /etc/lprng/printcap
-	fi
-
-	# add the appropriate entry into /etc/printcap, /etc/lprng/printcap
-	echo "sipbmp3" >> /etc/printcap
-	echo "  :server" >> /etc/printcap
-	echo "  :cm=sipbmp3 music spooler" >> /etc/printcap
-	echo "  :lp=/dev/null" >> /etc/printcap
-	echo "  :if=|/usr/lib/sipbmp3/sipbmp3-filter" >> /etc/printcap
-	echo "  :sd=/var/spool/lpd/sipbmp3" >> /etc/printcap
-	echo "  :ml=0:mx=0:sh:sf" >> /etc/printcap
-	echo "  :create_files" >> /etc/printcap
-
-	# add the printcap path to lpd.conf
-	if [ -e /etc/lprng/lpd.conf ]; then
-	    mv /etc/lprng/lpd.conf /etc/lprng/lpd.conf.bak
- 	    touch /etc/lprng/lpd.conf	
-
-	    while read line; do
-		printcap=$(echo line | grep ^printcap_path=*)
-		if [ -n "$printcap" ]; then
-		    echo "#$line" >> /etc/lprng/lpd.conf
-		    echo "$line" | sed s/printcap_path=\/printcap_path=\/etc\/lprng\/printcap:|/ >> /etc/lprng/lpd.conf
-		else
-		    echo "$line" >> /etc/lprng/lpd.conf
-		fi
-	    done < /etc/lprng/lpd.conf.bak
-	    rm /etc/lprng/lpd.conf.bak
-	else
-	    touch /etc/lprng/lpd.conf
-	    echo "printcap_path=/etc/lprng/printcap" >> /etc/lprng/lpd.conf
-	fi
-
-	# add lpd_listen_port to lpd.conf
-	lpd_listen_port=$(cat /etc/lprng/lpd.conf | grep ^lpd_listen_port=515)
-	if [ ! -n "$lpd_listen_port" ]; then
-	    echo "lpd_listen_port=515" >> /etc/lprng/lpd.conf
-	fi
-
-	# make sure directories exist for checkpc
-	if [ ! -d /var/spool/lpd ]; then
-	    mkdir /var/spool/lpd
-	    mkdir /var/spool/lpd/%P
-	else
-	    if [ ! -d /var/spool/lpd/%P ]; then
-		mkdir /var/spool/lpd/%P
-	    fi
-	fi
-	checkpc -V -f
-
-	# make lpd less paranoid about accepting connections
-	# (comment out REJECT NOT SERVER)
-	# allow other users to dequeue music
-	# (comment out REJECT SERVICE=M
-	if [ -e /etc/lprng/lpd.perms ]; then
-	    mv /etc/lprng/lpd.perms /etc/lprng/lpd.perms.bak
- 	    touch /etc/lprng/lpd.perms	
-
-	    while read line; do
-		reject_not_server=$(echo line | grep ^REJECT\ NOT\ SERVER)
-		if [ -n "$reject_not_server" ]; then
-		    echo "#$line" >> /etc/lprng/lpd.conf
-      		else
-		    reject_service=$(echo line | grep ^REJECT\ SERVICE=M)
-		    if [ -n "$reject_service" ]; then
-			echo "#line" >> /etc/lprng/lpd.conf
-		    else
-			echo "$line" >> /etc/lprng/lpd.conf
-		    fi
-		fi
-	    done < /etc/lprng/lpd.perms.bak
-	    rm /etc/lprng/lpd.perms.bak
+	chmod +x /usr/lib/sipbmp3/inst/edit-printcap
+	chmod +x /usr/lib/sipbmp3/inst/edit-lpd.conf
+	chmod +x /usr/lib/sipbmp3/inst/run-checkpc
+	chmod +x /usr/lib/sipbmp3/inst/edit-lpd.perms
+	/usr/lib/sipbmp3/inst/edit-printcap
+	/usr/lib/sipbmp3/inst/edit-lpd.conf
+	/usr/lib/sipbmp3/inst/run-checkpc
+	/usr/lib/sipbmp3/inst/edit-lpd.perms
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
