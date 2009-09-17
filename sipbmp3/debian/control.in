@@ -7,6 +7,7 @@ Standards-Version: 3.8.0
 
 Package: sipbmp3
 Architecture: all
+Pre-Depends: debconf
 Depends: ${shlibs:Depends}, ${misc:Depends}, mplayer, libimage-exiftool-perl, lprng | debathena-lprng, sysv-rc, adduser, debathena-zephyr-config, libzephyr3-krb, alsa-base
 Conflicts: pulseaudio
 Provides: pulseaudio

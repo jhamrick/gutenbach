@@ -1,6 +1,7 @@
-#!/bin/sh
+#!/bin/sh -e
 
 # make sure directories exist for checkpc
+echo "Running checkpc..." >&2
 if [ ! -d /var/spool/lpd ]; then
     mkdir /var/spool/lpd
     mkdir /var/spool/lpd/%P
@@ -11,4 +12,7 @@ else
 fi
 chmod og=rwx /var/spool/lpd
 chmod og=rwx /var/spool/lpd/%P
-/usr/sbin/checkpc -Plprmp3 -f
+
+. /usr/share/debconf/confmodule
+db_get sipbmp3/printername
+/usr/sbin/checkpc -P"$RET" -f

@@ -1,5 +1,6 @@
-#!/bin/sh
+#!/bin/sh -e
 
+echo "Editing /etc/printcap..." >&2
 if [ ! -e /etc/printcap ]; then
     touch /etc/printcap
 fi
@@ -8,15 +9,18 @@ if [ ! -e /etc/lprng/printcap ]; then
     ln -s /etc/printcap /etc/lprng/printcap
 fi
 
-printcap=$(cat /etc/printcap | grep '^lprmp3')
+. /usr/share/debconf/confmodule
+db_get sipbmp3/printername
+
+printcap=$(cat /etc/printcap | grep ^`echo $RET` || true)
 if [ ! -n "$printcap" ]; then
     # add the appropriate entry into /etc/printcap, /etc/lprng/printcap
-    echo "lprmp3" >> /etc/printcap
+    echo "$RET" >> /etc/printcap
     echo "  :server" >> /etc/printcap
-    echo "  :cm=lprmp3 music spooler" >> /etc/printcap
+    echo "  :cm=$RET music spooler" >> /etc/printcap
     echo "  :lp=/dev/null" >> /etc/printcap
     echo "  :if=|/usr/lib/sipbmp3/sipbmp3-filter" >> /etc/printcap
-    echo "  :sd=/var/spool/lpd/lprmp3" >> /etc/printcap
+    echo "  :sd=/var/spool/lpd/$RET" >> /etc/printcap
     echo "  :ml=0:mx=0:sh:sf" >> /etc/printcap
     echo "  :create_files" >> /etc/printcap
 fi

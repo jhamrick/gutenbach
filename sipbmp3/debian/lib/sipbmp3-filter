@@ -27,7 +27,7 @@ my $host = "hostname";
 my $queue = "printername";
 
 # Configuration
-my $config_file = "/etc/sipbmp3-filter-config.pl";
+my $config_file = "/usr/lib/sipbmp3/config/sipbmp3-filter-config.pl";
 if (-r $config_file) {
     # Inline the configuration file
     local $/;

@@ -4,16 +4,17 @@
 # (comment out REJECT NOT SERVER)
 # allow other users to dequeue music
 # (comment out REJECT SERVICE=M
+echo "Editing /etc/lprng/lpd.perms..." >&2
 if [ -e /etc/lprng/lpd.perms ]; then
     mv /etc/lprng/lpd.perms /etc/lprng/lpd.perms.bak
     touch /etc/lprng/lpd.perms	
 
     while read line; do
-	reject_not_server=$(echo "$line" | grep '^REJECT NOT SERVER')
+	reject_not_server=$(echo "$line" | grep '^REJECT NOT SERVER' || true)
 	if [ -n "$reject_not_server" ]; then
 	    echo "#$line" >> /etc/lprng/lpd.perms
       	else
-	    reject_service=$(echo "$line" | grep '^REJECT SERVICE=M')
+	    reject_service=$(echo "$line" | grep '^REJECT SERVICE=M' || true)
 	    if [ -n "$reject_service" ]; then
 		echo "#line" >> /etc/lprng/lpd.perms
 	    else

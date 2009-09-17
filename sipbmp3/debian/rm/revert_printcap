@@ -1,0 +1,26 @@
+#!/bin/sh -e
+
+echo "Reverting changes to /etc/printcap..." >&2
+. /usr/share/debconf/confmodule
+db_get sipbmp3/printername
+
+mv /etc/printcap /etc/printcap.bak
+touch /etc/printcap
+foundprinter="false"
+while read line; do
+    printername=$(echo "$line" | grep ^`echo $RET`$ || true)
+    if [ -n "$printername" ]; then
+        foundprinter="true"
+    else
+        if [ "$foundprinter"="true" ]; then
+	    configline=$(echo "$line" | grep ^[[:space:]]*: || true)
+	    if [ -z "$configline" ]; then
+                foundprinter="false"
+                echo "$line" >> /etc/printcap
+	    fi
+        else
+	    echo "$line" >> /etc/printcap
+        fi
+    fi
+done < /etc/printcap.bak
+rm /etc/printcap.bak

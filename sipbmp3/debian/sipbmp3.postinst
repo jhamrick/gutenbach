@@ -17,19 +17,35 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
+. /usr/share/debconf/confmodule
 
 case "$1" in
-    configure)
+    configure|reconfigure)
+	chmod +x /usr/lib/sipbmp3/inst/create-filter-config
 	chmod +x /usr/lib/sipbmp3/inst/edit-printcap
 	chmod +x /usr/lib/sipbmp3/inst/edit-lpd.conf
 	chmod +x /usr/lib/sipbmp3/inst/run-checkpc
 	chmod +x /usr/lib/sipbmp3/inst/edit-lpd.perms
+	/usr/lib/sipbmp3/inst/create-filter-config
 	/usr/lib/sipbmp3/inst/edit-printcap
 	/usr/lib/sipbmp3/inst/edit-lpd.conf
 	/usr/lib/sipbmp3/inst/run-checkpc
 	/usr/lib/sipbmp3/inst/edit-lpd.perms
 
-	adduser daemon audio
+	if [ -e /usr/lib/sipbmp3/config/printer_name ]; then
+	    rm /usr/lib/sipbmp3/config/printer_name
+	fi
+
+	if [ -e /usr/lib/sipbmp3/config/zephyr_class ]; then
+	    rm /usr/lib/sipbmp3/config/zephyr_class
+	fi
+
+	inaudio=$(groups daemon | grep audio || true)
+	if [ -z "$inaudio" ]; then
+	    adduser daemon audio
+	fi
+
+	db_stop
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

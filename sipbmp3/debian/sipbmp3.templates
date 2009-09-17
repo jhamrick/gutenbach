@@ -1,0 +1,19 @@
+Template: sipbmp3/printername
+Type: string
+Default: lprmp3
+_Description: Your sipbmp3 printer name:
+ sipbmp3 creates a printer to which you can print music
+ files.  sipbmp3 needs to know what you want to call the 
+ printer, and then after installation, you will be able
+ to do:
+ lpr -Pprintername@hostname your-music-file-.mp3 
+
+Template: sipbmp3/zephyrclass
+Type: string
+_Description: Your sipbmp3 zephyr class:
+ When sipbmp3 plays a song, it sends a message to a zephyr
+ class with the song information (title, artist, album,
+ etc).  Please specify which class you would you these 
+ zephyrs to be sent to.  If you don't know what this is,
+ or you don't want zephyrs to be sent, just leave this 
+ field blank.

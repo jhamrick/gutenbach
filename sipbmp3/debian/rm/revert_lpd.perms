@@ -1,0 +1,19 @@
+#!/bin/sh -e
+
+echo "Reverting changes to /etc/lprng/lpd.perms..." >&2
+mv /etc/lprng/lpd.perms /etc/lprng/lpd.perms.bak
+touch /etc/lprng/lpd.perms
+while read line; do
+    reject_not_server=$(echo "$line" | grep '^#REJECT NOT SERVER$' || true)
+    if [ ! -z "$reject_not_server" ]; then
+	echo "REJECT NOT SERVER" >> /etc/lprng/lpd.perms
+    else
+	reject_service=$(echo "$line" | grep '^#REJECT SERVICE=M$' || true)
+	if [ ! -z "$reject_service" ]; then
+	    echo "REJECT SERVICE=M" >> /etc/lprng/lpd.perms
+	else
+            echo "$line" >> /etc/lprng/lpd.perms
+	fi
+    fi
+done < /etc/lprng/lpd.perms.bak
+rm /etc/lprng/lpd.perms.bak
