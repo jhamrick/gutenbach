@@ -1,0 +1,29 @@
+#!/usr/athena/bin/perl
+use strict;
+# Get configuration of sipbmp3
+
+my $zephyr_class = "sipb-auto";
+my $host = "zsr";
+my $queue = "sipbmp3";
+
+# Configuration
+my $config_file = "/etc/sipbmp3-filter-config.pl";
+if (-r $config_file) {
+    # Inline the configuration file
+    local $/;
+    my $fh;
+    open $fh, $config_file;
+    eval <$fh>;
+}
+
+my %config = (
+    'zephyr-class' => $zephyr_class,
+    'host' => $host,
+    'queue' => $queue,
+);
+
+foreach my $argv (@ARGV)
+{
+    #print $argv . "\n";
+    print $config{$argv};
+}
