@@ -1,3 +1,9 @@
 #!/bin/sh
 PATH="$(dirname $0):$PATH"
+class=$(sipbmp3-get-config zephyr-class)
+host=$(sipbmp3-get-config host)
+queue=$(sipbmp3-get-config queue)
+instance="$queue-volume@$host"
+zwrite -c $class -i $instance -n -m "Toggling mute on $queue"
+
 amixer set Headphone toggle
