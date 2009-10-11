@@ -22,8 +22,8 @@ use LWP::UserAgent;
 use Data::Dumper;
 use IPC::Open2;
 
-my $zephyr_class = "sipb-auto";
-my $host = "zsr";
+my $zephyr_class = "sipb-test";
+my $host = `hostname`;
 my $queue = "sipbmp3";
 
 # Configuration

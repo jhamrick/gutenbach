@@ -2,9 +2,10 @@
 use strict;
 # Get configuration of sipbmp3
 
-my $zephyr_class = "sipb-auto";
-my $host = "zsr";
+my $zephyr_class = "sipb-test";
+my $host = `hostname`;
 my $queue = "sipbmp3";
+my $channel = "Headphone";
 
 # Configuration
 my $config_file = "/etc/sipbmp3-filter-config.pl";
@@ -20,6 +21,7 @@ my %config = (
     'zephyr-class' => $zephyr_class,
     'host' => $host,
     'queue' => $queue,
+    'channel' => $channel,
 );
 
 foreach my $argv (@ARGV)
