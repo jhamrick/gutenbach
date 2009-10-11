@@ -1,14 +1,18 @@
 volume set  /root/sipbmp3/volume-set	 ANYUSER 
 volume get  /root/sipbmp3/volume-get    ANYUSER
+volume show /root/sipbmp3/volume-show   ANYUSER
 volume mute /root/sipbmp3/volume-mute   ANYUSER 
 volume up   /root/sipbmp3/volume-up     ANYUSER 
 volume down /root/sipbmp3/volume-down   ANYUSER 
+volume is-muted /root/sipbmp3/volume-is-muted   ANYUSER 
 
 v set  /root/sipbmp3/volume-set    ANYUSER 
 v get  /root/sipbmp3/volume-get    ANYUSER
+v show /root/sipbmp3/volume-show   ANYUSER
 v mute /root/sipbmp3/volume-mute   ANYUSER 
 v up   /root/sipbmp3/volume-up     ANYUSER 
 v down /root/sipbmp3/volume-down   ANYUSER 
+v is-muted /root/sipbmp3/volume-is-muted   ANYUSER 
 
 v u /root/sipbmp3/volume-up   ANYUSER
 v d /root/sipbmp3/volume-down ANYUSER
