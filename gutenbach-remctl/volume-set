@@ -5,9 +5,10 @@ host=$(sipbmp3-get-config host)
 queue=$(sipbmp3-get-config queue)
 instance="$queue-volume@$host"
 
-channel=$(sipbmp3-get-config channel)
+mixer=$(sipbmp3-get-config mixer)
+channel="$(sipbmp3-get-config channel)"
 
-amixer set $channel "$2" \
- | perl -lne 'print $1 if (/Front Left: Playback ([0-9]+)/)'
+amixer set $mixer "$2" | grep "$channel" \
+ | perl -lne 'print $1 if (/: Playback ([0-9]+)/)'
 
-zwrite -c $class -i $instance -d -n -m "Setting volume to $(volume-get) on $queue"
+zwrite -c $class -i $instance -d -n -m "$REMOTE_USER set volume to $(volume-get)" > /dev/null
