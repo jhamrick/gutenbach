@@ -5,8 +5,13 @@ host=$(sipbmp3-get-config host)
 queue=$(sipbmp3-get-config queue)
 instance="$queue-volume@$host"
 
+mixer=$(sipbmp3-get-config mixer)
 channel=$(sipbmp3-get-config channel)
 
-zwrite -c $class -i $instance -d -n -m "Toggling mute on $queue"
+result=$(amixer set $mixer toggle)
+echo "$result"
+volstat=$(echo $result | grep "$channel" \
+ | perl -lne 'print $1 if (/: Playback .*\[(on|off)\]$/)'
+)
 
-amixer set $channel toggle
+zwrite -c $class -i $instance -d -n -m "$REMOTE_USER set volume $volstat" > /dev/null

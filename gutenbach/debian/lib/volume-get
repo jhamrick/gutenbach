@@ -1,7 +1,8 @@
 #!/bin/sh
 PATH="$(dirname $0):$PATH"
 
+mixer=$(sipbmp3-get-config mixer)
 channel=$(sipbmp3-get-config channel)
 
-amixer get $channel \
- | perl -lne 'print $1 if (/Front Left: Playback ([0-9]+)/)'
+amixer get $mixer | grep "$channel" \
+ | perl -lne 'print $1 if (/: Playback ([0-9]+)/)'

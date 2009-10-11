@@ -5,7 +5,8 @@ use strict;
 my $zephyr_class = "sipb-test";
 my $host = `hostname`;
 my $queue = "sipbmp3";
-my $channel = "Headphone";
+my $mixer = "Headphone";
+my $channel = "Front Left";
 
 # Configuration
 my $config_file = "/etc/sipbmp3-filter-config.pl";
@@ -21,6 +22,7 @@ my %config = (
     'zephyr-class' => $zephyr_class,
     'host' => $host,
     'queue' => $queue,
+    'mixer' => $mixer,
     'channel' => $channel,
 );
 
