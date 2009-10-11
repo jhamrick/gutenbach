@@ -1,0 +1,17 @@
+#!/bin/sh
+PATH="$(dirname $0):$PATH"
+
+mixer=$(sipbmp3-get-config mixer)
+channel=$(sipbmp3-get-config channel)
+
+volstat=$(amixer get $mixer | grep "$channel" \
+ | perl -lne 'print $1 if (/: Playback .*\[(on|off)\]$/)'
+)
+
+case "$volstat" in 
+    on)  result=unmuted;;
+    off) result=muted;;
+    *)   result=unknown;;
+esac
+
+echo $result

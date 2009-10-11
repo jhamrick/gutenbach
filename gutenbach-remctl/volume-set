@@ -1,9 +1,5 @@
 #!/bin/sh
 PATH="$(dirname $0):$PATH"
-class=$(sipbmp3-get-config zephyr-class)
-host=$(sipbmp3-get-config host)
-queue=$(sipbmp3-get-config queue)
-instance="$queue-volume@$host"
 
 mixer=$(sipbmp3-get-config mixer)
 channel="$(sipbmp3-get-config channel)"
@@ -11,4 +7,4 @@ channel="$(sipbmp3-get-config channel)"
 amixer set $mixer "$2" | grep "$channel" \
  | perl -lne 'print $1 if (/: Playback ([0-9]+)/)'
 
-zwrite -c $class -i $instance -d -n -m "$REMOTE_USER set volume to $(volume-get)" > /dev/null
+volume-zephyr
