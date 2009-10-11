@@ -7,17 +7,18 @@ easy_install flup
 easy_install tw.forms
 
 # Install remctl
-wget http://archives.eyrie.org/software/kerberos/remctl-2.13.tar.gz
-tar -xf remctl-2.13.tar.gz
-rm remctl-2.13.tar.gz
-cd remctl-2.13
+VERSION="2.14"
+wget http://archives.eyrie.org/software/kerberos/remctl-$VERSION.tar.gz
+tar -xf remctl-$VERSION.tar.gz
+rm remctl-$VERSION.tar.gz
+cd remctl-$VERSION
 ./configure --enable-python
 make
 cd python
 python setup.py build
 python setup.py install
 cd ../..
-rm -rf remctl-2.13
+rm -rf remctl-$VERSION
 
 python setup.py develop
 
