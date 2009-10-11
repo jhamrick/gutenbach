@@ -4,7 +4,10 @@ class=$(sipbmp3-get-config zephyr-class)
 host=$(sipbmp3-get-config host)
 queue=$(sipbmp3-get-config queue)
 instance="$queue-volume@$host"
-zwrite -c $class -i $instance -n -m "Setting volume to $2 on $queue"
 
-amixer set Headphone "$2" \
+channel=$(sipbmp3-get-config channel)
+
+amixer set $channel "$2" \
  | perl -lne 'print $1 if (/Front Left: Playback ([0-9]+)/)'
+
+zwrite -c $class -i $instance -n -m "Setting volume to $(volume-get) on $queue"
