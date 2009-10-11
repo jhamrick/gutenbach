@@ -82,6 +82,7 @@ sipbmp3web/public/jquery/theme/images/ui-icons_454545_256x240.png
 sipbmp3web/public/jquery/theme/images/ui-icons_888888_256x240.png
 sipbmp3web/public/jquery/theme/images/ui-icons_cd0a0a_256x240.png
 sipbmp3web/templates/__init__.py
+sipbmp3web/templates/__init__.pyc
 sipbmp3web/templates/about.html
 sipbmp3web/templates/debug.html
 sipbmp3web/templates/error.html
