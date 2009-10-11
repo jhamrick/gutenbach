@@ -7,6 +7,6 @@ instance="$queue-volume@$host"
 
 channel=$(sipbmp3-get-config channel)
 
-zwrite -c $class -i $instance -n -m "Toggling mute on $queue"
+zwrite -c $class -i $instance -d -n -m "Toggling mute on $queue"
 
 amixer set $channel toggle
