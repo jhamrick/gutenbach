@@ -14,4 +14,5 @@ if [ "$muted" = "unmuted" ]; then
     mute_str=""
 fi
 
-zwrite -c $class -i $instance -d -n -m "$REMOTE_USER set volume $(volume-get)$mute_str" > /dev/null
+start-stop-daemon --stop --oknodo --pidfile /var/run/sipbmp3-zephyr >/dev/null 2>&1
+start-stop-daemon --start --pidfile /var/run/sipbmp3-zephyr --make-pidfile --background --exec /bin/sh -- -c "sleep 10 && zwrite -c $class -i $instance -d -n -m '$REMOTE_USER set volume $(volume-get)$mute_str' > /dev/null" >/dev/null 2>&1
