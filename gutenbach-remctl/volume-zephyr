@@ -22,7 +22,7 @@ if [ "$muted" = "unmuted" ]; then
 fi
 
 start-stop-daemon --stop --oknodo --pidfile /usr/lib/gutenbach/gutenbach-zephyr >/dev/null 2>&1
-start-stop-daemon --start --pidfile /usr/lib/gutenbach/gutenbach-zephyr --make-pidfile --background --exec /bin/sh -- -c "sleep 10 && zwrite -c $class -i $instance -d -n -m '$REMOTE_USER set volume $(volume-get)$mute_str' > /dev/null" >/dev/null 2>&1
+start-stop-daemon --start --pidfile /usr/lib/gutenbach/gutenbach-zephyr --make-pidfile --background --exec /bin/sh -- -c "sleep 10 && zwrite -c $class -i $instance -d -n -m 'volume changed to $(volume-get)$mute_str' > /dev/null" >/dev/null 2>&1
 
-echo "sleep 10 && zwrite -c $class -i $instance -d -n -m '$REMOTE_USER set volume $(volume-get)$mute_str' > /dev/null" >> /tmp/gutenbach-remctl.log
+echo "sleep 10 && zwrite -c $class -i $instance -d -n -m 'volume changed to $(volume-get)$mute_str' > /dev/null" >> /tmp/gutenbach-remctl.log
 echo "" >> /tmp/gutenbach-remctl.log
