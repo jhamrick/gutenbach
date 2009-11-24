@@ -292,11 +292,21 @@ The final step is to give your newfangled printer a cups.mit.edu record.
 In order to do this, you will need to ask IS&T for a Moira pcap entry
 request.  Send mail to hesreq@mit.edu, specifying that you are setting
 up a sipbmp3 clone, that you want a Moira pcap entry, the printer name
-and server name of your queue, and that you want hwtype=LOCAL. It wouldn't
+and server name of your queue, and that you want hwtype=LOCAL,ka=1. It wouldn't
 hurt to also tell them where your print queue is, and a contact list.
 
 Once you get the pcap entry, ping sipb-cups@mit.edu to add your machine
 to the public list.
+
+Troubleshooting:
+
+----
+Send_auth_transfer: on client client_krb5_auth failed - krb5_sendauth failed -
+Bad application version was sent (via sendauth)
+----
+
+This means that the ka field in your Hesiod pcap entry is incorrectly set to
+0.  Send mail to hesreq@mit.edu requesting ka be set to 1.
 
 
 11. Setting up keytabs on the machine
@@ -343,3 +353,9 @@ X. Deploying sipbmp3web
 sipbmp3 web provides a nice and user-friendly interface for some common
 tasks. XXX: It is currently not portable beyond zsr. Stay tuned!
 
+X. Troubleshooting
+------------------
+
+If things are broken on a reboot, make sure you're running:
+
+    /etc/init.d/{sipbmp3,zhm,debatehna-lprng}
