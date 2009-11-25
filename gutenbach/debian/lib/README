@@ -333,6 +333,14 @@ sipbmp3: server
     :kerberos_id=daemon/your-machine-name.mit.edu@ATHENA.MIT.EDU
     :kerberos_keytab=/etc/daemon.keytab
 
+Troubleshooting
+
+-----
+Printer 'pikamp3@LESBIAN-BABY-SEAGULL-GODDESS.MIT.EDU' - 
+on client client_krb5_auth failed - krb5_sendauth failed - Bad response (during sendauth exchange)
+-----
+
+Your daemon.keytab is not readable by daemon.
 
 12. Setting up remctl commands
 -----------------------------
