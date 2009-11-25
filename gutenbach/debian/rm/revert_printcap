@@ -2,7 +2,7 @@
 
 echo "Reverting changes to /etc/printcap..." >&2
 . /usr/share/debconf/confmodule
-db_get sipbmp3/printername
+db_get gutenbach/printername
 
 mv /etc/printcap /etc/printcap.bak
 touch /etc/printcap

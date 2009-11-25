@@ -1,4 +1,0 @@
-#!/bin/sh
-PATH="$(dirname $0):$PATH"
-amixer get Headphone \
- | perl -lne 'print $1 if (/Front Left: Playback ([0-9]+)/)'

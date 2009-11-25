@@ -14,5 +14,5 @@ chmod og=rwx /var/spool/lpd
 chmod og=rwx /var/spool/lpd/%P
 
 . /usr/share/debconf/confmodule
-db_get sipbmp3/printername
+db_get gutenbach/printername
 /usr/sbin/checkpc -P"$RET" -f

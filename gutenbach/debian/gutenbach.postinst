@@ -1,5 +1,5 @@
 #!/bin/sh
-# postinst script for sipbmp3
+# postinst script for gutenbach
 #
 # see: dh_installdeb(1)
 
@@ -21,23 +21,23 @@ set -e
 
 case "$1" in
     configure|reconfigure)
-	chmod +x /usr/lib/sipbmp3/inst/create-filter-config
-	chmod +x /usr/lib/sipbmp3/inst/edit-printcap
-	chmod +x /usr/lib/sipbmp3/inst/edit-lpd.conf
-	chmod +x /usr/lib/sipbmp3/inst/run-checkpc
-	chmod +x /usr/lib/sipbmp3/inst/edit-lpd.perms
-	/usr/lib/sipbmp3/inst/create-filter-config
-	/usr/lib/sipbmp3/inst/edit-printcap
-	/usr/lib/sipbmp3/inst/edit-lpd.conf
-	/usr/lib/sipbmp3/inst/run-checkpc
-	/usr/lib/sipbmp3/inst/edit-lpd.perms
+	chmod +x /usr/lib/gutenbach/inst/create-filter-config
+	chmod +x /usr/lib/gutenbach/inst/edit-printcap
+	chmod +x /usr/lib/gutenbach/inst/edit-lpd.conf
+	chmod +x /usr/lib/gutenbach/inst/run-checkpc
+	chmod +x /usr/lib/gutenbach/inst/edit-lpd.perms
+	/usr/lib/gutenbach/inst/create-filter-config
+	/usr/lib/gutenbach/inst/edit-printcap
+	/usr/lib/gutenbach/inst/edit-lpd.conf
+	/usr/lib/gutenbach/inst/run-checkpc
+	/usr/lib/gutenbach/inst/edit-lpd.perms
 
-	if [ -e /usr/lib/sipbmp3/config/printer_name ]; then
-	    rm /usr/lib/sipbmp3/config/printer_name
+	if [ -e /usr/lib/gutenbach/config/printer_name ]; then
+	    rm /usr/lib/gutenbach/config/printer_name
 	fi
 
-	if [ -e /usr/lib/sipbmp3/config/zephyr_class ]; then
-	    rm /usr/lib/sipbmp3/config/zephyr_class
+	if [ -e /usr/lib/gutenbach/config/zephyr_class ]; then
+	    rm /usr/lib/gutenbach/config/zephyr_class
 	fi
 
 	inaudio=$(groups daemon | grep audio || true)

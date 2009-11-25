@@ -1,0 +1,10 @@
+#!/bin/sh
+PATH="$(dirname $0):$PATH"
+
+mixer=$(sipbmp3-get-config mixer)
+channel="$(sipbmp3-get-config channel)"
+
+amixer set $mixer "$2" | grep "$channel" \
+ | perl -lne 'print $1 if (/: Playback ([0-9]+)/)'
+
+volume-zephyr

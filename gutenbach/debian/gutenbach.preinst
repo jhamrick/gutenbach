@@ -1,5 +1,5 @@
 #!/bin/sh
-# preinst script for sipbmp3
+# preinst script for gutenbach
 #
 # see: dh_installdeb(1)
 

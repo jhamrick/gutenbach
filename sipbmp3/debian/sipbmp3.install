@@ -1,3 +1,0 @@
-debian/lib/* /usr/lib/sipbmp3/
-debian/inst/* /usr/lib/sipbmp3/inst/
-debian/rm/* /usr/lib/sipbmp3/rm/

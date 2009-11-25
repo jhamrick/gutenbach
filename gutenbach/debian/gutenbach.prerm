@@ -1,5 +1,5 @@
 #!/bin/sh
-# prerm script for sipbmp3
+# prerm script for gutenbach
 #
 # see: dh_installdeb(1)
 
@@ -19,19 +19,19 @@ set -e
 
 case "$1" in
     remove|upgrade|deconfigure)
-	if [ -e /usr/lib/sipbmp3/rm/revert_lpd.conf ]; then
-	    chmod +x /usr/lib/sipbmp3/rm/revert_lpd.conf
-	    /usr/lib/sipbmp3/rm/revert_lpd.conf
+	if [ -e /usr/lib/gutenbach/rm/revert_lpd.conf ]; then
+	    chmod +x /usr/lib/gutenbach/rm/revert_lpd.conf
+	    /usr/lib/gutenbach/rm/revert_lpd.conf
 	fi
 
-	if [ -e /usr/lib/sipbmp3/rm/revert_lpd.perms ]; then
-	    chmod +x /usr/lib/sipbmp3/rm/revert_lpd.perms
-	    /usr/lib/sipbmp3/rm/revert_lpd.perms
+	if [ -e /usr/lib/gutenbach/rm/revert_lpd.perms ]; then
+	    chmod +x /usr/lib/gutenbach/rm/revert_lpd.perms
+	    /usr/lib/gutenbach/rm/revert_lpd.perms
 	fi
 
-	if [ -e /usr/lib/sipbmp3/rm/revert_printcap ]; then
-	    chmod +x /usr/lib/sipbmp3/rm/revert_printcap
-	    /usr/lib/sipbmp3/rm/revert_printcap
+	if [ -e /usr/lib/gutenbach/rm/revert_printcap ]; then
+	    chmod +x /usr/lib/gutenbach/rm/revert_printcap
+	    /usr/lib/gutenbach/rm/revert_printcap
 	fi
     ;;
 

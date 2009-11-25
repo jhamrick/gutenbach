@@ -1,0 +1,18 @@
+#!/bin/sh -e
+
+. /usr/share/debconf/confmodule
+
+if [ ! -d /usr/lib/gutenbach/config ]; then
+    mkdir /usr/lib/gutenbach/config
+fi
+
+echo "Creating /usr/lib/gutenbach/config/gutenbach-filter-config.pl..." >&2
+if [ ! -e "/usr/lib/gutenbach/config/gutenbach-filter-config.pl" ]; then
+    touch /usr/lib/gutenbach/config/gutenbach-filter-config.pl
+
+    db_get gutenbach/zephyrclass
+    echo "\$zephyr_class = \"$RET\";" >> /usr/lib/gutenbach/config/gutenbach-filter-config.pl
+    echo "\$hostname = \""`hostname`"\";" >> /usr/lib/gutenbach/config/gutenbach-filter-config.pl
+    db_get gutenbach/printername
+    echo "\$queue = \"$RET\";" >> /usr/lib/gutenbach/config/gutenbach-filter-config.pl
+fi

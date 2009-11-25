@@ -1,4 +1,4 @@
-sipbmp3 (1.1) unstable; urgency=low
+gutenbach (1.1) unstable; urgency=low
 
   * Implemented debconf to retrieve printer and zephyr class names.
   * Made uninstall cleaner (and when you purge, it purges
@@ -6,7 +6,7 @@ sipbmp3 (1.1) unstable; urgency=low
 
  -- Jessica Hamrick <jhamrick@mit.edu>  Wed, 16 Sep 2009 15:58:40 -0400
 
-sipbmp3 (1.0) unstable; urgency=low
+gutenbach (1.0) unstable; urgency=low
 
   * Initial release.
 

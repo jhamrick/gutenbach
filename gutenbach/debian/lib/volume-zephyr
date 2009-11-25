@@ -1,0 +1,18 @@
+#!/bin/sh
+PATH="$(dirname $0):$PATH"
+class=$(sipbmp3-get-config zephyr-class)
+host=$(sipbmp3-get-config host)
+queue=$(sipbmp3-get-config queue)
+instance="$queue-volume@$host"
+
+mixer=$(sipbmp3-get-config mixer)
+channel=$(sipbmp3-get-config channel)
+
+muted=$(volume-is-muted)
+mute_str=" [$muted]"
+if [ "$muted" = "unmuted" ]; then
+    mute_str=""
+fi
+
+start-stop-daemon --stop --oknodo --pidfile /var/run/sipbmp3-zephyr >/dev/null 2>&1
+start-stop-daemon --start --pidfile /var/run/sipbmp3-zephyr --make-pidfile --background --exec /bin/sh -- -c "sleep 10 && zwrite -c $class -i $instance -d -n -m '$REMOTE_USER set volume $(volume-get)$mute_str' > /dev/null" >/dev/null 2>&1

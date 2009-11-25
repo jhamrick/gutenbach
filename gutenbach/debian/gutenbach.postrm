@@ -1,5 +1,5 @@
 #!/bin/sh
-# postrm script for sipbmp3
+# postrm script for gutenbach
 #
 # see: dh_installdeb(1)
 
@@ -22,9 +22,9 @@ set -e
 case "$1" in
     purge|remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
 	if [ "$1" = "purge" ]; then
-	    if [ -d /usr/lib/sipbmp3 ]; then
-		echo "Removing /usr/lib/sipbmp3/..." >&2
-		rm -r /usr/lib/sipbmp3
+	    if [ -d /usr/lib/gutenbach ]; then
+		echo "Removing /usr/lib/gutenbach/..." >&2
+		rm -r /usr/lib/gutenbach
 	    fi
 
 	    if [ -e /usr/share/debconf/confmodule ]; then

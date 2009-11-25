@@ -1,0 +1,33 @@
+#!/usr/athena/bin/perl
+use strict;
+# Get configuration of gutenbach
+
+my $zephyr_class = "gutenbach";
+my $host = `hostname`;
+my $queue = "gutenbach";
+my $mixer = "PCM";
+my $channel = "Front Left";
+
+# Configuration
+my $config_file = "/usr/lib/gutenbach/config/gutenbach-filter-config.pl";
+if (-r $config_file) {
+    # Inline the configuration file
+    local $/;
+    my $fh;
+    open $fh, $config_file;
+    eval <$fh>;
+}
+
+my %config = (
+    'zephyr-class' => $zephyr_class,
+    'host' => $host,
+    'queue' => $queue,
+    'mixer' => $mixer,
+    'channel' => $channel,
+);
+
+foreach my $argv (@ARGV)
+{
+    #print $argv . "\n";
+    print $config{$argv};
+}

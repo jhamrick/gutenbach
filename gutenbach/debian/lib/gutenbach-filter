@@ -1,8 +1,8 @@
-#!/usr/bin/perl
+#!/usr/athena/bin/perl
 # Play the data on STDIN as an audio file
 #
-# $Id: sipbmp3-filter,v 1.26 2009/02/20 00:27:17 geofft Exp root $
-# $Source: /usr/local/bin/RCS/sipbmp3-filter,v $
+# $Id: gutenbach-filter,v 1.26 2009/02/20 00:27:17 geofft Exp root $
+# $Source: /usr/local/bin/RCS/gutenbach-filter,v $
 #
 # TODO
 # ----
@@ -22,12 +22,14 @@ use LWP::UserAgent;
 use Data::Dumper;
 use IPC::Open2;
 
-my $zephyr_class = "lprmp3";
-my $host = "hostname";
-my $queue = "printername";
+my $zephyr_class = "gutenbach";
+my $host = `hostname`;
+my $queue = "gutenbach";
+my $mixer = "PCM";
+my $channel = "Front Left";
 
 # Configuration
-my $config_file = "/usr/lib/sipbmp3/config/sipbmp3-filter-config.pl";
+my $config_file = "/usr/lib/gutenbach/config/gutenbach-filter-config.pl";
 if (-r $config_file) {
     # Inline the configuration file
     local $/;
@@ -39,7 +41,7 @@ if (-r $config_file) {
 my $ua = new LWP::UserAgent;
 
 close(STDERR);
-open(STDERR, ">>", "/tmp/sipbmp3.log") or warn "Couldn't open log: $!";
+open(STDERR, ">>", "/tmp/gutenbach.log") or warn "Couldn't open log: $!";
 
 $ENV{"TERM"}="vt100";
 
@@ -94,10 +96,10 @@ printf(STDERR Dumper(\%opts));
 
 # Status messages at start of playback
 open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c '. $zephyr_class .' -i ' .
-  $queue.'@'.$host.' -s "SIPB LPR music spooler"');
+  $queue.'@'.$host.' -s "Gutenbach Music Spooler"');
 
 # For the Now Playing remctl command
-open(STATUS, '>', '/var/run/sipbmp3/status') or die("Can't open status file /var/run/sipbmp3/status");
+open(STATUS, '>', '/var/run/gutenbach/status') or die("Can't open status file /var/run/gutenbach/status");
 
 print(ZEPHYR "$opts{'n'}\@$opts{'H'} is playing:\n");
 print(STATUS "User: $opts{'n'}\@$opts{'H'}\n");
@@ -105,10 +107,10 @@ print(STATUS "User: $opts{'n'}\@$opts{'H'}\n");
 # SIGHUP handler
 sub clear_status {
     # Possible race condition if the previous status is still going
-    open(STA, '>', '/var/run/sipbmp3/status');
+    open(STA, '>', '/var/run/gutenbach/status');
     close(STA);
     open(ZEPH, '|/usr/athena/bin/zwrite -d -n -c '. $zephyr_class .' -i '.
-        $queue.'@'.$host.' -s "SIPB LPR music spooler"');
+        $queue.'@'.$host.' -s "Gutenbach Music Spooler"');
     print(ZEPH "Playback aborted.\n");
     close(ZEPH);
     die;
@@ -265,7 +267,7 @@ sub play_mplayer_audio {
 
     # Prepare to write status:
     open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c '.$zephyr_class.' -i ' .
-	 $queue.'@'.$host.' -s "SIPB LPR music spooler"');
+	 $queue.'@'.$host.' -s "Gutenbach Music Spooler"');
     
     # fork for mpg123
     my $pid = open(MP3STATUS, "-|");
@@ -289,7 +291,7 @@ sub play_mplayer_audio {
 	close(MP3STATUS) || print ZEPHYR "mplayer exited $?\n";
 	
 	close(ZEPHYR);
-        open(STATUS, '>', '/var/run/sipbmp3/status');
+        open(STATUS, '>', '/var/run/gutenbach/status');
         close(STATUS);
     }
   else { # child
