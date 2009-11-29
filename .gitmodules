@@ -10,3 +10,6 @@
 [submodule "web"]
 	path = web
 	url = /afs/sipb/project/sipbmp3/sipbmp3web.git/
+[submodule "gutenbach/debian/lib"]
+	path = gutenbach/debian/lib
+	url = /afs/sipb/project/sipbmp3/sipbmp3.git/
