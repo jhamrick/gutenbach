@@ -3,13 +3,13 @@ Plugin written by Nimrod Gileadi, copyright 2009.
 To install:
 
 1) Move the folder 'pikamp3' and its contents to
-~/.gnome2/rhythmbox/plugins/
+~/.gnome2/rhythmbox/plugins/.  You will have to edit __init.py__,
+replacing "printername" and "hostname" with the desired values (e.g.,
+"sipbmp3" and "zsr.mit.edu").
 
 2) Open rhythmbox, and navigate the 'Edit' menu.  Select 'Plugins'.
 
-3) Check the box next to 'gutenbach'.  Click the 'Configure...'
-button, and enter in the printer name and the hostname on which the
-printer resides.
+3) Check the box next to 'gutenbach'.
 
 4) To queue a song/songs, highlight them, and right click and select
 'Send to gutenbach'.

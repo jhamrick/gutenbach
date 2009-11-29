@@ -30,8 +30,8 @@ class GutenbachPlugin(rb.Plugin):
         manager.add_ui_from_string(popup_ui)
 
         # Default configuration options
-        self.printer = "pikamp3"
-        self.printer_host = "lbsg.mit.edu"
+        self.printer = "printername"
+        self.printer_host = "hostname"
 
     def deactivate(self, shell):
         del self.shell
