@@ -1,0 +1,6 @@
+[submodule "plugins/itunes"]
+	path = plugins/itunes
+	url = /afs/sipb/project/sipbmp3/itunes-plugin.git/
+[submodule "plugins/rhythmbox"]
+	path = plugins/rhythmbox
+	url = /afs/sipb/project/sipbmp3/rhythmbox-plugin.git
