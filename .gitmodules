@@ -4,3 +4,9 @@
 [submodule "plugins/rhythmbox"]
 	path = plugins/rhythmbox
 	url = /afs/sipb/project/sipbmp3/rhythmbox-plugin.git
+[submodule "remctl"]
+	path = remctl
+	url = /afs/sipb/project/sipbmp3/sipbmp3-remctl.git/
+[submodule "web"]
+	path = web
+	url = /afs/sipb/project/sipbmp3/sipbmp3web.git/
