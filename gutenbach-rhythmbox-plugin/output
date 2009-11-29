@@ -1,0 +1,4 @@
+(rhythmbox:14907): Rhythmbox-DEBUG: Received SaveYourself(SmSaveLocal, !Shutdown, SmInteractStyleNone, !Fast) in state idle
+(rhythmbox:14907): Rhythmbox-DEBUG: Setting initial properties
+(rhythmbox:14907): Rhythmbox-DEBUG: Sending SaveYourselfDone(True) for initial SaveYourself
+(rhythmbox:14907): Rhythmbox-DEBUG: Received SaveComplete message in state save-yourself-done

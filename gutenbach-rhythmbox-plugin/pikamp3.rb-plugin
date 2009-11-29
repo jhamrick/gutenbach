@@ -1,0 +1,7 @@
+[RB Plugin]
+Loader=python
+Module=pikamp3
+IAge=1
+Name=pikamp3
+Description="Print" tunes to the pikamp3 server
+Authors=Nimrod Gileadi <nimrodg@mit.edu>
