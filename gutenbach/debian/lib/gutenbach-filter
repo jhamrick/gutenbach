@@ -92,7 +92,7 @@ foreach my $arg (@ARGV) {
 
 @ARGV = @NEWARGV;
 
-printf(STDERR Dumper(\%opts));
+printf(STDERR "%s", Dumper(\%opts));
 
 # Status messages at start of playback
 open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c '. $zephyr_class .' -i ' .
