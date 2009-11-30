@@ -1,5 +1,5 @@
 -- -----------------
--- iTunes -> sipbmp3
+-- iTunes -> gutenbach
 -- -----------------
 
 -- Changelog:
@@ -10,11 +10,11 @@
 
 -- Usage:
 --
--- Running this script will toggle the mute on sipbmp3 on or off.
+-- Running this script will toggle the mute on gutenbach on or off.
 
 tell application "iTunes"
 	set vol to sound volume
 end tell
 
-set command to "/usr/local/bin/remctl zsr volume set " & vol
+set command to "/usr/local/bin/remctl hostname volume set " & vol
 do shell script command

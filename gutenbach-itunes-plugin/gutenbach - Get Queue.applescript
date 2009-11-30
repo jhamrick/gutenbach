@@ -1,7 +1,7 @@
 -- -----------------
--- iTunes -> sipbmp3
+-- iTunes -> gutenbach
 -- -----------------
--- This is a simple little script which gets the current queue on sipbmp3--
+-- This is a simple little script which gets the current queue on gutenbach--
 -- Changelog:
 --
 -- 10 Oct 2009 -> pquimby created this script
@@ -14,8 +14,8 @@
 --
 -- Run this script from iTunes
 
-set message to (do shell script "lpq -Psipbmp3")
+set message to (do shell script "lpq -Pgutenbach")
 tell application "iTunes"
-	display dialog "sipbmp3 currently is playing: " & "
+	display dialog "gutenbach currently is playing: " & "
 " & message buttons "OK" default button "OK"
 end tell

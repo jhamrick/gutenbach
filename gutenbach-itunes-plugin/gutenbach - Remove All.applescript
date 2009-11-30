@@ -1,5 +1,5 @@
 -- ------------------
--- iTunes -> sipbmp3
+-- iTunes -> gutenbach
 -- ------------------
 
 -- Changelog:
@@ -10,6 +10,6 @@
 -- For installation instructions see the INSTALL file in the snippets/sipbmp3-iTunes folder--
 
 -- Usage:
---  This script will remove all of your songs queued to sipbmp3
+--  This script will remove all of your songs queued to gutenbach
 
-do shell script "lprm -Psipbmp3 -"
+do shell script "lprm -Pgutenbach -"

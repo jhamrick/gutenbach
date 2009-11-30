@@ -1,11 +1,12 @@
 -----------------
-iTunes -> sipbmp3
+iTunes -> gutenbach
 -----------------
 This is a simple little script which sends
-music from an iTunes library to the sipbmp3
+music from an iTunes library to the gutenbach
 lpr server.
 
 * Changelog
+29 Nov 2009 -> changed the name from sipbmp3 to gutenbach
 23 Aug 2009 -> broder spun loop into shell script instead of
     applescript so that iTunes doesn't hang
 9 Jan 2009 -> price added 'quoted form'
@@ -21,18 +22,23 @@ There are two parts:
 1) Launch the Printer Setup Utility and add
    an IP Printer with the LPD protocol with
    the following information:
-    Address: zygorthian-space-raiders.mit.edu
-    Queue: sipbmp3
+    Address: hostname
+    Queue: gutenbach
    It is not necessary to specify the driver.
 
+   *** Note that you MUST give the printer name as the same name as
+       the queue, NOT the address (which it seems to default to). ***
+
 2) Create the directory ~/Library/iTunes/Scripts
-   and place the "Send to sipbmp3.scpt" file
-   within.
+   and place the scripts you want within.
+
+3) Edit those scripts such, replacing "hostname" with the hostname of
+your printer and "gutenbach" with the printername.
 
 * Usage
 When in iTunes, select the songs which you
 would like to hear in the office, and click
-"Send to sipbmp3" in the script menu from
+the script you want from the script menu from
 the menu bar.  The script menu looks like a
 little scroll icon.  There will be no
 feedback beyond the pleasant sounds you now
