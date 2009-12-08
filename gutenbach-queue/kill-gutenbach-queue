@@ -1,0 +1,13 @@
+#!/bin/bash
+
+echo "Stopping view-gutenbach-queue..."
+killall -q "/usr/lib/sipbmp3/view-gutenbach-queue"
+echo "Stopping build-gutenbach-queue..."
+killall -q "/usr/lib/sipbmp3/build-gutenbach-queue"
+echo "Stopping queue..."
+killall -q "/usr/lib/sipbmp3/queue"
+echo "Stopping exiftool..."
+killall -q "/usr/bin/exiftool"
+echo "Stopping watch..."
+killall -q "/usr/bin/watch"
+echo "Done."

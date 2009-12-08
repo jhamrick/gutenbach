@@ -1,0 +1,79 @@
+#!/bin/bash
+
+case "$1" in
+    start)
+	daemon -F /var/run/sipbmp3/gutenbach-queue.pid --name gutenbach-queue --running
+	if [ "$?" == 0 ]; then
+	    echo "The gutenbach queue daemon is already running."
+	else
+	    if [ ! -e /var/run/sipbmp3/current_queue ]; then
+		touch /var/run/sipbmp3/current_queue
+		chmod ugoa+r /var/run/sipbmp3/current_queue
+            fi
+            if [ ! -e /var/run/sipbmp3/queue_times ]; then
+		touch /var/run/sipbmp3/queue_times
+            fi
+            if [ ! -e /var/run/sipbmp3/exiftool_data ]; then
+		touch /var/run/sipbmp3/exiftool_data
+	    fi
+            if [ ! -e /var/run/sipbmp3/current_queue_temp ]; then
+		touch /var/run/sipbmp3/current_queue_temp
+            fi
+
+	    echo "Starting gutenbach daemon..."
+	    daemon -F /var/run/sipbmp3/gutenbach-queue.pid --name gutenbach-queue -u daemon /usr/lib/sipbmp3/build-gutenbach-queue
+	    echo "Done."
+	fi
+	;;
+
+    stop)
+	daemon -F /var/run/sipbmp3/gutenbach-queue.pid --stop --name gutenbach-queue
+	/usr/lib/sipbmp3/kill-gutenbach-queue
+
+	if [ -e /var/run/sipbmp3/current_queue ]; then
+            rm /var/run/sipbmp3/current_queue
+	fi
+        if [ -e /var/run/sipbmp3/queue_times ]; then
+            rm /var/run/sipbmp3/queue_times
+	fi
+        if [ -e /var/run/sipbmp3/exiftool_data ]; then
+            rm /var/run/sipbmp3/exiftool_data
+	fi
+        if [ -e /var/run/sipbmp3/current_queue_temp ]; then
+            rm /var/run/sipbmp3/current_queue_temp
+        fi
+	;;
+
+    restart)
+	daemon -F /var/run/sipbmp3/gutenbach-queue.pid --stop --name gutenbach-queue
+        /usr/lib/sipbmp3/kill-gutenbach-queue
+
+	if [ -e /var/run/sipbmp3/current_queue ]; then
+	    rm /var/run/sipbmp3/current_queue
+	fi
+	if [ -e /var/run/sipbmp3/queue_times ]; then
+	    rm /var/run/sipbmp3/queue_times
+	fi
+	if [ -e /var/run/sipbmp3/exiftool_data ]; then
+	    rm /var/run/sipbmp3/exiftool_data
+	fi
+	if [ -e /var/run/sipbmp3/current_queue_temp ]; then
+	    rm /var/run/sipbmp3/current_queue_temp
+	fi
+
+	touch /var/run/sipbmp3/current_queue
+	chmod ugoa+r /var/run/sipbmp3/current_queue
+	touch /var/run/sipbmp3/queue_times
+	touch /var/run/sipbmp3/exiftool_data
+	touch /var/run/sipbmp3/current_queue_temp
+
+	echo "Starting gutenbach daemon..."
+	daemon -F /var/run/sipbmp3/gutenbach-queue.pid --name gutenbach-queue -u daemon /usr/lib/sipbmp3/build-gutenbach-queue
+	echo "Done."
+	;;
+
+    *)
+	echo "Usage: $0 {start|stop|restart}"
+	exit 1
+	;;
+esac
