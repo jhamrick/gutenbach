@@ -36,7 +36,7 @@ if [ -e /var/run/sipbmp3/queue_times ]; then
 	    host=$(cat "$i" | grep ^H=)
 	    host=${host:2}
 	    album=$(cat /var/run/sipbmp3/exiftool_data | grep "^Album " | sed 's/.*: //')
-	    echo "$user@$host is currently playing:"
+	    echo "$user@$host is currently playing: $song"
 	    echo "'$title'"
 	    echo "by '$artist'"
 	    echo "on '$album'"
