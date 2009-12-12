@@ -1,4 +1,4 @@
-#!/usr/athena/bin/perl
+#!/usr/bin/perl
 use strict;
 # Get configuration of gutenbach
 

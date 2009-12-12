@@ -1,4 +1,4 @@
-#!/usr/athena/bin/perl
+#!/usr/bin/perl
 # Play the data on STDIN as an audio file
 #
 # $Id: gutenbach-filter,v 1.26 2009/02/20 00:27:17 geofft Exp root $
