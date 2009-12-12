@@ -1,0 +1,52 @@
+#!/bin/bash
+
+found_current=
+
+if [ -e "/var/run/gutenbach/queue_times" ]; then
+    rm "/var/run/gutenbach/queue_times"
+fi
+
+cd /var/spool/lpd/gutenbach/
+for i in $(ls . | grep ^hf); do
+    done=$(cat "$i" | grep done)
+    if [ ! -n "$done" ]; then
+	timestamp=$(cat "$i" | grep ^job_time= | sed 's/.*=//')
+	echo "$timestamp:$i" >> /var/run/gutenbach/queue_times
+    fi
+done
+
+if [ -e /var/run/gutenbach/queue_times ]; then
+    for i in $(sort /var/run/gutenbach/queue_times); do
+	i=$(echo "$i" | sed 's/.*://')
+	prefix="df"${i:2}
+	for j in "$prefix"*; do song="$j"; done
+
+	user=$(cat "$i" | grep ^P=)
+	user=${user:2}
+    
+	if [ -e /var/run/gutenbach/exiftool_data ]; then
+	    rm /var/run/gutenbach/exiftool_data
+	fi
+
+	exiftool "$song" >> /var/run/gutenbach/exiftool_data
+	title=$(cat /var/run/gutenbach/exiftool_data | grep "^Title " | sed 's/.*: //')
+	artist=$(cat /var/run/gutenbach/exiftool_data | grep "^Artist " | sed 's/.*: //')
+
+	if [ -z "$found_current" ]; then
+	    host=$(cat "$i" | grep ^H=)
+	    host=${host:2}
+	    filenm="$(cat $i | grep "^filenames" | sed -e 's/filenames=//')"
+	    album=$(cat /var/run/gutenbach/exiftool_data | grep "^Album " | sed 's/.*: //')
+	    echo "$user@$host is currently playing: "
+	    echo "$filenm"
+	    echo "'$title'"
+	    echo "by '$artist'"
+	    echo "on '$album'"
+	    echo ""
+	    echo "Coming up in the queue:"
+	    found_current="true" 
+	else
+	    echo "$user: '$title' by '$artist'"
+	fi
+    done
+fi
