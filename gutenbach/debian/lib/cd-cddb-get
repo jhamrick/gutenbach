@@ -2,7 +2,7 @@
 PATH="$(dirname $0):$PATH"
 
 CDDBURL="http://freedb.freedb.org/~cddb/cddb.cgi"
-MYUSER="sipbmp3"
+MYUSER="gutenbach"
 MYHOST="zsr.mit.edu"
 
 DISCID=$(cd-discid /dev/cdrom 2>/dev/null) || exit 1
@@ -12,9 +12,9 @@ set -- $DISCID
 ID="$1"
 TRACKS="$2"
 
-mkdir -p /var/cache/sipbmp3
+mkdir -p /var/cache/gutenbach
 
-CACHEFILE="/var/cache/sipbmp3/$ID"
+CACHEFILE="/var/cache/gutenbach/$ID"
 
 if [ ! -e "$CACHEFILE" ]; then
 

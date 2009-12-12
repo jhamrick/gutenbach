@@ -17,7 +17,7 @@ play_one () {
 	DESC=" - "$(eval 'echo $TRACK'$T)
     fi
 
-    echo "cdda://$(($T - 1))" | mit-lpr -Psipbmp3@localhost -J "Track $T$DESC";
+    echo "cdda://$(($T - 1))" | mit-lpr -Pgutenbach@localhost -J "Track $T$DESC";
     echo "Queued Track $T$DESC";
 }
 

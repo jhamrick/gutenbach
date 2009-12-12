@@ -1,19 +1,19 @@
-sipbmp3
+gutenbach
     The SIPB MP3 Music Spooler
 
 We would love you forever if you took this README/INSTALL document and made
 a Debian package out of it.  That would be uber-awesome.  But otherwise, we're
-assuming that you just want to get sipbmp3 up and running on your own
+assuming that you just want to get gutenbach up and running on your own
 system.  Well, maybe we shouldn't assume that.
 
 
-What does sipbmp3 do?
+What does gutenbach do?
 ---------------------
 
-sipbmp3 is a music spooler.  As it turns out, streaming music is a hard
+gutenbach is a music spooler.  As it turns out, streaming music is a hard
 problem, with lots of proprietary protocols, client and server software.
 All of these jiggety bits are kind of a pain to get working correctly,
-so, we built sipbmp3 on top of... a printer system.  It's very simple:
+so, we built gutenbach on top of... a printer system.  It's very simple:
 you print an mp3 file to a special "printer", and it gets played on
 whatever speakers you're hooked up to.
 
@@ -26,13 +26,13 @@ Debathena installed on top of it.  Ubuntu Server Edition tends to work
 well.
 
 
-Installing sipbmp3
+Installing gutenbach
 ------------------
 
 
 1. Configuring your sound
 
-If you're installing sipbmp3 on a server environment, it's highly likely
+If you're installing gutenbach on a server environment, it's highly likely
 that you have a bare bones audio setup and everything is muted.  Make sure
 your sound works!  One common problem is that the daemon user (the user which
 will be actually playing the songs, or the user that your lpd, the print server,
@@ -47,7 +47,7 @@ this URL for detailed instructions:
 
 2. Install some prerequisite software
 
-On a vanilla Ubuntu server install, sipbmp3 will also need the following
+On a vanilla Ubuntu server install, gutenbach will also need the following
 packages to work properly:
 
     * mplayer
@@ -56,23 +56,23 @@ packages to work properly:
 mpg123 can also be useful for testing, but is not strictly necessary.
 
 
-3. Setup sipbmp3
+3. Setup gutenbach
 
-The Git repository for sipbmp3 is located in:
+The Git repository for gutenbach is located in:
 
-    /afs/sipb/project/sipbmp3/sipbmp3.git
+    /afs/sipb/project/sipbmp3/gutenbach.git
 
-Place this in /root/sipbmp3; the remctl scripts will assume that the
+Place this in /root/gutenbach; the remctl scripts will assume that the
 scripts can be found in this location.
 
 
-4. Configure sipbmp3
+4. Configure gutenbach
 
-sipbmp3 will send zephyrs during playback start and end.  Since you don't
+gutenbach will send zephyrs during playback start and end.  Since you don't
 want to be spamming sipb-auto (which is the default zephyr class these
 are sent to), you should create a configuration file:
 
-    /etc/sipbmp3-filter-config.pl
+    /etc/gutenbach-filter-config.pl
 
 That looks like:
 
@@ -83,28 +83,28 @@ That looks like:
 XXX: Auto-detect hostname and invent a sane default zephyr class off of it.
 
 
-5. Configure sipbmp3 init scripts
+5. Configure gutenbach init scripts
 
-sipbmp3 will attempt to drop some information into /var/run/sipbmp3, which
+gutenbach will attempt to drop some information into /var/run/gutenbach, which
 needs to exist and you can't simply mkdir since /var/run on Ubuntu is
-a tempfs. Thus, add the following lines to a new file, /etc/init.d/sipbmp3:
+a tempfs. Thus, add the following lines to a new file, /etc/init.d/gutenbach:
 
 #!/bin/sh
-mkdir /var/run/sipbmp3
-touch /var/run/sipbmp3/status
-chmod 0777 /var/run/sipbmp3/status
+mkdir /var/run/gutenbach
+touch /var/run/gutenbach/status
+chmod 0777 /var/run/gutenbach/status
 
 You should also run these commands yourself. :-)
 
-XXX: Note from jhamrick: I would recomment actually setting this up as a nice startup script, with a switch case for {start|stop|restart} (where with stop you just remove the directory, and with restart you remove the directory and then recreate it).  Also, sipbmp3 won't actually run on startup unless there are scripts in the /etc/rc*.d directory, so we need to do:
+XXX: Note from jhamrick: I would recomment actually setting this up as a nice startup script, with a switch case for {start|stop|restart} (where with stop you just remove the directory, and with restart you remove the directory and then recreate it).  Also, gutenbach won't actually run on startup unless there are scripts in the /etc/rc*.d directory, so we need to do:
 
-> ln -s ../init.d/sipbmp3 /etc/rc2.d/S61sipbmp3
-> ln -s ../init.d/sipbmp3 /etc/rc3.d/S61sipbmp3
-> ln -s ../init.d/sipbmp3 /etc/rc4.d/S61sipbmp3
-> ln -s ../init.d/sipbmp3 /etc/rc5.d/S61sipbmp3
-> ln -s ../init.d/sipbmp3 /etc/rc0.d/K39sipbmp3
-> ln -s ../init.d/sipbmp3 /etc/rc1.d/K39sipbmp3
-> ln -s ../init.d/sipbmp3 /etc/rc6.d/K39sipbmp3
+> ln -s ../init.d/gutenbach /etc/rc2.d/S61gutenbach
+> ln -s ../init.d/gutenbach /etc/rc3.d/S61gutenbach
+> ln -s ../init.d/gutenbach /etc/rc4.d/S61gutenbach
+> ln -s ../init.d/gutenbach /etc/rc5.d/S61gutenbach
+> ln -s ../init.d/gutenbach /etc/rc0.d/K39gutenbach
+> ln -s ../init.d/gutenbach /etc/rc1.d/K39gutenbach
+> ln -s ../init.d/gutenbach /etc/rc6.d/K39gutenbach
 
 XXX: We need better permissions for status. Also, quentin wants to put this
 file in AFS.
@@ -115,10 +115,10 @@ file in AFS.
 You'll need to setup a printcap file so that your machine will be actually
 running a printer! The magic lines are:
 
-    :if=|/path/to/sipbmp3-filter
+    :if=|/path/to/gutenbach-filter
     :lp=/dev/null
 
-Which mean that we pipe the mp3 files through sipbmp3-filter (which does
+Which mean that we pipe the mp3 files through gutenbach-filter (which does
 the actual playing), and then dump the rest of the output into /dev/null,
 since we don't actually care about it.
 
@@ -128,7 +128,7 @@ printername
   :server
   :cm=Human Readable Printer Name
   :lp=/dev/null
-  :if=|/path/to/sipbmp3-filter
+  :if=|/path/to/gutenbach-filter
   :sd=/var/spool/lpd/printername
   :ml=0:mx=0:sh:sf
   :create_files
@@ -147,8 +147,8 @@ add /etc/lprng/printcap to the beginning of the pathlist, so it looks like:
 /etc/printcap will also work, assuming lprng doesn't do something funky
 in the future.
 
-WARNING: On a cluster machine, get_hesiod_pcap will clobber sipbmp3
-because it sets all:all=someotherprinter, making lpr not see sipbmp3.
+WARNING: On a cluster machine, get_hesiod_pcap will clobber gutenbach
+because it sets all:all=someotherprinter, making lpr not see gutenbach.
 There are two ways of fixing this:
 
 1. Patch /usr/lib/get_hesiod_pcap to return a full pcap line instead
@@ -189,7 +189,7 @@ commenting out the line:
 XXX: On scourge, ACCEPT SERVICE=M SAMEHOST SAMEUSER doesn't seem to work
 properly, so removing the REJECT line is a must!
 
-XXXXXX: sipbmp3 accepts no responsibility for social faux pas that may
+XXXXXX: gutenbach accepts no responsibility for social faux pas that may
 be committed with this system.  It is consider good etiquette, however,
 to clear the status file if you're on zsr.
 
@@ -205,7 +205,7 @@ XXXXXXXX: Another note from jhamrick (09/2009): debathena-lprng does not start u
 
 7. Test, round one
 
-The first test you should do to make sure sipbmp3 is configured properly is
+The first test you should do to make sure gutenbach is configured properly is
 to attempt to play an mp3 file locally, via lpr.  The command you should use
 is:
 
@@ -257,7 +257,7 @@ You're using lpr, not mit-lpr.
 It looks like you managed to send the file over.  To diagnose the problems
 further:
 
-    * Check the zephyr logs of the class sipbmp3 was configured to
+    * Check the zephyr logs of the class gutenbach was configured to
       send messages to:
 
         - If you see a reasonably full and formatted message, that means
@@ -268,8 +268,8 @@ further:
           By the way, be sure to check both the *hardware* and the
           *software* volume.
 
-        - If you see a blank zephyr, that means that sipbmp3-filter died
-          trying to get a handle to /var/run/sipbmp3/status and failing.
+        - If you see a blank zephyr, that means that gutenbach-filter died
+          trying to get a handle to /var/run/gutenbach/status and failing.
           Check if you created the file correctly, and that daemon has
           permissions to write to it. If you rebooted recently, check if
           you have the appropriate init.d script setup.
@@ -280,9 +280,9 @@ further:
         - If you see a Perl error, fix it. The most common cause is because
           exiftools is not installed.
 
-    * Otherwise, double check the userland code in sipbmp3-filter. XXX: There
+    * Otherwise, double check the userland code in gutenbach-filter. XXX: There
       are some edge-cases that don't give nice error messages, for example
-      the failed write to /var/run/sipbmp3/status
+      the failed write to /var/run/gutenbach/status
 
 
 10. Deploying CUPS
@@ -291,7 +291,7 @@ further:
 The final step is to give your newfangled printer a cups.mit.edu record.
 In order to do this, you will need to ask IS&T for a Moira pcap entry
 request.  Send mail to hesreq@mit.edu, specifying that you are setting
-up a sipbmp3 clone, that you want a Moira pcap entry, the printer name
+up a gutenbach clone, that you want a Moira pcap entry, the printer name
 and server name of your queue, and that you want hwtype=LOCAL,ka=1. It wouldn't
 hurt to also tell them where your print queue is, and a contact list.
 
@@ -325,7 +325,7 @@ second can be changed.)  Make sure you chown and chgrp it to daemon.
 
 Finally, edit /etc/printcap and give it information about the Kerberos:
 
-sipbmp3: server
+gutenbach: server
     :cm=SIPB MP3 Spooler
     ...
     :auth_forward=kerberos5
@@ -350,15 +350,15 @@ this without asking people to ssh in, and then alsamix(er).
 
 You will probably need to apt-get install remctl-server. Then, replace
 the /etc/remctl/conf.d directory with a Git checkout of
-/afs/sipb/project/sipbmp3/sipbmp3-remctl.git.
+/afs/sipb/project/sipbmp3/gutenbach-remctl.git.
 
 Please note that remctl will NOT work without a keytab setup.
 
 
-X. Deploying sipbmp3web
+X. Deploying gutenbachweb
 ------------------------
 
-sipbmp3 web provides a nice and user-friendly interface for some common
+gutenbach web provides a nice and user-friendly interface for some common
 tasks. XXX: It is currently not portable beyond zsr. Stay tuned!
 
 X. Troubleshooting
@@ -366,4 +366,4 @@ X. Troubleshooting
 
 If things are broken on a reboot, make sure you're running:
 
-    /etc/init.d/{sipbmp3,zhm,debatehna-lprng}
+    /etc/init.d/{gutenbach,zhm,debatehna-lprng}
