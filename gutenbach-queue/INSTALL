@@ -1,5 +1,0 @@
-Written by Jessica Hamrick (jhamrick).  Copyright 2009.
-
-1) build-gutenbach-queue, view-gutenbach-queue, kill-gutenbach-queue, and queue go in /usr/lib/sipbmp3/
-2) gutenbach-queue goes in /etc/init.d
-3) do `ln -s /usr/lib/sipbmp3/view-gutenbach-queue /usr/bin/view-gutenbach-queue`
