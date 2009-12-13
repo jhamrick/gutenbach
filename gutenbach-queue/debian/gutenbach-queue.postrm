@@ -21,29 +21,17 @@ set -e
 
 case "$1" in
     purge|remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
-	    if [ -d /usr/lib/gutenbach/queue ]; then
-		if [ -e /usr/lib/gutenbach/queue/build-gutenbach-queue ]; then
-		    rm /usr/lib/gutenbach/queue/build-gutenbach-queue
-		fi
-
-		if [ -e /usr/lib/gutenbach/queue/kill-gutenbach-queue ]; then
-		    rm /usr/lib/gutenbach/queue/kill-gutenbach-queue
-		fi
-
-		if [ -e /usr/lib/gutenbach/queue/queue ]; then
-		    rm /usr/lib/gutenbach/queue/queue
-		fi
-		
-		if [ -e /usr/lib/gutenbach/queue/view-gutenbach-queue ]; then
-		    rm /usr/lib/gutenbach/queue/view-gutenbach-queue
-		fi
-
-		rmdir /usr/lib/gutenbach/queue
+	if [ "$1" = "purge" ]; then
+	    if [ -e /usr/lib/gutenbach/queue ]; then
+		echo "Removing /usr/lib/gutenbach/queue/ ..." >&2
+		rm -r  /usr/lib/gutenbach/queue
 	    fi
 
-	    if [ -h /usr/bin/view-gutenbach-queue ]; then
+	    if [ -e /usr/bin/view-gutenbach-queue ]; then
+		echo "Removing /usr/bin/view-gutenbach-queue ..." >&2
 		rm /usr/bin/view-gutenbach-queue
 	    fi
+     	fi
     ;;
 
     *)

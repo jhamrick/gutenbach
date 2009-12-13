@@ -23,9 +23,14 @@ case "$1" in
     configure|reconfigure)
 	chmod +x /usr/lib/gutenbach/queue/build-gutenbach-queue
 	chmod +x /usr/lib/gutenbach/queue/kill-gutenbach-queue
-	chmod +x /usr/lib/queue/view-gutenbach-queue
-	chmod +x /usr/lib/queue/queue
-	ln -s /usr/lib/queue/view-gutenbach-queue /usr/bin/view-gutenbach-queue
+	chmod +x /usr/lib/gutenbach/queue/view-gutenbach-queue
+	chmod +x /usr/lib/gutenbach/queue/queue
+	
+	if [ ! -e /usr/bin/view-gutenbach-queue ]; then
+	    ln -s /usr/lib/gutenbach/queue/view-gutenbach-queue /usr/bin/view-gutenbach-queue
+	fi
+
+	chown -R daemon:pika /var/run/gutenbach
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
