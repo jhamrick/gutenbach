@@ -39,8 +39,11 @@ case "$1" in
     else
 	exit 1
     fi
+    
+    if [ -e /var/run/gutenbach ]; then
+	rm -r /var/run/gutenbach
+    fi
 
-    rm -r /var/run/gutenbach
     if which invoke-rc.d >/dev/null 2>&1; then
 	invoke-rc.d "$script" stop
     else
@@ -56,8 +59,11 @@ case "$1" in
     else
 	exit 1
     fi
+    
+    if [ -e /var/run/gutenbach ]; then
+	rm -r /var/run/gutenbach
+    fi
 
-    rm -r /var/run/gutenbach
     if which invoke-rc.d >/dev/null 2>&1; then
 	invoke-rc.d "$script" stop
     else

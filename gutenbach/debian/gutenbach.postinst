@@ -21,6 +21,17 @@ set -e
 
 case "$1" in
     configure|reconfigure)
+	if [ ! -d /usr/lib/gutenbach/config ]; then
+	    mkdir /usr/lib/gutenbach/config
+	fi
+
+	db_get gutenbach/zephyrclass
+	echo "$RET" > /usr/lib/gutenbach/config/zephyrclass
+	db_get gutenbach/printername
+	echo "$RET" > /usr/lib/gutenbach/config/printername
+	db_get gutenbach/hostname
+	echo "$RET" > /usr/lib/gutenbach/config/hostname
+
 	chmod +x /usr/lib/gutenbach/inst/create-filter-config
 	chmod +x /usr/lib/gutenbach/inst/edit-printcap
 	chmod +x /usr/lib/gutenbach/inst/edit-lpd.conf
@@ -31,14 +42,6 @@ case "$1" in
 	/usr/lib/gutenbach/inst/edit-lpd.conf
 	/usr/lib/gutenbach/inst/run-checkpc
 	/usr/lib/gutenbach/inst/edit-lpd.perms
-
-	if [ -e /usr/lib/gutenbach/config/printer_name ]; then
-	    rm /usr/lib/gutenbach/config/printer_name
-	fi
-
-	if [ -e /usr/lib/gutenbach/config/zephyr_class ]; then
-	    rm /usr/lib/gutenbach/config/zephyr_class
-	fi
 
 	inaudio=$(groups daemon | grep audio || true)
 	if [ -z "$inaudio" ]; then

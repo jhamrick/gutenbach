@@ -1,6 +1,6 @@
 Template: gutenbach/printername
 Type: string
-_Description: Your gutenbach printer name:
+Description: Your gutenbach printer name:
  gutenbach creates a printer to which you can print music
  files.  gutenbach needs to know what you want to call the 
  printer, and then after installation, you will be able
@@ -9,10 +9,17 @@ _Description: Your gutenbach printer name:
 
 Template: gutenbach/zephyrclass
 Type: string
-_Description: Your gutenbach zephyr class:
+Description: Your gutenbach zephyr class:
  When gutenbach plays a song, it sends a message to a zephyr
  class with the song information (title, artist, album,
  etc).  Please specify which class you would you these 
  zephyrs to be sent to.  If you don't know what this is,
  or you don't want zephyrs to be sent, just leave this 
  field blank.
+
+Template: gutenbach/hostname
+Type: string
+Description: The hostname to be displayed:
+ When gutenbach sends a zephyr, it will display the hostname.
+ If your hostname is particularly long, you may want to set
+ this to an abbreviation or something else shorter.

@@ -13,6 +13,9 @@ fi
 chmod og=rwx /var/spool/lpd
 chmod og=rwx /var/spool/lpd/%P
 
-. /usr/share/debconf/confmodule
-db_get gutenbach/printername
-/usr/sbin/checkpc -P"$RET" -f
+if [ -e /usr/lib/gutenbach/config/printername ]; then
+    printername=$(cat /usr/lib/gutenbach/config/printername)
+    /usr/sbin/checkpc -P"$printername" -f
+else
+    echo "Error: /usr/lib/gutenbach/config/printername does not exist!" >&2
+fi
