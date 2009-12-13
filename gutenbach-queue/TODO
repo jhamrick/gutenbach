@@ -1,0 +1,4 @@
+- figure out why it always displays : '' by '' as the last item in the
+   queue
+- do something smart about there being multiple daemons running?
+- be more efficient
