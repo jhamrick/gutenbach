@@ -13,6 +13,3 @@
 [submodule "gutenbach/debian/lib"]
 	path = gutenbach/debian/lib
 	url = /afs/sipb/project/sipbmp3/sipbmp3.git/
-[submodule "gutenbach-queue"]
-	path = gutenbach-queue
-	url = /afs/sipb/project/sipbmp3/gutenbach-queue.git
