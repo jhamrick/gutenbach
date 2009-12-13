@@ -1,9 +1,6 @@
 [submodule "plugins/itunes"]
 	path = plugins/itunes
 	url = /afs/sipb/project/sipbmp3/itunes-plugin.git/
-[submodule "plugins/rhythmbox"]
-	path = plugins/rhythmbox
-	url = /afs/sipb/project/sipbmp3/rhythmbox-plugin.git
 [submodule "web"]
 	path = web
 	url = /afs/sipb/project/sipbmp3/sipbmp3web.git/
@@ -16,3 +13,6 @@
 [submodule "gutenbach-remctl"]
 	path = gutenbach-remctl
 	url = /afs/sipb/project/sipbmp3/sipbmp3-remctl.git
+[submodule "plugins/gutenbach-rhythmbox-plugin"]
+	path = plugins/gutenbach-rhythmbox-plugin
+	url = /afs/sipb/project/sipbmp3/rhythmbox-plugin.git
