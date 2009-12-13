@@ -22,7 +22,7 @@ if [ -e /usr/lib/gutenbach/config/printername ]; then
 	echo "  :if=|/usr/lib/gutenbach/gutenbach-filter" >> /etc/printcap
 	echo "  :lf=/var/spool/lpd/$printername/log" >> /etc/printcap
 	echo "  :sd=/var/spool/lpd/$printername" >> /etc/printcap
-	echo "  :ml=0:mx=0:sh:sf" >> /etc/printcap
+	echo "  :ml=0:mx=0:sh" >> /etc/printcap
 	echo "  :create_files" >> /etc/printcap
 	echo "  :auth_forward=kerberos5" >> /etc/printcap
 	echo "  :use_auth=kerberos5" >> /etc/printcap

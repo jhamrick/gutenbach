@@ -1,32 +1,37 @@
 #!/bin/sh -e
 
 echo "Creating /usr/lib/gutenbach/config/gutenbach-filter-config.pl..." >&2
-if [ ! -e "/usr/lib/gutenbach/config/gutenbach-filter-config.pl" ]; then
-    touch /usr/lib/gutenbach/config/gutenbach-filter-config.pl
+if [ -e "/usr/lib/gutenbach/config/gutenbach-filter-config.pl" ]; then
+    rm /usr/lib/gutenbach/config/gutenbach-filter-config.pl
+fi
 
-    failed=
-    if [ -e /usr/lib/gutenbach/config/printername ]; then
-	printername=$(cat /usr/lib/gutenbach/config/printername)
-    else
-	failed="yes"
-    fi
-    if [ -e /usr/lib/gutenbach/config/hostname ]; then
-	hostname=$(cat /usr/lib/gutenbach/config/hostname)
-    else
-	failed="yes"
-    fi
-    if [ -e /usr/lib/gutenbach/config/zephyrclass ]; then
-	zephyrclass=$(cat /usr/lib/gutenbach/config/zephyrclass)
-    else
-	failed="yes"
-    fi
+failed=
+if [ -e /usr/lib/gutenbach/config/printername ]; then
+    printername=$(cat /usr/lib/gutenbach/config/printername)
+else
+    failed="yes"
+fi
+if [ -e /usr/lib/gutenbach/config/hostname ]; then
+    hostname=$(cat /usr/lib/gutenbach/config/hostname)
+else
+    failed="yes"
+fi
+if [ -e /usr/lib/gutenbach/config/zephyrclass ]; then
+    zephyrclass=$(cat /usr/lib/gutenbach/config/zephyrclass)
+else
+    failed="yes"
+fi
 
-    if [ -z "$failed" ]; then
-	echo "\$zephyr_class = \""$zephyrclass"\";" >> /usr/lib/gutenbach/config/gutenbach-filter-config.pl
-	echo "\$hostname = \""$hostname"\";" >> /usr/lib/gutenbach/config/gutenbach-filter-config.pl
-	echo "\$queue = \""$printername"\";" >> /usr/lib/gutenbach/config/gutenbach-filter-config.pl
-    else
-	echo "Error: One of /usr/lib/gutenbach/config/{printername,hostname,zephyrclass} does not exist!" >&2
-	exit 1
-    fi
+mixer="PCM"
+channel="Front Left"
+
+if [ -z "$failed" ]; then
+    echo "\$zephyr_class = \""$zephyrclass"\";" >> /usr/lib/gutenbach/config/gutenbach-filter-config.pl
+    echo "\$host = \""$hostname"\";" >> /usr/lib/gutenbach/config/gutenbach-filter-config.pl
+    echo "\$queue = \""$printername"\";" >> /usr/lib/gutenbach/config/gutenbach-filter-config.pl
+    echo "\$mixer = \""$mixer"\";" >> /usr/lib/gutenbach/config/gutenbach-filter-config.pl
+    echo "\$channel = \""$channel"\";" >> /usr/lib/gutenbach/config/gutenbach-filter-config.pl
+else
+    echo "Error: One of /usr/lib/gutenbach/config/{printername,hostname,zephyrclass} does not exist!" >&2
+    exit 1
 fi
