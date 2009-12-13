@@ -1,2 +1,2 @@
-status get   /root/sipbmp3/status-get   ANYUSER
-status clear /root/sipbmp3/status-clear ANYUSER
+status get   /usr/lib/gutenbach/status-get   ANYUSER
+status clear /usr/lib/gutenbach/status-clear ANYUSER
