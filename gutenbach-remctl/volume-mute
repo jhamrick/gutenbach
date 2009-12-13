@@ -1,8 +1,8 @@
 #!/bin/sh
 PATH="$(dirname $0):$PATH"
 
-mixer=$(sipbmp3-get-config mixer)
-channel=$(sipbmp3-get-config channel)
+mixer=$(/usr/lib/gutenbach/gutenbach-get-config mixer)
+channel=$(/usr/lib/gutenbach/gutenbach-get-config channel)
 
 amixer set $mixer toggle > /dev/null
 volume-is-muted

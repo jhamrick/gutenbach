@@ -1,3 +1,3 @@
-cd cddb     /usr/lib/gutenbach/cd-cddb     ANYUSER
-cd cddb-get /usr/lib/gutenbach/cd-cddb-get ANYUSER
-cd play     /usr/lib/gutenbach/cd-play     ANYUSER
+cd cddb     /usr/lib/gutenbach/remctl/cd-cddb     ANYUSER
+cd cddb-get /usr/lib/gutenbach/remctl/cd-cddb-get ANYUSER
+cd play     /usr/lib/gutenbach/remctl/cd-play     ANYUSER

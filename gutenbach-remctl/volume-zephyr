@@ -1,12 +1,19 @@
 #!/bin/sh
 PATH="$(dirname $0):$PATH"
-class=$(sipbmp3-get-config zephyr-class)
-host=$(sipbmp3-get-config host)
-queue=$(sipbmp3-get-config queue)
+class=$(/usr/lib/gutenbach/gutenbach-get-config zephyr-class)
+host=$(/usr/lib/gutenbach/gutenbach-get-config host)
+queue=$(/usr/lib/gutenbach/gutenbach-get-config queue)
 instance="$queue-volume@$host"
 
-mixer=$(sipbmp3-get-config mixer)
-channel=$(sipbmp3-get-config channel)
+mixer=$(/usr/lib/gutenbach/gutenbach-get-config mixer)
+channel=$(/usr/lib/gutenbach/gutenbach-get-config channel)
+
+echo "Class: $class" >> /tmp/gutenbach-remctl.log
+echo "Host: $host" >> /tmp/gutenbach-remctl.log
+echo "Queue: $queue" >> /tmp/gutenbach-remctl.log
+echo "Instance: $instance" >> /tmp/gutenbach-remctl.log
+echo "Mixer: $mixer" >> /tmp/gutenbach-remctl.log
+echo "Channel: $channel" >> /tmp/gutenbach-remctl.log
 
 muted=$(volume-is-muted)
 mute_str=" [$muted]"
@@ -14,5 +21,8 @@ if [ "$muted" = "unmuted" ]; then
     mute_str=""
 fi
 
-start-stop-daemon --stop --oknodo --pidfile /var/run/sipbmp3-zephyr >/dev/null 2>&1
-start-stop-daemon --start --pidfile /var/run/sipbmp3-zephyr --make-pidfile --background --exec /bin/sh -- -c "sleep 10 && zwrite -c $class -i $instance -d -n -m '$REMOTE_USER set volume $(volume-get)$mute_str' > /dev/null" >/dev/null 2>&1
+start-stop-daemon --stop --oknodo --pidfile /usr/lib/gutenbach/gutenbach-zephyr >/dev/null 2>&1
+start-stop-daemon --start --pidfile /usr/lib/gutenbach/gutenbach-zephyr --make-pidfile --background --exec /bin/sh -- -c "sleep 10 && zwrite -c $class -i $instance -d -n -m '$REMOTE_USER set volume $(volume-get)$mute_str' > /dev/null" >/dev/null 2>&1
+
+echo "sleep 10 && zwrite -c $class -i $instance -d -n -m '$REMOTE_USER set volume $(volume-get)$mute_str' > /dev/null" >> /tmp/gutenbach-remctl.log
+echo "" >> /tmp/gutenbach-remctl.log

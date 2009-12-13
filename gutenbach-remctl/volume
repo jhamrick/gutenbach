@@ -1,25 +1,25 @@
-volume set  /usr/lib/gutenbach/volume-set	 ANYUSER 
-volume get  /usr/lib/gutenbach/volume-get    ANYUSER
-volume show /usr/lib/gutenbach/volume-show   ANYUSER
-volume mute /usr/lib/gutenbach/volume-mute   ANYUSER 
-volume up   /usr/lib/gutenbach/volume-up     ANYUSER 
-volume down /usr/lib/gutenbach/volume-down   ANYUSER 
-volume is-muted /usr/lib/gutenbach/volume-is-muted   ANYUSER 
+volume set  /usr/lib/gutenbach/remctl/volume-set	 ANYUSER 
+volume get  /usr/lib/gutenbach/remctl/volume-get    ANYUSER
+volume show /usr/lib/gutenbach/remctl/volume-show   ANYUSER
+volume mute /usr/lib/gutenbach/remctl/volume-mute   ANYUSER 
+volume up   /usr/lib/gutenbach/remctl/volume-up     ANYUSER 
+volume down /usr/lib/gutenbach/remctl/volume-down   ANYUSER 
+volume is-muted /usr/lib/gutenbach/remctl/volume-is-muted   ANYUSER 
 
-v set  /usr/lib/gutenbach/volume-set    ANYUSER 
-v get  /usr/lib/gutenbach/volume-get    ANYUSER
-v show /usr/lib/gutenbach/volume-show   ANYUSER
-v mute /usr/lib/gutenbach/volume-mute   ANYUSER 
-v up   /usr/lib/gutenbach/volume-up     ANYUSER 
-v down /usr/lib/gutenbach/volume-down   ANYUSER 
-v is-muted /usr/lib/gutenbach/volume-is-muted   ANYUSER 
+v set  /usr/lib/gutenbach/remctl/volume-set    ANYUSER 
+v get  /usr/lib/gutenbach/remctl/volume-get    ANYUSER
+v show /usr/lib/gutenbach/remctl/volume-show   ANYUSER
+v mute /usr/lib/gutenbach/remctl/volume-mute   ANYUSER 
+v up   /usr/lib/gutenbach/remctl/volume-up     ANYUSER 
+v down /usr/lib/gutenbach/remctl/volume-down   ANYUSER 
+v is-muted /usr/lib/gutenbach/remctl/volume-is-muted   ANYUSER 
 
-v u /usr/lib/gutenbach/volume-up   ANYUSER
-v d /usr/lib/gutenbach/volume-down ANYUSER
+v u /usr/lib/gutenbach/remctl/volume-up   ANYUSER
+v d /usr/lib/gutenbach/remctl/volume-down ANYUSER
 
-volume u /usr/lib/gutenbach/volume-up   ANYUSER
-volume d /usr/lib/gutenbach/volume-down ANYUSER
+volume u /usr/lib/gutenbach/remctl/volume-up   ANYUSER
+volume d /usr/lib/gutenbach/remctl/volume-down ANYUSER
 
-volume help /usr/lib/gutenbach/volume-help ANYUSER
-v      help /usr/lib/gutenbach/volume-help ANYUSER
-help   ALL  /usr/lib/gutenbach/volume-help ANYUSER
+volume help /usr/lib/gutenbach/remctl/volume-help ANYUSER
+v      help /usr/lib/gutenbach/remctl/volume-help ANYUSER
+help   ALL  /usr/lib/gutenbach/remctl/volume-help ANYUSER
