@@ -22,12 +22,14 @@ use LWP::UserAgent;
 use Data::Dumper;
 use IPC::Open2;
 
-my $zephyr_class = "sipb-test";
+my $zephyr_class = `hostname`;
+chomp($zephyr_class);
 my $host = `hostname`;
+chomp($host);
 my $queue = "gutenbach";
 
 # Configuration
-my $config_file = "/usr/lib/gutenbach/gutenbach-filter-config.pl";
+my $config_file = "/usr/lib/gutenbach/config/gutenbach-filter-config.pl";
 if (-r $config_file) {
     # Inline the configuration file
     local $/;
@@ -92,32 +94,26 @@ foreach my $arg (@ARGV) {
 
 printf(STDERR Dumper(\%opts));
 
+print(STDERR '/usr/bin/zwrite -d -n -c '.$zephyr_class.' -i '.$queue.'@'.$host.' -s "Gutenbach Music Spooler"');
+
 # Status messages at start of playback
-open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c '. $zephyr_class .' -i ' .
-  $queue.'@'.$host.' -s "SIPB LPR music spooler"');
+open(ZEPHYR, '|/usr/bin/zwrite -d -n -c '.$zephyr_class.' -i '.$queue.'@'.$host.' -s "Gutenbach Music Spooler"');
 
 # For the Now Playing remctl command
 open(STATUS, '>', '/var/run/gutenbach/status') or die("Can't open status file /var/run/gutenbach/status");
 
-# For the Now Playing local command
-open(CURRENT, '>', '/var/run/gutenbach/current') or die("Can't open status file /var/run/sipbp3/current");
 
 print(ZEPHYR "$opts{'n'}\@$opts{'H'} is playing:\n");
 print(STATUS "User: $opts{'n'}\@$opts{'H'}\n");
-print(CURRENT "$opts{'n'}\@$opts{'H'} is playing:\n");
 
 # SIGHUP handler
 sub clear_status {
     # Possible race condition if the previous status is still going
     open(STA, '>', '/var/run/gutenbach/status');
     close(STA);
-    open(ZEPH, '|/usr/athena/bin/zwrite -d -n -c '. $zephyr_class .' -i '.
-        $queue.'@'.$host.' -s "SIPB LPR music spooler"');
+    open(ZEPH, '|/usr/bin//zwrite -d -n -c '.$zephyr_class.' -i '.$queue.'@'.$host.' -s "Gutenbach Music Spooler"');
     print(ZEPH "Playback aborted.\n");
     close(ZEPH);
-    open(CURRENT, '|/usr/athena/bin/zwrite -d -n -c '. $zephyr_class .' -i '.
-        $queue.'@'.$host.' -s "SIPB LPR music spooler"');
-    close(CURRENT);
     die;
 }
 $SIG{HUP} = \&clear_status;
@@ -131,18 +127,15 @@ my ($magic) = $fileinfo->{FileType};
 
 if ($magic) {
     printf(ZEPHYR "%s file %s\n", $magic, $opts{'J'});
-    printf(CURRENT "%s file %s\n", $magic, $opts{'J'});
     printf(STATUS "Filetype: %s\n", $magic);
     printf(STATUS "Filename: %s\n", $opts{'J'});
     if (exists $fileinfo->{'Title'}) {
         printf(ZEPHYR "\@b{%s}\n", $fileinfo->{'Title'}) if exists $fileinfo->{'Title'};
-        printf(CURRENT "\@b{%s}\n", $fileinfo->{'Title'}) if exists $fileinfo->{'Title'};
         printf(STATUS "Title: %s\n", $fileinfo->{'Title'});
     }
     foreach my $key (qw/Artist Album AlbumArtist/) {
         if (exists $fileinfo->{$key}) {
             printf(ZEPHYR "%s\n", $fileinfo->{$key}) if exists $fileinfo->{$key};
-            printf(CURRENT "%s\n", $fileinfo->{$key}) if exists $fileinfo->{$key};
             printf(STATUS "%s: %s\n", $key, $fileinfo->{$key});
         }
     }
@@ -159,7 +152,6 @@ elsif ($opts{'C'} eq 'Z') {
         #$title = <$out>;
 	$title = "";
         print ZEPHYR "YouTube video $filepath\n$title";
-        print CURRENT "YouTube video $filepath\n$title";
         print STATUS "YouTube video $filepath\n$title";
         $filepath = <$out>;
         chomp $filepath;
@@ -167,14 +159,12 @@ elsif ($opts{'C'} eq 'Z') {
     } else {
         print STDERR "Resolved external reference to $filepath\n";
         printf(ZEPHYR "%s\n", $filepath);
-        printf(CURRENT "%s\n", $filepath);
         printf(STATUS "External: %s\n", $filepath);
     }
 }
 elsif (-T $filepath) {
     split_playlist($filepath, \%opts);
     close(ZEPHYR);
-    close(CURRENT);
     close(STATUS);
     exit 0;
 }
@@ -182,7 +172,6 @@ elsif (-T $filepath) {
 #printf(STDERR "Job priority %s\n", $opts{'C'}) if $opts{'C'} eq 'Z';
 #printf(ZEPHYR "Job priority %s\n", $opts{'C'}) if ($opts{'C'} && ($opts{'C'} ne 'A'));
 close(ZEPHYR);
-close(CURRENT);
 close(STATUS);
 play_mplayer_audio($filepath, \%opts);
 
@@ -279,8 +268,7 @@ sub play_mplayer_audio {
     my ($filepath, $opts) = @_;
 
     # Prepare to write status:
-    open(ZEPHYR, '|/usr/athena/bin/zwrite -d -n -c '.$zephyr_class.' -i ' .
-	 $queue.'@'.$host.' -s "SIPB LPR music spooler"');
+    open(ZEPHYR, '|/usr/bin//zwrite -d -n -c '.$zephyr_class.' -i '.$queue.'\@'.$host.' -s "Gutenbach Music Spooler"');
     
     # fork for mpg123
     my $pid = open(MP3STATUS, "-|");
