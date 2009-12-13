@@ -31,6 +31,7 @@ case "$1" in
 	fi
 
 	chown -R daemon:pika /var/run/gutenbach
+	chmod og+rw /var/run/gutenbach
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
