@@ -1,8 +1,0 @@
-#!/bin/bash
-
-daemon --running --name gutenbach-queue -F /var/run/gutenbach/gutenbach-queue.pid
-if [ "$?" == 0 ]; then
-    watch -t -n 1 cat /var/run/gutenbach/current_queue
-else
-    echo "The gutenbach queue daemon is not running.  Please start it at /etc/init.d/gutenbach-queue."
-fi
