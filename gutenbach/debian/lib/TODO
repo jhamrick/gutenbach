@@ -1,0 +1,2 @@
+- gutenbach-get-config should fail and error out if it can't find a
+   config file -- we can't use defaults since what would the defaults be?
