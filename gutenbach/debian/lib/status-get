@@ -1,3 +1,0 @@
-#!/bin/sh
-PATH="$(dirname $0):$PATH"
-cat /var/run/gutenbach/status

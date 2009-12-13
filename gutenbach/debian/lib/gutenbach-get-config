@@ -2,14 +2,16 @@
 use strict;
 # Get configuration of gutenbach
 
-my $zephyr_class = "sipb-test";
+my $zephyr_class = `hostname`;
+chomp($zephyr_class);
 my $host = `hostname`;
+chomp($zephyr_class);
 my $queue = "gutenbach";
-my $mixer = "Headphone";
+my $mixer = "PCM";
 my $channel = "Front Left";
 
 # Configuration
-my $config_file = "/usr/lib/gutenbach/gutenbach-filter-config.pl";
+my $config_file = "/usr/lib/gutenbach/config/gutenbach-filter-config.pl";
 if (-r $config_file) {
     # Inline the configuration file
     local $/;
