@@ -1,0 +1,19 @@
+So, you want to develop gutenbach, eh?  Good!
+
+The current packages are:
+    - gutenbach
+    - gutenbach-queue
+    - gutenbach-remctl
+
+The repo is set up with a bunch of submodules:
+    ./gutenbach-queue -> /afs/sipb/project/sipbmp3/gutenbach-queue.git
+    ./gutenbach-remctl -> /afs/sipb/project/sipbmp3/sipbmp3-remctl.git
+    ./plugins/gutenbach-rhythmbox-plugin -> /afs/sipb/project/sipbmp3/rhythmbox-plugin.git
+    ./plugins/itunes -> /afs/sipb/project/sipbmp3/itunes-plugin.git
+    ./web -> /afs/sipb/project/sipbmp3/sipbmp3web.git
+    ./gutenbach/debian/lib -> /afs/sipb/project/sipbmp3/sipbmp3.git
+
+This is because when I migrated to using packages, I didn't want
+to screw up people's existing git clones, so I added everything as
+submodules.  Also, that makes things easy if you just want to work
+on, say, gutenbach-queue and not the whole thing.
