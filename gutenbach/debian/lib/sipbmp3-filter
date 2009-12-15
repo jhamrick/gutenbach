@@ -145,8 +145,9 @@ if ($magic) {
 elsif ($opts{'C'} eq 'Z') {
     $filepath = resolve_external_reference($filepath, \%opts);
     if ($filepath =~ m|http://www\.youtube\.com/watch\?v=|) {
-        $pid = open2($out, $in, qw{youtube-dl -g2}, $filepath);
-        $title = <$out>;
+        $pid = open2($out, $in, qw{youtube-dl -g}, $filepath);
+        #$title = <$out>;
+	$title = "";
         print ZEPHYR "YouTube video $filepath\n$title";
         print STATUS "YouTube video $filepath\n$title";
         $filepath = <$out>;
