@@ -1,10 +1,10 @@
-gutenbach-remctl (1.01) karmic; urgency=low
+gutenbach-remctl (1.01) unstable; urgency=low
 
   * Just say the new volume, not who changed it.
 
  -- Jessica Hamrick <jhamrick@mit.edu>  Mon, 14 Dec 2009 22:04:43 -0500
 
-gutenbach-remctl (1.0) karmic; urgency=low
+gutenbach-remctl (1.0) unstable; urgency=low
 
   * Initial release.
 
