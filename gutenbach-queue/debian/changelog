@@ -1,5 +1,12 @@
-gutenbach-queue (1.0) karmic; urgency=low
+gutenbach-queue (1.0.01) karmic; urgency=low
+
+  * Changed the chown in the postinst to
+  daemon:daemon instaed of daemon:pika
+
+ -- Jessica Hamrick <jhamrick@mit.edu>  Mon, 14 Dec 2009 20:04:52 -0500
+
+gutenbach-queue (1.0.00) karmic; urgency=low
 
   * Initial release.
 
- -- Jessica Hamrick <jhamrick@mit.edu>  Sat, 12 Dec 2009 17:00:02 -0500
+ -- Jessica Hamrick <jhamrick@mit.edu>  Mon, 14 Dec 2009 20:03:48 -0500
