@@ -1,18 +1,18 @@
-gutenbach-queue (1.02) karmic; urgency=low
+gutenbach-queue (1.02) unstable; urgency=low
 
   * Prevent the screen from turning off when
   view-gutenbach-queue is running.
 
  -- Jessica Hamrick <jhamrick@mit.edu>  Mon, 14 Dec 2009 20:24:37 -0500
 
-gutenbach-queue (1.01) karmic; urgency=low
+gutenbach-queue (1.01) unstable; urgency=low
 
   * Changed the chown in the postinst to
   daemon:daemon instaed of daemon:pika
 
  -- Jessica Hamrick <jhamrick@mit.edu>  Mon, 14 Dec 2009 20:23:50 -0500
 
-gutenbach-queue (1.0) karmic; urgency=low
+gutenbach-queue (1.0) unstable; urgency=low
 
   * Initial release.
 
