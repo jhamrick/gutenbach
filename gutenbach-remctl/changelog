@@ -1,5 +1,11 @@
+gutenbach-remctl (1.01) karmic; urgency=low
+
+  * Just say the new volume, not who changed it.
+
+ -- Jessica Hamrick <jhamrick@mit.edu>  Mon, 14 Dec 2009 22:04:43 -0500
+
 gutenbach-remctl (1.0) karmic; urgency=low
 
   * Initial release.
 
- -- Jessica Hamrick <jhamrick@mit.edu>  Sun, 13 Dec 2009 11:34:29 -0500
+ -- Jessica Hamrick <jhamrick@mit.edu>  Mon, 14 Dec 2009 22:03:44 -0500
