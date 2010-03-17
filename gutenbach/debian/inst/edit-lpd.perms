@@ -3,7 +3,13 @@
 # make lpd less paranoid about accepting connections
 # (comment out REJECT NOT SERVER)
 # allow other users to dequeue music
-# (comment out REJECT SERVICE=M
+# (comment out REJECT SERVICE=M)
+# make it only accept A jobs
+# (add 
+#    ACCEPT SERVICE=R,P SERVER
+#    ACCEPT C=CA* SERVICE=R,P
+#    REJECT SERVICE=R,P)
+
 echo "Editing /etc/lprng/lpd.perms..." >&2
 if [ -e /etc/lprng/lpd.perms ]; then
     mv /etc/lprng/lpd.perms /etc/lprng/lpd.perms.bak
@@ -13,6 +19,12 @@ if [ -e /etc/lprng/lpd.perms ]; then
 	reject_not_server=$(echo "$line" | grep '^REJECT NOT SERVER' || true)
 	if [ -n "$reject_not_server" ]; then
 	    echo "#$line" >> /etc/lprng/lpd.perms
+	    
+	    echo "## BEGIN gutenbach configuration" >> /etc/lprng/lpd.perms
+	    echo "ACCEPT SERVICE=R,P SERVER" >> /etc/lprng/lpd.perms
+	    echo "ACCEPT C=CA* SERVICE=R,P" >> /etc/lprng/lpd.perms
+	    echo "REJECT SERVICE=R,P" >> /etc/lprng/lpd.perms
+	    echo "## END gutenbach configuration" >> /etc/lprng/lpd.perms
       	else
 	    reject_service=$(echo "$line" | grep '^REJECT SERVICE=M' || true)
 	    if [ -n "$reject_service" ]; then
