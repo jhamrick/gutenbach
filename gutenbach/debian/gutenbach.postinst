@@ -33,15 +33,12 @@ case "$1" in
 	echo "$RET" > /usr/lib/gutenbach/config/hostname
 
 	chmod +x /usr/lib/gutenbach/inst/create-filter-config
-	chmod +x /usr/lib/gutenbach/inst/edit-printcap
-	chmod +x /usr/lib/gutenbach/inst/edit-lpd.conf
-	chmod +x /usr/lib/gutenbach/inst/run-checkpc
-	chmod +x /usr/lib/gutenbach/inst/edit-lpd.perms
+	chmod +x /usr/lib/gutenbach/inst/cups-add-printer
+	chmod +x /usr/lib/gutenbach/inst/cups-set-perms
 	/usr/lib/gutenbach/inst/create-filter-config
-	/usr/lib/gutenbach/inst/edit-printcap
-	/usr/lib/gutenbach/inst/edit-lpd.conf
-	/usr/lib/gutenbach/inst/run-checkpc
-	/usr/lib/gutenbach/inst/edit-lpd.perms
+	/usr/lib/gutenbach/inst/cups-add-printer
+	/usr/lib/gutenbach/inst/cups-set-perms
+
 
 	inaudio=$(groups daemon | grep audio || true)
 	if [ -z "$inaudio" ]; then
