@@ -7,7 +7,6 @@ if [ -e /usr/lib/gutenbach/config/printername ]; then
     printername="$(cat /usr/lib/gutenbach/config/printername)"
 
     cat >> /etc/cups/cupsd.conf <<EOF
-
 # Begin configurations for gutenbach
 
 <Location /printers/$printername>
