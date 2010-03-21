@@ -7,11 +7,18 @@ if [ -e /usr/lib/gutenbach/config/printername ]; then
     printername="$(cat /usr/lib/gutenbach/config/printername)"
 
     cat >> /etc/cups/cupsd.conf <<EOF
+
+# Begin configurations for gutenbach
+
 <Location /printers/$printername>
     Order Deny, Allow
     Allow from All
 </Location>
+
+# End configurations for gutenbach
 EOF
+
+    /etc/init.d/cups reload
 
 else
     echo "Error: /usr/lib/gutenbach/config/printername does not exist"
