@@ -1,19 +1,17 @@
 So, you want to develop gutenbach, eh?  Good!
 
-The current packages are:
+Gutenbach is a distributed music player built on top of CUPs.  It
+essentially enables anybody with access to it to play music from their
+own computer -- all they have to do is "print" to the Gutenbach
+instance as they would any other document!
+
+The current repositories for various Gutenbach features are:
     - gutenbach
     - gutenbach-queue
     - gutenbach-remctl
+    - gutenbach-rhythmbox-plugin
+    - gutenbach-itunes-plugin
+    - gutenbach-web
 
-The repo is set up with a bunch of submodules:
-    ./gutenbach-queue -> /afs/sipb/project/sipbmp3/gutenbach-queue.git
-    ./gutenbach-remctl -> /afs/sipb/project/sipbmp3/sipbmp3-remctl.git
-    ./plugins/gutenbach-rhythmbox-plugin -> /afs/sipb/project/sipbmp3/rhythmbox-plugin.git
-    ./plugins/itunes -> /afs/sipb/project/sipbmp3/itunes-plugin.git
-    ./web -> /afs/sipb/project/sipbmp3/sipbmp3web.git
-    ./gutenbach/debian/lib -> /afs/sipb/project/sipbmp3/sipbmp3.git
-
-This is because when I migrated to using packages, I didn't want
-to screw up people's existing git clones, so I added everything as
-submodules.  Also, that makes things easy if you just want to work
-on, say, gutenbach-queue and not the whole thing.
+All of these are located on GitHub:
+http://github.com/search?langOverride=&q=gutenbach&repo=&start_value=1&type=Repositories
