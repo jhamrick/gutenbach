@@ -2,14 +2,12 @@ Source: gutenbach-remctl
 Section: sound
 Priority: extra
 Maintainer: Jessica Hamrick <jhamrick@mit.edu>
-Build-Depends: @cdbs@
+Build-Depends: cdbs (>= 0.4.23-1.1), debhelper (>= 5)
 Standards-Version: 3.8.0
 
 Package: gutenbach-remctl
 Architecture: all
 Pre-Depends: debconf
 Depends: ${shlibs:Depends}, ${misc:Depends}, gutenbach, alsa-utils, cd-discid, remctl-server
-Description: remctl bindings for gutenbach
- Allows a remote user to control the volume, view the 
- current status of the queue, or play tracks from a cd
- using remctl.
+Description: Allows a remote user to control the volume, view
+ the current status of the queue, or play tracks from a cd.
