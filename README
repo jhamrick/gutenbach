@@ -53,7 +53,7 @@ TODO:
   can't figure out how to get rid of them, but they're really annoying.  As long as pulse
   is in system mode, things seem to work otherwise.)
 
-- finish the move to CUPS!
+- CUPS issues
     * the CUPS daemon processes do not inherit groups from the lp user (so, for example,
       even if we add 'lp' to 'audio', the process will not be running in group 'audio').
       For the time being, I've set the CUPS daemon to always run under group 'audio',
