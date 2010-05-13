@@ -1,6 +1,11 @@
-Plugin written by Nimrod Gileadi, copyright 2009.
+This is a plugin for the Rhythmbox music player, which enables
+Gutenbach users to easily queue music.
 
-To install:
+Plugin written by Nimrod Gileadi, copyright 2010.
+
+Questions or comments should be directed at gutenbach@mit.edu
+
+INSTALLATION:
 
 1) Move the folder 'pikamp3' and its contents to
 ~/.gnome2/rhythmbox/plugins/.  You will have to edit __init.py__,
@@ -13,3 +18,6 @@ replacing "printername" and "hostname" with the desired values (e.g.,
 
 4) To queue a song/songs, highlight them, and right click and select
 'Send to gutenbach'.
+
+TODO:
+- turn this into a debian package to auto generate the config file
