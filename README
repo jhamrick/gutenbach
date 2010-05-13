@@ -15,3 +15,15 @@ The current repositories for various Gutenbach features are:
 
 All of these are located on GitHub:
 http://github.com/search?langOverride=&q=gutenbach&repo=&start_value=1&type=Repositories
+
+TODO:
+- include mixer and channel in debconf, or even better, move it to
+   gutenbach-remctl and implement debconf in that package
+- the filter should die and send an error message if it can't find the
+   config file, not use defaults
+- this should really not conflict with pulse
+- finish the move to CUPS!
+
+Additionally, see README.old for how Gutenbach /used/ to be installed.
+This can sometimes offer insight into how to fix things that are
+broken.

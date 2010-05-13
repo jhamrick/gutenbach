@@ -1,6 +1,0 @@
-- include mixer and channel in debconf, or even better, move it to
-   gutenbach-remctl and implement debconf in that package
-- the filter should die and send an error message if it can't find the
-   config file, not use defaults
-- this should really not conflict with pulse
-- move to CUPS!
