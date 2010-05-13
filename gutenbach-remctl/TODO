@@ -1,4 +1,0 @@
-- need to add logging to see what's going wrong if a command fails
-- figure out how to determine the correct channel/mixer
-- better yet, figure out how to use pulse, and don't have to worry
-   about what the correct channel or mixer is at all

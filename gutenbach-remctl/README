@@ -1,0 +1,10 @@
+gutenbach-remctl is a package which provides a remctl configuration,
+enabling users to remotely adjust settings such as volume.
+
+Questions and comments should be directed to gutenbach@mit.edu
+
+TODO:
+- need to add logging to see what's going wrong if a command fails
+- figure out how to determine the correct channel/mixer
+- better yet, figure out how to use pulse, and don't have to worry
+  about what the correct channel or mixer is at all
