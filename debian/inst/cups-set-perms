@@ -6,7 +6,21 @@
 if [ -e /usr/lib/gutenbach/config/printername ]; then
     printername="$(cat /usr/lib/gutenbach/config/printername)"
 
-    cat >> /etc/cups/cupsd.conf <<EOF
+    conffile="/etc/cups/cupsd.conf"
+    mv "$conffile" "$conffile.bak"
+    touch "$conffile"
+
+    while read line; do
+	listen_localhost=$(echo "$line" | grep '^Listen localhost' || true)
+	if [ -n "$listen_localhost" ]; then
+	    echo "#GUTENBACH$line" >> "$conffile"
+       	else
+	    echo "$line" >> "$conffile"
+	fi
+    done < "$conffile.bak"
+    rm "$conffile.bak"
+
+    cat >> "$conffile" <<EOF
 # Begin configurations for gutenbach
 
 <Location /printers/$printername>
@@ -15,6 +29,7 @@ if [ -e /usr/lib/gutenbach/config/printername ]; then
 </Location>
 
 Group audio
+Listen *
 
 # End configurations for gutenbach
 EOF

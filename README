@@ -22,12 +22,37 @@ broken.
 
 Questions or comments should be directed at gutenbach@mit.edu
 
+NOTES:
+
+- If you keep getting zephyrs with the following errors:
+
+      Playback completed with the following errors:
+      bt_audio_service_open: connect() failed: Connection refused (111)
+      bt_audio_service_open: connect() failed: Connection refused (111)
+      bt_audio_service_open: connect() failed: Connection refused (111)
+
+  This is because you have alsa configured for bluetooth, but bluetooth is not
+  enabled.  You should either enable bluetooth, or uninstall the bluez-alsa
+  package.
+
+- To print to a machine without keytabs, you need to do:
+
+     lpr -Pprintername -Hhostname $file
+
+  The old `lpr -Pprintername@hostname $file` syntax will no longer work.
+
 TODO:
 - include mixer and channel in debconf, or even better, move it to
   gutenbach-remctl and implement debconf in that package
+
 - the filter should die and send an error message if it can't find the
   config file, not use defaults
-- this should really not conflict with pulse
+
+- this should really not conflict with pulse (the biggest problem at the moment is that
+  pulse will spew a bunch of errors like "Home directory /var/spool/cups/tmp not ours." I
+  can't figure out how to get rid of them, but they're really annoying.  As long as pulse
+  is in system mode, things seem to work otherwise.)
+
 - finish the move to CUPS!
     * the CUPS daemon processes do not inherit groups from the lp user (so, for example,
       even if we add 'lp' to 'audio', the process will not be running in group 'audio').

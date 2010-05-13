@@ -298,9 +298,9 @@ sub play_mplayer_audio {
 
   if ($pid) { #parent
     # Check if there were any errors
+    
     if ($_ = <MP3STATUS>) {
       print ZEPHYR "Playback completed with the following errors:\n";
-      print ZEPHYR $_;
       while (<MP3STATUS>) {
 	print ZEPHYR $_;
       }
@@ -318,7 +318,7 @@ sub play_mplayer_audio {
     close(STDIN);
     open(STDIN, "/dev/null");
 
-    my @args = (qw|/usr/bin/mplayer -vo fbdev2 -zoom -x 1024 -y 768 -framedrop -nolirc -ao alsa -cache 512 -really-quiet |, $filepath);
+    my @args = (qw|/usr/bin/mplayer -vo fbdev2 -zoom -x 1024 -y 768 -framedrop -nolirc -cache 512 -ao alsa -really-quiet |, $filepath);
     #print STDERR "About to exec: ", Dumper([@args]);
     exec(@args) ||
       die "Couldn't exec";

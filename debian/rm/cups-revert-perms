@@ -1,9 +1,21 @@
 #!/bin/sh 
 
 echo "Reverting changes to /etc/cups/cupsd.conf..." >&2
-mv /etc/cups/cupsd.conf /etc/cups/cupsd.conf.bak
-touch /etc/cups/cupsd.conf
+conffile="/etc/cups/cupsd.conf"
 
-sed '/# Begin configurations for gutenbach/,/# End configurations for gutenbach/ d' < /etc/cups/cupsd.conf.bak > /etc/cups/cupsd.conf
+mv "$conffile" "$conffile.bak"
+touch "$conffile"
+sed '/# Begin configurations for gutenbach/,/# End configurations for gutenbach/ d' < "$conffile.bak" > "$conffile"
 
-rm /etc/cups/cupsd.conf.bak
+mv "$conffile" "$conffile.bak"
+touch "$conffile"
+while read line; do
+    listen_localhost=$(echo "$line" | grep '^#GUTENBACH' || true)
+    if [ -n "$listen_localhost" ]; then
+	echo "$(echo $line | sed s/#GUTENBACH//)" >> "$conffile"
+    else
+	echo "$line" >> "$conffile"
+    fi
+done < "$conffile.bak"
+
+rm "$conffile.bak"
