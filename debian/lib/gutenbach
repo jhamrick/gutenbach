@@ -95,8 +95,14 @@ my @zwrite_command = (qw(/usr/bin/zwrite -d -n -c), $zephyr_class, "-i", $queue.
 print STDERR "Invoking @zwrite_command\n";
 open(ZEPHYR, "|-", @zwrite_command) or die "Couldn't launch zwrite: $!";
 
-print(ZEPHYR $arguments{"user"},"\@",$arguments{"options"}{"job-originating-host-name"}," is playing:\n");
-my $status = "User: ".$arguments{"user"}."\@".$arguments{"options"}{"job-originating-host-name"};
+my $status;
+if (exists($arguments{"options"}{"job-originating-host-name"})) {
+    print(ZEPHYR $arguments{"user"},"\@",$arguments{"options"}{"job-originating-host-name"}," is playing:\n");
+    $status = "User: ".$arguments{"user"}."\@".$arguments{"options"}{"job-originating-host-name"};
+} else {
+    print(ZEPHYR $arguments{"user"}," is playing:\n");
+    $status = "User: ".$arguments{"user"};
+}
 
 # SIGHUP handler, in case we were aborted
 sub clear_status {
