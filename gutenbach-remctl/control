@@ -8,6 +8,6 @@ Standards-Version: 3.8.0
 Package: gutenbach-remctl
 Architecture: all
 Pre-Depends: debconf
-Depends: ${shlibs:Depends}, ${misc:Depends}, gutenbach, alsa-utils, cd-discid, remctl-server
+Depends: ${shlibs:Depends}, ${misc:Depends}, gutenbach (>= 2.0), alsa-utils, cd-discid, remctl-server
 Description: Allows a remote user to control the volume, view
  the current status of the queue, or play tracks from a cd.
