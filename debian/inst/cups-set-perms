@@ -14,6 +14,8 @@ if [ -e /usr/lib/gutenbach/config/printername ]; then
     Allow from All
 </Location>
 
+Group audio
+
 # End configurations for gutenbach
 EOF
 
