@@ -25,6 +25,8 @@ use Data::Dumper;
 use IPC::Open2;
 use English;
 
+use vars qw/$zephyr_class $host $queue $mixer $channel/;
+
 require "/usr/lib/gutenbach/config/gutenbach-filter-config.pl" or die "Unable to load configuration";
 
 my $ua = new LWP::UserAgent;
@@ -64,9 +66,9 @@ print STDERR "STDERR FROM SPOOL FILTER\n";
 printf(STDERR "Got \@ARGV: %s\n", Dumper(\@ARGV));
 
 my %arguments = (
-		 job-id => $ARGV[0],
+		 "job-id" => $ARGV[0],
 		 user => $ARGV[1],
-		 job-title => $ARGV[2],
+		 "job-title" => $ARGV[2],
 		 copies => $ARGV[3],
 		 options => {split(/[= ]/, $ARGV[4])},
 		 file => $ARGV[5],
@@ -82,6 +84,7 @@ if (!$arguments{"file"}) {
     print $fh $buf;
   }
   close($fh);
+  $arguments{"file"} = $file;
 }
 
 printf(STDERR "Got \%arguments: %s\n", Dumper(\%arguments));
@@ -92,8 +95,8 @@ my @zwrite_command = (qw(/usr/bin/zwrite -d -n -c), $zephyr_class, "-i", $queue.
 print STDERR "Invoking @zwrite_command\n";
 open(ZEPHYR, "|-", @zwrite_command) or die "Couldn't launch zwrite: $!";
 
-print(ZEPHYR "$arguments{user}\@$arguments{options}{job-originating-host-name} is playing:\n");
-my $status = "User: $arguments{user}\@$arguments{options}{job-originating-host-name}.");
+print(ZEPHYR $arguments{"user"},"\@",$arguments{"options"}{"job-originating-host-name"}," is playing:\n");
+my $status = "User: ".$arguments{"user"}."\@".$arguments{"options"}{"job-originating-host-name"};
 
 # SIGHUP handler, in case we were aborted
 sub clear_status {
@@ -106,9 +109,11 @@ sub clear_status {
 $SIG{HUP} = \&clear_status;
 
 # Read the metadata information from the file.
-my ($filepath) = $options{"file"};
+my ($filepath) = $arguments{"file"};
 my ($fileinfo) = ImageInfo($filepath);
 my ($magic) = $fileinfo->{FileType};
+my ($tempdir);
+my ($newpath);
 
 if ($magic) {
   # $magic means that Image::ExifTool was able to identify the type of file
@@ -127,14 +132,14 @@ if ($magic) {
     }
   }
 
-  my $tempdir = tempdir();
+  $tempdir = tempdir();
   #awful hack -- geofft
   #== -- quentin
   # This code appears to create a new temporary directory and symlink
   # the job file into the temporary directory under the original
   # filename. I think this is because mplayer sometimes uses the file
   # extension to identify a filetype.
-  my $newpath = $tempdir . '/' . basename($arguments{"job-title"});
+  $newpath = $tempdir . '/' . basename($arguments{"job-title"});
   symlink($filepath, $newpath);
   $filepath = $newpath;
 }
@@ -183,7 +188,7 @@ sub resolve_external_reference {
   # Retrieve those command line opts.
   my ($filepath, $arguments) = @_;
 
-  my $format, $uri, $userpass;
+  my ($format, $uri, $userpass);
 
   open(FILE, "<", $filepath) or die "Couldn't open spool file";
   if (<FILE> =~ /^(\S+)/) {
@@ -249,6 +254,7 @@ sub get_shoutcast {
   my $uri = shift(@_);
 
   my $response = $ua->get($uri);
+  my (@titles, @uris);
 
   foreach (split("\n", $response->content())) {
       if (/^File\d+=(\S+)/) {
@@ -260,7 +266,7 @@ sub get_shoutcast {
   }
 
   # choose a random server
-  $server = int(rand scalar(@uris));
+  my $server = int(rand scalar(@uris));
   # print the name of the stream if available
   print ZEPHYR "$titles[$server]\n";
   return $uris[$server];

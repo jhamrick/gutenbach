@@ -9,8 +9,6 @@ Package: gutenbach
 Architecture: all
 Pre-Depends: debconf
 Depends: ${shlibs:Depends}, ${misc:Depends}, mplayer, libimage-exiftool-perl, lprng | debathena-lprng, sysv-rc, adduser, debathena-zephyr-config, libzephyr3-krb, alsa-base
-Conflicts: pulseaudio
-Provides: pulseaudio
 Description: Server for playing music files from a remote machine
  Allows remote machines to play music files on this machine
  by "printing" them with debathena-lprng.

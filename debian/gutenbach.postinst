@@ -40,9 +40,9 @@ case "$1" in
 	/usr/lib/gutenbach/inst/cups-set-perms
 
 
-	inaudio=$(groups daemon | grep audio || true)
+	inaudio=$(groups lp | grep audio || true)
 	if [ -z "$inaudio" ]; then
-	    adduser daemon audio
+	    adduser lp audio
 	fi
 
 	db_stop

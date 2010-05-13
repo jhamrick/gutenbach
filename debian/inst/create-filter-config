@@ -24,13 +24,15 @@ fi
 
 mixer="PCM"
 channel="Front Left"
+config_file="/usr/lib/gutenbach/config/gutenbach-filter-config.pl"
 
 if [ -z "$failed" ]; then
-    echo "\$zephyr_class = \""$zephyrclass"\";" >> /usr/lib/gutenbach/config/gutenbach-filter-config.pl
-    echo "\$host = \""$hostname"\";" >> /usr/lib/gutenbach/config/gutenbach-filter-config.pl
-    echo "\$queue = \""$printername"\";" >> /usr/lib/gutenbach/config/gutenbach-filter-config.pl
-    echo "\$mixer = \""$mixer"\";" >> /usr/lib/gutenbach/config/gutenbach-filter-config.pl
-    echo "\$channel = \""$channel"\";" >> /usr/lib/gutenbach/config/gutenbach-filter-config.pl
+    echo "\$zephyr_class = \""$zephyrclass"\";" >> "$config_file"
+    echo "\$host = \""$hostname"\";" >> "$config_file"
+    echo "\$queue = \""$printername"\";" >> "$config_file"
+    echo "\$mixer = \""$mixer"\";" >> "$config_file"
+    echo "\$channel = \""$channel"\";" >> "$config_file"
+    echo "1;" >> "$config_file"
 else
     echo "Error: One of /usr/lib/gutenbach/config/{printername,hostname,zephyrclass} does not exist!" >&2
     exit 1
