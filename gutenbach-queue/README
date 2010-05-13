@@ -1,0 +1,10 @@
+gutenbach-queue is a package which provides a program to display the
+live queue for the Gutenbach Music Spooler.
+
+Questions and comments should be directed to gutenbach@mit.edu
+
+TODO:
+- figure out why it always displays : '' by '' as the last item in the
+  queue
+- do something smart about there being multiple daemons running?
+- be more efficient
