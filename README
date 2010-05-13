@@ -24,8 +24,15 @@ Questions or comments should be directed at gutenbach@mit.edu
 
 TODO:
 - include mixer and channel in debconf, or even better, move it to
-   gutenbach-remctl and implement debconf in that package
+  gutenbach-remctl and implement debconf in that package
 - the filter should die and send an error message if it can't find the
-   config file, not use defaults
+  config file, not use defaults
 - this should really not conflict with pulse
 - finish the move to CUPS!
+    * the CUPS daemon processes do not inherit groups from the lp user (so, for example,
+      even if we add 'lp' to 'audio', the process will not be running in group 'audio').
+      For the time being, I've set the CUPS daemon to always run under group 'audio',
+      but there should really be a better solution.
+    * lprm does not remove jobs -- we should maybe leave a pid file and kill the mplayer
+      process if someone kills the job
+    * you can currently play files locally, but not remotely -- why?
