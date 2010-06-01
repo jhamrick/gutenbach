@@ -23,13 +23,18 @@ if [ -e /usr/lib/gutenbach/config/printername ]; then
     cat >> "$conffile" <<EOF
 # Begin configurations for gutenbach
 
+Group audio
+Listen *
+
 <Location /printers/$printername>
+    <Limit Cancel-Job Purge-Jobs CUPS-Authenticate-Job>
+        Order deny,allow
+        Allow from All
+    </Limit>
+
     Order Deny, Allow
     Allow from All
 </Location>
-
-Group audio
-Listen *
 
 # End configurations for gutenbach
 EOF

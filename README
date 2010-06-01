@@ -58,6 +58,13 @@ TODO:
       even if we add 'lp' to 'audio', the process will not be running in group 'audio').
       For the time being, I've set the CUPS daemon to always run under group 'audio',
       but there should really be a better solution.
-    * lprm does not remove jobs -- we should maybe leave a pid file and kill the mplayer
-      process if someone kills the job
-    * you can currently play files locally, but not remotely -- why?
+    * debathena printer configuration defaults to using ipp, e.g.:
+       jhamrick@lemon-meringue:~$ lpstat -v sipbmp3 
+       device for sipbmp3: ipp://zsr.mit.edu:631/printers/sipbmp3
+     so you can't just do `lpq -Psipbmp3`, you have to use `lpq -Psipbmp3 -hzsr` or
+     something similar.  Same thing goes with lprm.  It is interesting that this is
+     only the case with lpq and lprm, though, and lpr Just Works.  This shouldn't be
+     an issue on non-debathena machines.
+
+- Create wrapper scripts for queuing/dequeuing jobs?  Making it easier to use across
+  multiple platforms, regardless of debathena/normal linux/etc?
