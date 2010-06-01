@@ -31,6 +31,10 @@ require "/usr/lib/gutenbach/config/gutenbach-filter-config.pl" or die "Unable to
 
 my $ua = new LWP::UserAgent;
 
+# This variable contains the pid of the child process (which runs
+# mplayer) once it has been forked, so that we can kill it on SIGTERM
+my $pid;
+
 # Replace STDERR with a log file in /tmp.
 open(CUPS, ">&STDERR") or die "Unable to copy CUPS filehandle";
 close(STDERR);
@@ -106,13 +110,16 @@ if (exists($arguments{"options"}{"job-originating-host-name"})) {
 
 # SIGHUP handler, in case we were aborted
 sub clear_status {
+  kill 15, $pid if $pid;
   my @zwrite_command = (qw(/usr/bin/zwrite -d -n -c), $zephyr_class, "-i", $queue.'@'.$host, "-s", "Gutenbach Music Spooler");
   open(ZEPH, "|-", @zwrite_command);
   print(ZEPH "Playback aborted.\n");
   close(ZEPH);
   die;
 }
+
 $SIG{HUP} = \&clear_status;
+$SIG{TERM} = \&clear_status;
 
 # Read the metadata information from the file.
 my ($filepath) = $arguments{"file"};
@@ -281,16 +288,15 @@ sub get_shoutcast {
 sub play_mplayer_audio {
   my ($filepath, $opts) = @_;
 
-
   # Open up a zwrite command to show the mplayer output
   my @zwrite_command = (qw(/usr/bin/zwrite -d -n -c), $zephyr_class, "-i", $queue.'@'.$host, "-s", "Gutenbach Music Spooler");
 
-  print STDERR "Invoking @zwrite_command\n";
-  open(ZEPHYR, "|-", @zwrite_command) or die "Couldn't launch zwrite: $!";
+  print STDERR "Invoking (from play_mplayer_audio): @zwrite_command\n";
 
   # fork for mplayer
-  my $pid = open(MP3STATUS, "-|");
+  $pid = open(MP3STATUS, "-|");
   unless (defined $pid) {
+    open(ZEPHYR, "|-", @zwrite_command) or die "Couldn't launch zwrite: $!";
     print ZEPHYR "Couldn't fork: $!\n";
     close(ZEPHYR);
     return;
@@ -298,18 +304,19 @@ sub play_mplayer_audio {
 
   if ($pid) { #parent
     # Check if there were any errors
-    
     if ($_ = <MP3STATUS>) {
+      open(ZEPHYR, "|-", @zwrite_command) or die "Couldn't launch zwrite: $!";
       print ZEPHYR "Playback completed with the following errors:\n";
       while (<MP3STATUS>) {
 	print ZEPHYR $_;
       }
+      close(ZEPHYR);
     } else {
+      open(ZEPHYR, "|-", @zwrite_command) or die "Couldn't launch zwrite: $!";
       print ZEPHYR "Playback completed successfully.\n";
+      close(ZEPHYR);
     }
     close(MP3STATUS) || print ZEPHYR "mplayer exited $?\n";
-
-    close(ZEPHYR);
   }
   else { # child
     # redirect STDERR to STDOUT
