@@ -15,8 +15,15 @@ if [ -e /usr/lib/gutenbach/config/printername ]; then
 	if [ -n "$listen_localhost" ]; then
 	    echo "#GUTENBACH$line" >> "$conffile"
        	else
-	    echo "$line" >> "$conffile"
+	    root_location=$(echo "$line" | grep '^<Location />$' || true)
+	    if [ -n "$root_location" ]; then
+		echo "<Location />" >> "$conffile"
+		echo "Allow from All # added by Gutenbach" >> "$conffile"
+	    else
+		echo "$line" >> "$conffile"
+	    fi
 	fi
+
     done < "$conffile.bak"
     rm "$conffile.bak"
 
@@ -25,6 +32,7 @@ if [ -e /usr/lib/gutenbach/config/printername ]; then
 
 Group audio
 Listen *
+ServerAlias *
 
 <Location /printers/$printername>
     <Limit Cancel-Job Purge-Jobs CUPS-Authenticate-Job>

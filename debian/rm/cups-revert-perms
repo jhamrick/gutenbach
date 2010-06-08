@@ -14,8 +14,12 @@ while read line; do
     if [ -n "$listen_localhost" ]; then
 	echo "$(echo $line | sed s/#GUTENBACH//)" >> "$conffile"
     else
-	echo "$line" >> "$conffile"
+	root_location=$(echo "$line" | grep '^Allow from All # added by Gutenbach$' || true)
+	if [ -z "$root_location" ]; then
+	    echo "$line" >> "$conffile"
+	fi
     fi
+
 done < "$conffile.bak"
 
 rm "$conffile.bak"
