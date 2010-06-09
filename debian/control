@@ -13,4 +13,4 @@ Conflicts: pulseaudio
 Provides: pulseaudio
 Description: Server for playing music files from a remote machine
  Allows remote machines to play music files on this machine
- by "printing" them with debathena-lprng.
+ by "printing" them with the Common UNIX Printing System (CUPS).
