@@ -93,20 +93,28 @@ if (!$arguments{"file"}) {
 
 printf(STDERR "Got \%arguments: %s\n", Dumper(\%arguments));
 
+# Open up a zwrite command to announce the current track.
+my @zwrite_command = (qw(/usr/bin/zwrite -d -n -c), $zephyr_class, "-i", $queue.'@'.$host, "-s", "Gutenbach Music Spooler");
 
+print STDERR "Invoking @zwrite_command\n";
+open(ZEPHYR, "|-", @zwrite_command) or die "Couldn't launch zwrite: $!";
 
 my $status;
 if (exists($arguments{"options"}{"job-originating-host-name"})) {
-    
+    print(ZEPHYR $arguments{"user"},"\@",$arguments{"options"}{"job-originating-host-name"}," is playing:\n");
     $status = "User: ".$arguments{"user"}."\@".$arguments{"options"}{"job-originating-host-name"};
 } else {
-    
+    print(ZEPHYR $arguments{"user"}," is playing:\n");
     $status = "User: ".$arguments{"user"};
 }
 
 # SIGHUP handler, in case we were aborted
 sub clear_status {
   kill 15, $pid if $pid;
+  my @zwrite_command = (qw(/usr/bin/zwrite -d -n -c), $zephyr_class, "-i", $queue.'@'.$host, "-s", "Gutenbach Music Spooler");
+  open(ZEPH, "|-", @zwrite_command);
+  print(ZEPH "Playback aborted.\n");
+  close(ZEPH);
   die;
 }
 
@@ -122,16 +130,17 @@ my ($newpath);
 
 if ($magic) {
   # $magic means that Image::ExifTool was able to identify the type of file
+  printf(ZEPHYR "%s file %s\n", $magic, $arguments{"job-title"});
   $status .= sprintf(" Filetype: %s.", $magic);
   $status .= sprintf(" Filename: %s.", $arguments{"job-title"});
 
   if (exists $fileinfo->{'Title'}) {
-    
+    printf(ZEPHYR "\@b{%s}\n", $fileinfo->{'Title'}) if exists $fileinfo->{'Title'};
     $status .= sprintf(" Title: %s.", $fileinfo->{'Title'});
   }
   foreach my $key (qw/Artist Album AlbumArtist/) {
     if (exists $fileinfo->{$key}) {
-      
+      printf(ZEPHYR "%s\n", $fileinfo->{$key}) if exists $fileinfo->{$key};
       $status .= sprintf(" %s: %s\n", $key, $fileinfo->{$key});
     }
   }
@@ -157,27 +166,27 @@ elsif ($arguments{copies} == 42) {
     open(YTDL, "-|", "youtube-dl", "-g", $filepath) or die "Unable to invoke youtube-dl";
     # Read the title (currently not doing so because youtube-dl doesn't know how to get the title.
     my $title = ""; # <YTDL>
-    # Print the title to the status string.
-    
+    # Print the title to zephyr and the status string.
+    print ZEPHYR "YouTube video $filepath\n$title";
     $status .= " YouTube video $filepath. $title.";
     # youtube-dl prints the URL of the flash video, which we pass to mplayer as a filename.
     $filepath = <YTDL>;
     chomp $filepath;
   } else { # Doesn't appear to be a YouTube URL.
     print STDERR "Resolved external reference to $filepath\n";
-    
+    printf(ZEPHYR "%s\n", $filepath);
     $status .= sprintf(" External: %s\n", $filepath);
   }
 }
 elsif (-T $filepath) { # If the file appears to be a text file, treat it as a playlist.
   split_playlist($filepath, \%arguments);
-  
+  close(ZEPHYR);
   # See http://www.cups.org/documentation.php/api-filter.html#MESSAGES
   print CUPS "NOTICE: $status\n";
   exit 0;
 }
 
-
+close(ZEPHYR);
 print CUPS "NOTICE: $status\n";
 play_mplayer_audio($filepath, \%arguments);
 
@@ -213,21 +222,22 @@ sub resolve_external_reference {
     elsif ($contenttype eq "application/ogg") { $format="OGG" }
     elsif ($contenttype eq "audio/x-scpls") { $format="SHOUTCAST" }
     else {
-    
+      print ZEPHYR
+	"Unknown Content-Type $contenttype for URI $uri\n";
     }
   } else { # Unable to match the URL regex
-    
+    print ZEPHYR "Couldn't read URI for external reference\n";
     # Return the existing path, in the hopes that mplayer knows what to do with it.
     return $filepath;
   }
 
   if ($format eq "SHOUTCAST") {
-    
+    print ZEPHYR "Shoutcast playlist...\n";
     return get_shoutcast($uri);
   } elsif ($format eq "MP3") {
   } elsif ($format eq "OGG") {
   } else {
-    
+    print ZEPHYR "Unrecognized stream format: $format\n";
   }
   return $uri;
 }
@@ -248,7 +258,7 @@ sub split_playlist {
       $i++;
     }
   }
-  
+  printf(ZEPHYR "Playlist containing %d valid entries, split into separate jobs.\n", $i);
 }
 
 # Process a Shoutcast playlist
@@ -271,32 +281,42 @@ sub get_shoutcast {
   # choose a random server
   my $server = int(rand scalar(@uris));
   # print the name of the stream if available
- 
+  print ZEPHYR "$titles[$server]\n";
   return $uris[$server];
 }
 
 sub play_mplayer_audio {
   my ($filepath, $opts) = @_;
 
+  # Open up a zwrite command to show the mplayer output
+  my @zwrite_command = (qw(/usr/bin/zwrite -d -n -c), $zephyr_class, "-i", $queue.'@'.$host, "-s", "Gutenbach Music Spooler");
+
+  print STDERR "Invoking (from play_mplayer_audio): @zwrite_command\n";
 
   # fork for mplayer
   $pid = open(MP3STATUS, "-|");
   unless (defined $pid) {
+    open(ZEPHYR, "|-", @zwrite_command) or die "Couldn't launch zwrite: $!";
+    print ZEPHYR "Couldn't fork: $!\n";
+    close(ZEPHYR);
     return;
   }
 
   if ($pid) { #parent
     # Check if there were any errors
     if ($_ = <MP3STATUS>) {
-     
+      open(ZEPHYR, "|-", @zwrite_command) or die "Couldn't launch zwrite: $!";
+      print ZEPHYR "Playback completed with the following errors:\n";
       while (<MP3STATUS>) {
-	
+	print ZEPHYR $_;
       }
-      
+      close(ZEPHYR);
     } else {
-      
+      open(ZEPHYR, "|-", @zwrite_command) or die "Couldn't launch zwrite: $!";
+      print ZEPHYR "Playback completed successfully.\n";
+      close(ZEPHYR);
     }
-    close(MP3STATUS);
+    close(MP3STATUS) || print ZEPHYR "mplayer exited $?\n";
   }
   else { # child
     # redirect STDERR to STDOUT
