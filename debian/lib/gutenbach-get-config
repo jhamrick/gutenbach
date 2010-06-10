@@ -2,8 +2,8 @@
 use strict;
 # Get configuration of gutenbach
 
-my $zephyr_class = `hostname`;
-chomp($zephyr_class);
+#my $zephyr_class = `hostname`;
+#chomp($zephyr_class);
 my $host = `hostname`;
 chomp($zephyr_class);
 my $queue = "gutenbach";
@@ -21,7 +21,7 @@ if (-r $config_file) {
 }
 
 my %config = (
-    'zephyr-class' => $zephyr_class,
+   # 'zephyr-class' => $zephyr_class,
     'host' => $host,
     'queue' => $queue,
     'mixer' => $mixer,

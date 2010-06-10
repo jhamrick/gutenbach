@@ -25,7 +25,7 @@ use Data::Dumper;
 use IPC::Open2;
 use English;
 
-use vars qw/$zephyr_class $host $queue $mixer $channel/;
+use vars qw/ $host $queue $mixer $channel/;
 
 require "/usr/lib/gutenbach/config/gutenbach-filter-config.pl" or die "Unable to load configuration";
 
