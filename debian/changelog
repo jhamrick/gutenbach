@@ -1,3 +1,10 @@
+gutenbach (2.04) unstable; urgency=low
+
+  * Change standards version to 3.8.4
+  * Added source format (1.0)
+
+ -- Kyle Brogle <broglek@bu.edu>  Thu, 10 Jun 2010 15:35:38 -0600
+
 gutenbach (2.03) unstable; urgency=low
 
   * Update permissions again, to allow everybody to access the server
