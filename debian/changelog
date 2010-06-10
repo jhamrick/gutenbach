@@ -1,3 +1,10 @@
+gutenbach (2.05) unstable; urgency=low
+
+  * Add Kyle Brogle, Quentin Smith, and Yuri Lin as
+  co-maintainers
+
+ -- Jessica Hamrick <jhamrick@mit.edu>  Thu, 10 Jun 2010 18:13:35 -0400
+
 gutenbach (2.04) unstable; urgency=low
 
   * Change standards version to 3.8.4
