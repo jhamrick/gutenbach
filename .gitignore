@@ -4,8 +4,8 @@ ksplice*
 voldaemon
 log
 printcap
-debian/files
-debian/*.debhelper
-debian/gutenbach.substvars
-debian/gutenbach
-debian/gutenbach.debhelper.log
+files
+*.substvars
+*.debhelper.log
+*.debhelper
+gutenbach/debian/gutenbach/
