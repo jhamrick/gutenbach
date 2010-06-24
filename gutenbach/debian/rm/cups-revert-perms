@@ -1,0 +1,9 @@
+#!/bin/sh 
+
+echo "Reverting changes to /etc/cups/cupsd.conf..." >&2
+mv /etc/cups/cupsd.conf /etc/cups/cupsd.conf.bak
+touch /etc/cups/cupsd.conf
+
+sed '/# Begin configurations for gutenbach/,/# End configurations for gutenbach/ d' < /etc/cups/cupsd.conf.bak > /etc/cups/cupsd.conf
+
+rm /etc/cups/cupsd.conf.bak

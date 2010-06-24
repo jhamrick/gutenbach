@@ -1,0 +1,35 @@
+#!/bin/sh -e
+
+echo "Editing /etc/printcap..." >&2
+if [ ! -e /etc/printcap ]; then
+    touch /etc/printcap
+fi
+
+if [ ! -e /etc/lprng/printcap ]; then
+    ln -s /etc/printcap /etc/lprng/printcap
+fi
+
+if [ -e /usr/lib/gutenbach/config/printername ]; then
+    printername=$(cat /usr/lib/gutenbach/config/printername)
+
+    printcap=$(cat /etc/printcap | grep ^`echo $printername` || true)
+    if [ ! -n "$printcap" ]; then
+    # add the appropriate entry into /etc/printcap, /etc/lprng/printcap
+	echo "$printername" >> /etc/printcap
+	echo "  :server" >> /etc/printcap
+	echo "  :cm=Gutenbach Music Spooler" >> /etc/printcap
+	echo "  :lp=/dev/null" >> /etc/printcap
+	echo "  :if=|/usr/lib/gutenbach/gutenbach-filter" >> /etc/printcap
+	echo "  :lf=/var/spool/lpd/$printername/log" >> /etc/printcap
+	echo "  :sd=/var/spool/lpd/$printername" >> /etc/printcap
+	echo "  :ml=0:mx=0:sh" >> /etc/printcap
+	echo "  :create_files" >> /etc/printcap
+	echo "  :auth_forward=kerberos5" >> /etc/printcap
+	echo "  :use_auth=kerberos5" >> /etc/printcap
+	echo "  :kerberos_id=daemon/"`hostname`".mit.edu@ATHENA.MIT.EDU" >> /etc/printcap
+	echo "  :kerberos_keytab=/etc/daemon.keytab" >> /etc/printcap
+    fi
+else
+    echo "Error: /usr/lib/gutenbach/config/printername does not exist!" >&2
+    exit 1
+fi

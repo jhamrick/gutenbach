@@ -1,0 +1,30 @@
+#!/bin/sh -e
+
+echo "Reverting changes to /etc/printcap..." >&2
+
+if [ -e /usr/lib/gutenbach/config/printername ]; then
+    printername=$(cat /usr/lib/gutenbach/config/printername)
+
+    mv /etc/printcap /etc/printcap.bak
+    touch /etc/printcap
+    foundprinter="false"
+    while read line; do
+	printername=$(echo "$line" | grep ^`echo $printername`$ || true)
+	if [ -n "$printername" ]; then
+            foundprinter="true"
+	else
+            if [ "$foundprinter"="true" ]; then
+		configline=$(echo "$line" | grep ^[[:space:]]*: || true)
+		if [ -z "$configline" ]; then
+                    foundprinter="false"
+                    echo "$line" >> /etc/printcap
+		fi
+            else
+		echo "$line" >> /etc/printcap
+            fi
+	fi
+    done < /etc/printcap.bak
+    rm /etc/printcap.bak
+else
+    echo "Error: /usr/lib/gutenbach/config/printername does not exist!" >&2
+fi

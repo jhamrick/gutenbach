@@ -1,0 +1,369 @@
+gutenbach
+    The SIPB MP3 Music Spooler
+
+We would love you forever if you took this README/INSTALL document and made
+a Debian package out of it.  That would be uber-awesome.  But otherwise, we're
+assuming that you just want to get gutenbach up and running on your own
+system.  Well, maybe we shouldn't assume that.
+
+
+What does gutenbach do?
+---------------------
+
+gutenbach is a music spooler.  As it turns out, streaming music is a hard
+problem, with lots of proprietary protocols, client and server software.
+All of these jiggety bits are kind of a pain to get working correctly,
+so, we built gutenbach on top of... a printer system.  It's very simple:
+you print an mp3 file to a special "printer", and it gets played on
+whatever speakers you're hooked up to.
+
+
+Prerequisites
+-------------
+
+You'll need a server hooked up to an audio system that you want to use, with
+Debathena installed on top of it.  Ubuntu Server Edition tends to work
+well.
+
+
+Installing gutenbach
+------------------
+
+
+1. Configuring your sound
+
+If you're installing gutenbach on a server environment, it's highly likely
+that you have a bare bones audio setup and everything is muted.  Make sure
+your sound works!  One common problem is that the daemon user (the user which
+will be actually playing the songs, or the user that your lpd, the print server,
+will be running under), isn't in the group audio, and thus can't play
+anything. If you're on Ubuntu Desktop, you'll probably have pulse-audio
+installed, in which case you should add lpd to the pulse-audio group
+as well, and make pulse-audio a single, system-wide instance. See
+this URL for detailed instructions:
+
+    http://www.pulseaudio.org/wiki/SystemWideInstance
+
+
+2. Install some prerequisite software
+
+On a vanilla Ubuntu server install, gutenbach will also need the following
+packages to work properly:
+
+    * mplayer
+    * libimage-exiftool-perl
+
+mpg123 can also be useful for testing, but is not strictly necessary.
+
+
+3. Setup gutenbach
+
+The Git repository for gutenbach is located in:
+
+    /afs/sipb/project/sipbmp3/gutenbach.git
+
+Place this in /root/gutenbach; the remctl scripts will assume that the
+scripts can be found in this location.
+
+
+4. Configure gutenbach
+
+gutenbach will send zephyrs during playback start and end.  Since you don't
+want to be spamming sipb-auto (which is the default zephyr class these
+are sent to), you should create a configuration file:
+
+    /etc/gutenbach-filter-config.pl
+
+That looks like:
+
+    $zephyr_class = "my-auto-class"
+    $host = "hostname"
+    $queue = "printername"
+
+XXX: Auto-detect hostname and invent a sane default zephyr class off of it.
+
+
+5. Configure gutenbach init scripts
+
+gutenbach will attempt to drop some information into /var/run/gutenbach, which
+needs to exist and you can't simply mkdir since /var/run on Ubuntu is
+a tempfs. Thus, add the following lines to a new file, /etc/init.d/gutenbach:
+
+#!/bin/sh
+mkdir /var/run/gutenbach
+touch /var/run/gutenbach/status
+chmod 0777 /var/run/gutenbach/status
+
+You should also run these commands yourself. :-)
+
+XXX: Note from jhamrick: I would recomment actually setting this up as a nice startup script, with a switch case for {start|stop|restart} (where with stop you just remove the directory, and with restart you remove the directory and then recreate it).  Also, gutenbach won't actually run on startup unless there are scripts in the /etc/rc*.d directory, so we need to do:
+
+> ln -s ../init.d/gutenbach /etc/rc2.d/S61gutenbach
+> ln -s ../init.d/gutenbach /etc/rc3.d/S61gutenbach
+> ln -s ../init.d/gutenbach /etc/rc4.d/S61gutenbach
+> ln -s ../init.d/gutenbach /etc/rc5.d/S61gutenbach
+> ln -s ../init.d/gutenbach /etc/rc0.d/K39gutenbach
+> ln -s ../init.d/gutenbach /etc/rc1.d/K39gutenbach
+> ln -s ../init.d/gutenbach /etc/rc6.d/K39gutenbach
+
+XXX: We need better permissions for status. Also, quentin wants to put this
+file in AFS.
+
+
+6. Configure lpd
+
+You'll need to setup a printcap file so that your machine will be actually
+running a printer! The magic lines are:
+
+    :if=|/path/to/gutenbach-filter
+    :lp=/dev/null
+
+Which mean that we pipe the mp3 files through gutenbach-filter (which does
+the actual playing), and then dump the rest of the output into /dev/null,
+since we don't actually care about it.
+
+A standard printcap entry looks like this:
+
+printername
+  :server
+  :cm=Human Readable Printer Name
+  :lp=/dev/null
+  :if=|/path/to/gutenbach-filter
+  :sd=/var/spool/lpd/printername
+  :ml=0:mx=0:sh:sf
+  :create_files
+
+printcap is located in /etc/printcap, but you can also edit the symlink
+in /etc/lprng/printcap.
+
+In /etc/lprng/lpd.conf:
+
+    printcap_path=...
+
+add /etc/lprng/printcap to the beginning of the pathlist, so it looks like:
+
+    printcap_path=/etc/lprng/printcap:|/usr/lib/get_hesiod_pcap
+
+/etc/printcap will also work, assuming lprng doesn't do something funky
+in the future.
+
+WARNING: On a cluster machine, get_hesiod_pcap will clobber gutenbach
+because it sets all:all=someotherprinter, making lpr not see gutenbach.
+There are two ways of fixing this:
+
+1. Patch /usr/lib/get_hesiod_pcap to return a full pcap line instead
+of all when it gets "all" from stdin.
+
+2. Remove get_hesiod_pcap from the list.
+
+To check your modifications, and create the necessary files and folders,
+you should run:
+
+    checkpc -V -f
+
+(As root, of course). You might get a failure on a directory
+/var/spool/lpd/%P doesn't exist; simply mkdir it and run checkpc -V -f
+
+With recent versions of lprng, you will also need to make lpd less paranoid
+about accepting connections.  This usually means the following two changes:
+
+In /etc/lprng/lpd.perms:
+
+    REJECT NOT SERVER
+
+should be commented out, as:
+
+    #REJECT NOT SERVER
+
+You will also need to add this line in lpd.conf:
+
+    lpd_listen_port=515
+
+By default, printers don't allow other users to remove other people's print
+jobs.  For an MP3 spooler, however, this may be a desirable trait, especially
+if someone trys to rickroll you.  You can let everyone lprm jobs by
+commenting out the line:
+
+    REJECT SERVICE=M
+
+XXX: On scourge, ACCEPT SERVICE=M SAMEHOST SAMEUSER doesn't seem to work
+properly, so removing the REJECT line is a must!
+
+XXXXXX: gutenbach accepts no responsibility for social faux pas that may
+be committed with this system.  It is consider good etiquette, however,
+to clear the status file if you're on zsr.
+
+XXXXXXXX: Another note from jhamrick (09/2009): debathena-lprng does not start up with the system by default.  debathena developers are currently deciding whether to change this, but in the meantine you will want to do:
+
+> ln -s ../etc/init.d/debathena-lprng /etc/rc2.d/S60debathena-lprng
+> ^rc2^rc3
+> ^rc3^rc4
+> ^rc4^rc5
+> ln -s ../etc/init.d/debathena-lprng /etc/rc0.d/K40debathena-lprng
+> ^rc0^rc1
+> ^rc1^rc6
+
+7. Test, round one
+
+The first test you should do to make sure gutenbach is configured properly is
+to attempt to play an mp3 file locally, via lpr.  The command you should use
+is:
+
+    mit-lpr -Pprintername@localhost filename.mp3
+
+Note the "mit-" prefix; Debathena defaults to CUPS, which we have not set
+up yet.
+
+See below for troubleshooting tips.
+
+
+8. Test, round two
+
+The second test you should do is try playing an MP3 remotely. The appropriate
+command is:
+
+    mit-lpr -Pprintername@hostname filename.mp3
+
+(Once again, with "mit-").  See below for troubleshooting tips.
+
+
+9. Troubleshooting
+
+So, it didn't work.  How did it fail?
+
+----
+sending job 'ezyang@vivace+800' to asdfasdf@localhost
+ connecting to 'localhost', attempt 1
+ cannot open connection to localhost - No such file or directory
+----
+
+This means that lpd is not accepting connections properly.  Check to see
+if you configured lpd.perms and lpd.conf correctly.  Try rebooting lpd
+by pkill lpd && lpd.  Use nmap to check of port 515 is open, both on the
+local machine and on a remote machine.  Check if networking is working
+on the server.  Use netstat to see what programs are listening to port
+515, and from which hosts.  Check iptables.
+
+----
+lpr: The printer or class was not found.
+----
+
+You're using lpr, not mit-lpr.
+
+----
+(no output, but no sound)
+----
+
+It looks like you managed to send the file over.  To diagnose the problems
+further:
+
+    * Check the zephyr logs of the class gutenbach was configured to
+      send messages to:
+
+        - If you see a reasonably full and formatted message, that means
+          that either: 1. your volume is turned off, or 2. mplayer is
+          horribly broken (XXX: it probably isn't, but I don't know what
+          error message it gives in that case)
+
+          By the way, be sure to check both the *hardware* and the
+          *software* volume.
+
+        - If you see a blank zephyr, that means that gutenbach-filter died
+          trying to get a handle to /var/run/gutenbach/status and failing.
+          Check if you created the file correctly, and that daemon has
+          permissions to write to it. If you rebooted recently, check if
+          you have the appropriate init.d script setup.
+
+    * Otherwise, check /var/spool/lpd/printername/status.pr (most of all the
+      other files are useless, especially including log):
+
+        - If you see a Perl error, fix it. The most common cause is because
+          exiftools is not installed.
+
+    * Otherwise, double check the userland code in gutenbach-filter. XXX: There
+      are some edge-cases that don't give nice error messages, for example
+      the failed write to /var/run/gutenbach/status
+
+
+10. Deploying CUPS
+------------------
+
+The final step is to give your newfangled printer a cups.mit.edu record.
+In order to do this, you will need to ask IS&T for a Moira pcap entry
+request.  Send mail to hesreq@mit.edu, specifying that you are setting
+up a gutenbach clone, that you want a Moira pcap entry, the printer name
+and server name of your queue, and that you want hwtype=LOCAL,ka=1. It wouldn't
+hurt to also tell them where your print queue is, and a contact list.
+
+Once you get the pcap entry, ping sipb-cups@mit.edu to add your machine
+to the public list.
+
+Troubleshooting:
+
+----
+Send_auth_transfer: on client client_krb5_auth failed - krb5_sendauth failed -
+Bad application version was sent (via sendauth)
+----
+
+This means that the ka field in your Hesiod pcap entry is incorrectly set to
+0.  Send mail to hesreq@mit.edu requesting ka be set to 1.
+
+
+11. Setting up keytabs on the machine
+-------------------------------------
+
+Email accounts@mit.edu and ask them for two keytabs: one for your machine,
+and one for "daemon" at your machine.  When you get the keytab, reset their
+passwords by running:
+
+    k5srvutil change -f your.keytab
+    k5srvutil delold -f your.keytab
+
+Now, install the machine-wide keytab in /etc/krb5.keytab, and install the
+daemon keytab as /etc/daemon.keytab.  (The first filename is required; the
+second can be changed.)  Make sure you chown and chgrp it to daemon.
+
+Finally, edit /etc/printcap and give it information about the Kerberos:
+
+gutenbach: server
+    :cm=SIPB MP3 Spooler
+    ...
+    :auth_forward=kerberos5
+    :use_auth=kerberos5
+    :kerberos_id=daemon/your-machine-name.mit.edu@ATHENA.MIT.EDU
+    :kerberos_keytab=/etc/daemon.keytab
+
+Troubleshooting
+
+-----
+Printer 'pikamp3@LESBIAN-BABY-SEAGULL-GODDESS.MIT.EDU' - 
+on client client_krb5_auth failed - krb5_sendauth failed - Bad response (during sendauth exchange)
+-----
+
+Your daemon.keytab is not readable by daemon.
+
+12. Setting up remctl commands
+-----------------------------
+
+It's useful to be able to control the volume. Remctl is the way to do
+this without asking people to ssh in, and then alsamix(er).
+
+You will probably need to apt-get install remctl-server. Then, replace
+the /etc/remctl/conf.d directory with a Git checkout of
+/afs/sipb/project/sipbmp3/gutenbach-remctl.git.
+
+Please note that remctl will NOT work without a keytab setup.
+
+
+X. Deploying gutenbachweb
+------------------------
+
+gutenbach web provides a nice and user-friendly interface for some common
+tasks. XXX: It is currently not portable beyond zsr. Stay tuned!
+
+X. Troubleshooting
+------------------
+
+If things are broken on a reboot, make sure you're running:
+
+    /etc/init.d/{gutenbach,zhm,debatehna-lprng}
