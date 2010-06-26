@@ -1,0 +1,37 @@
+#!/usr/bin/perl
+
+# Written by Jessica Hamrick (C) 2010
+
+use strict;
+use warnings;
+use IPC::Open2;
+
+my $usage = "Usage: gbq QUEUE ID\n";
+
+my $q = $ARGV[0];
+my $id = $ARGV[1];
+
+if (!$q or !$id) {
+    print $usage;
+    exit 1
+}
+
+my $configpath = "$ENV{'HOME'}/.gutenbach/$q";
+my ($host, $queue);
+
+if (-r $configpath) {
+    local $/;
+    my $fh;
+    open $fh, $configpath;
+    eval <$fh>;
+}
+
+my @args;
+
+if ($id eq "all") {
+    @args = ("cancel", "-a", "-h$host", "$queue");
+}
+else {
+    @args = ("cancel", "-h$host", "$id", "$queue");
+}
+exec (@args) or die "Couldn't execute cancel command";
