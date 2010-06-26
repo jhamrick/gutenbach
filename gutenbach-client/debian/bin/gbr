@@ -4,7 +4,6 @@
 
 use strict;
 use warnings;
-use IPC::Open2;
 
 my $usage = "Usage: gbr QUEUE FILE\n";
 

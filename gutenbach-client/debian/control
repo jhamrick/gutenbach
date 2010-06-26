@@ -8,6 +8,6 @@ Standards-Version: 3.8.4
 Package: gutenbach-client
 Architecture: all
 Pre-Depends: debconf
-Depends: ${shlibs:Depends}, ${misc:Depends}, cups, gutenbach
+Depends: ${shlibs:Depends}, ${misc:Depends}, cups, libnet-cups-perl
 Description: Client-side helper scripts for interacting with
  the Gutenbach music player.
