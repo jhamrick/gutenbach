@@ -1,3 +1,13 @@
+gutenbach-client (1.0) unstable; urgency=low
+
+  * Initial package build
+  * gbq - show queue
+  * gbr - queue file
+  * gbrm - remove file
+  * gutenbach-client-config - add, list, or delete queues
+
+ -- Jessica Hamrick <jhamrick@mit.edu>  Sat, 26 Jun 2010 16:56:28 -0400
+
 gutenbach-client (0.01) unstable; urgency=low
 
   * Created skeleton package.
