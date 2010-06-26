@@ -26,6 +26,10 @@ GetOptions ('l|list' => \$list,
 
 my $configpath = "$ENV{'HOME'}/.gutenbach";
 
+if (! -e $configpath) {
+    mkdir "$configpath";
+}
+
 # list the existing queues
 if ($list and !$add and !$delete) {
     my @queues = glob("$configpath/*") or die "Couldn't find configuration files at '$configpath'";

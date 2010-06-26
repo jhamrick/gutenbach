@@ -16,6 +16,11 @@ if (!$q or !$file) {
 }
 
 my $configpath = "$ENV{'HOME'}/.gutenbach/$q";
+if (! -e $configpath) {
+    print "Queue '$q' does not exist!\n";
+    exit 1;
+}
+
 my ($host, $queue);
 
 if (-r $configpath) {
