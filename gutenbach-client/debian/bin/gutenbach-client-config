@@ -1,0 +1,80 @@
+#!/usr/bin/perl
+
+# Written by Jessica Hamrick, (C) 2010
+
+use strict;
+use warnings;
+use Getopt::Long;
+
+my $usage = 
+    "Usage: gutenbach-client-config [-l|--list|-a|--add|-d|--delete] [QUEUE] [--host=HOST]\n" .
+    "\n" .
+    "\t-l, --list\t\tList available queues\n" .
+    "\t-a, --add QUEUE\t\tAdd a queue (must be used with -h)\n" .
+    "\t-d, --delete QUEUE\tDelete a queue)\n" .
+    "\t-h, --host HOST\t\tHostname for the queue\n";
+
+my $list = 0;
+my $add = "";
+my $delete = "";
+my $host = "";
+
+GetOptions ('l|list' => \$list,
+            'a|add=s' => \$add,
+            'd|delete=s' => \$delete,
+	    'h|host=s' => \$host);
+
+my $configpath = "$ENV{'HOME'}/.gutenbach";
+
+# list the existing queues
+if ($list and !$add and !$delete) {
+    my @queues = glob("$configpath/*") or die "Couldn't find configuration files at '$configpath'";
+
+    print "Queue\t\tHost\n";
+    foreach my $q (@queues) {
+	my ($host, $queue);
+
+	if (-r $q) {
+	    local $/;
+	    my $fh;
+	    open $fh, $q;
+	    eval <$fh>;
+	}
+
+	print "$queue\t\t$host\n";
+    }
+}
+
+# add a new queue
+elsif (!$list and $add and !$delete) {
+    if (!$host) {
+	print $usage;
+	exit 1;
+    }
+
+    if (-e "$configpath/$add") {
+	print "Warning: queue '$add' already exists\n";
+    }
+
+    open CONFIG, "> $configpath/$add" or die "Couldn't open config file '$configpath/$add'";
+    print CONFIG "\$host = \"$host\";\n";
+    print CONFIG "\$queue = \"$add\";\n";
+    close CONFIG;
+
+    print "Added queue '$add' on host '$host'\n"
+}
+
+# delete an existing queue
+elsif (!$list and !$add and $delete) {
+    if (! -e "$configpath/$delete") {
+	print "Error: queue '$delete' already exists\n";
+	exit 1;
+    }
+
+    unlink("$configpath/$delete") or die "Couldn't remove config file '$configpath/$delete'";
+}
+
+else {
+    print $usage;
+    exit 1;
+}
