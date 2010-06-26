@@ -1,3 +1,9 @@
+gutenbach-client (1.01) unstable; urgency=low
+
+  * Fix debhelper compatibility to 5 (for backwards compatibility)
+
+ -- Jessica Hamrick <jhamrick@mit.edu>  Sat, 26 Jun 2010 18:01:02 -0400
+
 gutenbach-client (1.0) unstable; urgency=low
 
   * Initial package build
