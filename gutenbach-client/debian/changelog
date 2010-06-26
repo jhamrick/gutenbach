@@ -1,3 +1,9 @@
+gutenbach-client (1.01-1) unstable; urgency=low
+
+  * Make package no longer Debian native.
+
+ -- Jessica Hamrick <jhamrick@mit.edu>  Sat, 26 Jun 2010 19:20:08 -0400
+
 gutenbach-client (1.01) unstable; urgency=low
 
   * Fix debhelper compatibility to 5 (for backwards compatibility)
