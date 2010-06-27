@@ -1,5 +1,5 @@
 #!/bin/sh
-# prerm script for gutenbach
+# prerm script for gutenbach-server
 #
 # see: dh_installdeb(1)
 

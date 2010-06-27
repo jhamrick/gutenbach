@@ -5,7 +5,7 @@ Maintainer: Jessica Hamrick <jhamrick@mit.edu>
 Build-Depends: cdbs, debhelper (>= 7.4.15ubuntu1)
 Standards-Version: 3.8.4
 
-Package: gutenbach
+Package: gutenbach-server
 Architecture: all
 Pre-Depends: debconf
 Depends: ${shlibs:Depends}, ${misc:Depends}, mplayer, libimage-exiftool-perl, cups, debathena-cupsys-config, sysv-rc, adduser, debathena-zephyr-config, libzephyr4-krb5, alsa-base

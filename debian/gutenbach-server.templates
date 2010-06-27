@@ -1,4 +1,4 @@
-Template: gutenbach/printername
+Template: gutenbach-server/printername
 Type: string
 _Description: Your gutenbach printer name:
  gutenbach creates a printer to which you can print music
@@ -7,7 +7,7 @@ _Description: Your gutenbach printer name:
  to do:
  lpr -Pprintername@hostname your-music-file-.mp3 
 
-Template: gutenbach/zephyrclass
+Template: gutenbach-server/zephyrclass
 Type: string
 _Description: Your gutenbach zephyr class:
  When gutenbach plays a song, it sends a message to a zephyr
@@ -17,7 +17,7 @@ _Description: Your gutenbach zephyr class:
  or you don't want zephyrs to be sent, just leave this 
  field blank.
 
-Template: gutenbach/hostname
+Template: gutenbach-server/hostname
 Type: string
 _Description: The hostname to be displayed:
  When gutenbach sends a zephyr, it will display the hostname.

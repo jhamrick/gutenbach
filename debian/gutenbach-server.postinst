@@ -1,5 +1,5 @@
 #!/bin/sh
-# postinst script for gutenbach
+# postinst script for gutenbach-server
 #
 # see: dh_installdeb(1)
 
@@ -25,11 +25,11 @@ case "$1" in
 	    mkdir /usr/lib/gutenbach/config
 	fi
 
-	db_get gutenbach/zephyrclass
+	db_get gutenbach-server/zephyrclass
 	echo "$RET" > /usr/lib/gutenbach/config/zephyrclass
-	db_get gutenbach/printername
+	db_get gutenbach-server/printername
 	echo "$RET" > /usr/lib/gutenbach/config/printername
-	db_get gutenbach/hostname
+	db_get gutenbach-server/hostname
 	echo "$RET" > /usr/lib/gutenbach/config/hostname
 
 	chmod +x /usr/lib/gutenbach/inst/create-filter-config
