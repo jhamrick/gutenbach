@@ -1,0 +1,2 @@
+status get   /usr/lib/gutenbach/remctl/status-get   ANYUSER
+status clear /usr/lib/gutenbach/remctl/status-clear ANYUSER

@@ -1,0 +1,9 @@
+[app:main]
+smtp_server = localhost
+email_to = edwardzyang@thewritingpot.com
+error_email_from = paste@ezyang.scripts.mit.edu
+
+use = egg:sipbmp3-web
+sipbmp3.server = zygorthian-space-raiders.mit.edu
+keytab = /mit/ezyang/web_scripts/ezyang.extra.keytab
+sqlalchemy.url = sqlite:///%(here)s/devdata.db

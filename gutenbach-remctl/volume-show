@@ -1,0 +1,7 @@
+#!/bin/sh
+PATH="$(dirname $0):$PATH"
+
+mixer=$(/usr/lib/gutenbach/gutenbach-get-config mixer)
+channel=$(/usr/lib/gutenbach/gutenbach-get-config channel)
+
+amixer get $mixer

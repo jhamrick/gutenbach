@@ -1,0 +1,37 @@
+#!/bin/sh
+PATH="$(dirname $0):$PATH"
+
+CDDB=
+
+CACHE=$(cd-cddb-get)
+
+printername=$(/usr/lib/gutenbach/gutenbach-get-config queue)
+
+if [ "$?" = 0 ]; then
+    CDDB=1
+fi
+
+. "$CACHE"
+
+play_one () {
+    T=$1
+    if [ -n "$CDDB" ]; then
+	DESC=" - "$(eval 'echo $TRACK'$T)
+    fi
+
+    echo "cdda://$(($T - 1))" | mit-lpr -P"$queue"@localhost -J "Track $T$DESC";
+    echo "Queued Track $T$DESC";
+}
+
+TOPLAY="$2"
+
+if [ -z "$TOPLAY" -o "$TOPLAY" = "all" ]; then
+    for i in $(seq 1 "$TRACKS"); do
+	play_one $i
+    done
+else
+    shift;
+    for i in "$@"; do
+	play_one $i
+    done
+fi

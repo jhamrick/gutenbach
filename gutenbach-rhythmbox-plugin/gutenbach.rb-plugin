@@ -1,0 +1,7 @@
+[RB Plugin]
+Loader=python
+Module=gutenbach
+IAge=1
+Name=gutenbach
+Description="Print" tunes to the gutenbach server
+Authors=Nimrod Gileadi <nimrodg@mit.edu>

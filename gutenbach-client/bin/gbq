@@ -1,0 +1,54 @@
+#!/usr/bin/perl
+
+# Written by Jessica Hamrick (C) 2010
+
+use strict;
+use warnings;
+
+use Net::CUPS;
+use Net::CUPS::Destination;
+
+my $usage = "Usage: gbq QUEUE\n";
+
+my $q = $ARGV[0];
+
+if (!$q) {
+    print $usage;
+    exit 1
+}
+
+my $configpath = "$ENV{'HOME'}/.gutenbach/$q";
+if (! -e $configpath) {
+    print "Queue '$q' does not exist!\n";
+    exit 1;
+}
+
+my ($host, $queue);
+
+if (-r $configpath) {
+    local $/;
+    my $fh;
+    open $fh, $configpath;
+    eval <$fh>;
+}
+
+my $cups = Net::CUPS->new();
+$cups->setServer("$host");
+my $printer = $cups->getDestination("$queue");
+
+print "Queue listing for queue '$queue' on '$host'\n\n";
+print "Job ID\t\tOwner\t\tFile\n";
+print "-----------------------------------------------------------------\n";
+
+my @jobs = $printer->getJobs(0, 0);
+my ($job_ref, $jobid);
+
+foreach $jobid(@jobs) 
+{       
+	$job_ref = $printer->getJob($jobid);
+	my $id = $job_ref->{'id'};
+	my $user = $job_ref->{'user'};
+	my $title = $job_ref->{'title'};
+
+	print "$id\t\t$user\t\t$title\n";
+}

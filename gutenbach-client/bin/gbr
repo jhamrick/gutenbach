@@ -1,0 +1,34 @@
+#!/usr/bin/perl
+
+# Written by Jessica Hamrick (C) 2010
+
+use strict;
+use warnings;
+
+my $usage = "Usage: gbr QUEUE FILE\n";
+
+my $q = $ARGV[0];
+my $file = $ARGV[1];
+
+if (!$q or !$file) {
+    print $usage;
+    exit 1
+}
+
+my $configpath = "$ENV{'HOME'}/.gutenbach/$q";
+if (! -e $configpath) {
+    print "Queue '$q' does not exist!\n";
+    exit 1;
+}
+
+my ($host, $queue);
+
+if (-r $configpath) {
+    local $/;
+    my $fh;
+    open $fh, $configpath;
+    eval <$fh>;
+}
+
+my @args = ("lp", "-h$host", "-d$queue", "$file");
+exec (@args) or die "Couldn't execute lp command";

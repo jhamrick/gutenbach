@@ -14,3 +14,25 @@ Provides: pulseaudio
 Description: Server for playing music files from a remote machine
  Allows remote machines to play music files on this machine
  by "printing" them with the Common UNIX Printing System (CUPS).
+
+Package: gutenbach-client
+Architecture: all
+Pre-Depends: debconf
+Depends: ${shlibs:Depends}, ${misc:Depends}, cups, libnet-cups-perl
+Description: Client-side helper scripts for interacting with
+ the Gutenbach music player.
+
+Package: gutenbach-queue
+Architecture: all
+Pre-Depends: debconf
+Depends: ${shlibs:Depends}, ${misc:Depends}, daemon, gutenbach
+Description: Displays metadat about the current songs in the 
+ queue for the gutenbach music spooler, and also the song that
+ is currently playing.
+
+Package: gutenbach-remctl
+Architecture: all
+Pre-Depends: debconf
+Depends: ${shlibs:Depends}, ${misc:Depends}, gutenbach (>= 2.0), alsa-utils, cd-discid, remctl-server
+Description: Allows a remote user to control the volume, view
+ the current status of the queue, or play tracks from a cd.

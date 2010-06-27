@@ -1,0 +1,4 @@
+recursive-include sipbmp3web/public *
+include sipbmp3web/public/favicon.ico
+recursive-include sipbmp3web/i18n *
+recursive-include sipbmp3web/templates *
