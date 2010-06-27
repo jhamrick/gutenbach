@@ -25,7 +25,7 @@ Description: Client-side helper scripts for interacting with
 Package: gutenbach-queue
 Architecture: all
 Pre-Depends: debconf
-Depends: ${shlibs:Depends}, ${misc:Depends}, daemon, gutenbach
+Depends: ${shlibs:Depends}, ${misc:Depends}, daemon, gutenbach-server
 Description: Displays metadat about the current songs in the 
  queue for the gutenbach music spooler, and also the song that
  is currently playing.
@@ -33,6 +33,6 @@ Description: Displays metadat about the current songs in the
 Package: gutenbach-remctl
 Architecture: all
 Pre-Depends: debconf
-Depends: ${shlibs:Depends}, ${misc:Depends}, gutenbach (>= 2.0), alsa-utils, cd-discid, remctl-server
+Depends: ${shlibs:Depends}, ${misc:Depends}, gutenbach-server (>= 2.0), alsa-utils, cd-discid, remctl-server
 Description: Allows a remote user to control the volume, view
  the current status of the queue, or play tracks from a cd.
