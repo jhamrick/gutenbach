@@ -1,4 +1,0 @@
-debian/lib/gutenbach /usr/lib/cups/backend
-debian/lib/* /usr/lib/gutenbach/
-debian/inst/* /usr/lib/gutenbach/inst/
-debian/rm/* /usr/lib/gutenbach/rm/
