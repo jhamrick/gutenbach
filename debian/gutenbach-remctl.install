@@ -1,0 +1,2 @@
+debian/tmp/usr/lib/gutenbach/remctl/* /usr/lib/gutenbach/remctl/
+debian/tmp/etc/remctl/conf.d/* /etc/remctl/conf.d/
