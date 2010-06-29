@@ -1,3 +1,9 @@
+gutenbach (2.07) unstable; urgency=low
+
+  * Update gutenbach-queue to be compatible with CUPS
+
+ -- Jessica Hamrick <jhamrick@mit.edu>  Tue, 29 Jun 2010 01:38:34 -0400
+
 gutenbach (2.06) unstable; urgency=low
 
   * License gutenbach under GPLv2

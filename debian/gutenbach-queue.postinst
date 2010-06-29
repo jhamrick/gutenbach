@@ -32,6 +32,8 @@ case "$1" in
 
 	chown -R daemon:daemon /var/run/gutenbach
 	chmod og+rw /var/run/gutenbach
+
+	adduser daemon audio
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
