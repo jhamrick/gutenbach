@@ -5,16 +5,18 @@ essentially enables anybody with access to it to play music from their
 own computer -- all they have to do is "print" to the Gutenbach
 instance as they would any other document!
 
-The current repositories for various Gutenbach features are:
-    - gutenbach
-    - gutenbach-queue
-    - gutenbach-remctl
-    - gutenbach-rhythmbox-plugin
-    - gutenbach-itunes-plugin
-    - gutenbach-web
+The current Gutenbach features are:
+    - the Gutenbach server (packaged as gutenbach-server)
+    - a terminal queue display (packaged as gutenbach-queue)
+    - remctl bindings (packaged as gutenbach-remctl)
+    - client-side scripts to print to, list, and delete from 
+      queues (packaged as gutenbach-client)
+    - a Rhythmbox plugin
+    - iTunes plugins
+    - a webapp interface
 
 All of these are located on GitHub:
-http://github.com/search?langOverride=&q=gutenbach&repo=&start_value=1&type=Repositories
+http://github.com/jhamrick/gutenbach
 
 Additionally, see README.old for how Gutenbach /used/ to be installed.
 This can sometimes offer insight into how to fix things that are
@@ -31,40 +33,53 @@ NOTES:
       bt_audio_service_open: connect() failed: Connection refused (111)
       bt_audio_service_open: connect() failed: Connection refused (111)
 
-  This is because you have alsa configured for bluetooth, but bluetooth is not
-  enabled.  You should either enable bluetooth, or uninstall the bluez-alsa
-  package.
+  This is because you have alsa configured for bluetooth, but
+  bluetooth is not enabled.  You should either enable bluetooth, or
+  uninstall the bluez-alsa package.
 
-- To print to a machine without keytabs, you need to do:
+- The commands to print and remove jobs should be used via the scripts
+  in gutenbach-client package.  However, if you insist on using them,
+  the correct syntax is:
+      
+      CUPS_SERVER=servername lp -dqueuename foo.mp3
+      CUPS_SERVER=servername cancel [ID|-a] queuename
 
-     lpr -Pprintername -Hhostname $file
+TODO: 
 
-  The old `lpr -Pprintername@hostname $file` syntax will no longer work.
-
-TODO:
 - include mixer and channel in debconf, or even better, move it to
   gutenbach-remctl and implement debconf in that package
 
-- the filter should die and send an error message if it can't find the
-  config file, not use defaults
-
-- this should really not conflict with pulse (the biggest problem at the moment is that
-  pulse will spew a bunch of errors like "Home directory /var/spool/cups/tmp not ours." I
-  can't figure out how to get rid of them, but they're really annoying.  As long as pulse
-  is in system mode, things seem to work otherwise.)
+- this should really not conflict with pulse (the biggest problem at
+  the moment is that pulse will spew a bunch of errors like "Home
+  directory /var/spool/cups/tmp not ours." I can't figure out how to
+  get rid of them, but they're really annoying.  As long as pulse is
+  in system mode, things seem to work otherwise.)
 
 - CUPS issues
-    * the CUPS daemon processes do not inherit groups from the lp user (so, for example,
-      even if we add 'lp' to 'audio', the process will not be running in group 'audio').
-      For the time being, I've set the CUPS daemon to always run under group 'audio',
-      but there should really be a better solution.
-    * debathena printer configuration defaults to using ipp, e.g.:
-       jhamrick@lemon-meringue:~$ lpstat -v sipbmp3 
-       device for sipbmp3: ipp://zsr.mit.edu:631/printers/sipbmp3
-     so you can't just do `lpq -Psipbmp3`, you have to use `lpq -Psipbmp3 -hzsr` or
-     something similar.  Same thing goes with lprm.  It is interesting that this is
-     only the case with lpq and lprm, though, and lpr Just Works.  This shouldn't be
-     an issue on non-debathena machines.
 
-- Create wrapper scripts for queuing/dequeuing jobs?  Making it easier to use across
-  multiple platforms, regardless of debathena/normal linux/etc?
+    * the CUPS daemon processes do not inherit groups from the lp user
+      (so, for example, even if we add 'lp' to 'audio', the process
+      will not be running in group 'audio').  For the time being, I've
+      set the CUPS daemon to always run under group 'audio', but there
+      should really be a better solution.
+
+    * when the Purge-Jobs command is sent, the jobs are removed, but
+      the current mplayer instance continues playing.  This
+      unfortunately leads to jobs being played over each other when
+      the CUPS server restarts
+
+- Making it easier to use across multiple platforms, regardless of
+  debathena/normal linux/etc?
+
+- Gutenbach should not depend on Debathena -- ideally,
+  gutenbach-server should be debathena free, and then if people want
+  to use zephyr, etc., they can install an additional gutenbach-zephyr
+  package or something
+
+- add regex support to the client scripts, so you can do something
+  like `gbr sipbmp3 *.mp3` and have it send separate jobs to the queue
+
+- fix the web interface
+
+- fix the youtube feature.  Additionally, make it possible to play
+  movies!
