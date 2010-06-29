@@ -1,3 +1,14 @@
+gutenbach (2.08) unstable; urgency=low
+
+  * Remove deprecated lpd files in gutenbach-server
+  * Modify gutenbach-queue to use /tmp instead of /var/run
+  * Replace cupsd.conf with our own version, backing it up to
+    cupsd.conf.gutenbach-orig in gutenbach-server
+  * Modify gbr and gbrm to use CUPS_SERVER instead of -h in
+    gutenbach-client
+
+ -- Jessica Hamrick <jhamrick@mit.edu>  Tue, 29 Jun 2010 19:35:58 -0400
+
 gutenbach (2.07) unstable; urgency=low
 
   * Update gutenbach-queue to be compatible with CUPS
