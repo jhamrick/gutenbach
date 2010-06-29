@@ -9,6 +9,7 @@ Package: gutenbach-server
 Architecture: all
 Pre-Depends: debconf
 Depends: ${shlibs:Depends}, ${misc:Depends}, mplayer, libimage-exiftool-perl, cups, debathena-cupsys-config, sysv-rc, adduser, debathena-zephyr-config, alsa-base
+Recommends: libzephyr4-krb5
 Conflicts: pulseaudio
 Provides: pulseaudio
 Description: Server for playing music files from a remote machine
@@ -34,5 +35,6 @@ Package: gutenbach-remctl
 Architecture: all
 Pre-Depends: debconf
 Depends: ${shlibs:Depends}, ${misc:Depends}, gutenbach-server (>= 2.0), alsa-utils, cd-discid, remctl-server
+Recommends: libzephyr4-krb5
 Description: Allows a remote user to control the volume, view
  the current status of the queue, or play tracks from a cd.
