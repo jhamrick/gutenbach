@@ -7,8 +7,9 @@ fi
 while true; do
     time=$(date)
     echo "This is a work in progress!  Please send bugs to jhamrick." >> /var/run/gutenbach/current_queue_temp
-    echo ""
+    echo "" >> /var/run/gutenbach/current_queue_temp
     echo "As of $time:" >> /var/run/gutenbach/current_queue_temp
+    echo "" >> /var/run/gutenbach/current_queue_temp
     /usr/lib/gutenbach/queue/queue >> /var/run/gutenbach/current_queue_temp
     mv /var/run/gutenbach/current_queue_temp /var/run/gutenbach/current_queue
     chmod ugoa+r /var/run/gutenbach/current_queue

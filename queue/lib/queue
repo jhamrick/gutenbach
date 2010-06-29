@@ -1,59 +1,59 @@
-#!/bin/bash
+#!/usr/bin/perl                                                                                                       
 
-found_current=
+use Net::CUPS;
+use Net::CUPS::Destination;
+use Image::ExifTool qw(ImageInfo);
 
-if [ -e "/var/run/gutenbach/queue_times" ]; then
-    rm "/var/run/gutenbach/queue_times"
-fi
+use strict;
+use warnings;
 
-if [ -e /usr/lib/gutenbach/config/printername ]; then
-    printername=$(cat /usr/lib/gutenbach/config/printername)
+use vars qw/$queue/;
+require "/usr/lib/gutenbach/config/gutenbach-filter-config.pl" or die "Unable to load configuration";
 
-    cd /var/spool/lpd/"$printername"/
-    for i in $(ls . | grep ^hf); do
-	done=$(cat "$i" | grep done)
-    if [ ! -n "$done" ]; then
-	timestamp=$(cat "$i" | grep ^job_time= | sed 's/.*=//')
-	echo "$timestamp:$i" >> /var/run/gutenbach/queue_times
-    fi
-    done
+my $cups = Net::CUPS->new();
+my $printer = $cups->getDestination("$queue");
+my @jobs = $printer->getJobs( 0, 0 );
+my $job_ref;
+my $jobid;
+my $attr;
 
-    if [ -e /var/run/gutenbach/queue_times ]; then
-	for i in $(sort /var/run/gutenbach/queue_times); do
-	    i=$(echo "$i" | sed 's/.*://')
-	    prefix="df"${i:2}
-	    for j in "$prefix"*; do song="$j"; done
-
-	    user=$(cat "$i" | grep ^P=)
-	    user=${user:2}
-	    
-	    if [ -e /var/run/gutenbach/exiftool_data ]; then
-		rm /var/run/gutenbach/exiftool_data
-	    fi
-
-	    exiftool "$song" >> /var/run/gutenbach/exiftool_data
-	    title=$(cat /var/run/gutenbach/exiftool_data | grep "^Title " | sed 's/.*: //')
-	    artist=$(cat /var/run/gutenbach/exiftool_data | grep "^Artist " | sed 's/.*: //')
-
-	    if [ -z "$found_current" ]; then
-		host=$(cat "$i" | grep ^H=)
-		host=${host:2}
-		filenm="$(cat $i | grep "^filenames" | sed -e 's/filenames=//')"
-		album=$(cat /var/run/gutenbach/exiftool_data | grep "^Album " | sed 's/.*: //')
-		echo "$user@$host is currently playing: "
-		echo "$filenm"
-		echo "'$title'"
-		echo "by '$artist'"
-		echo "on '$album'"
-		echo ""
-		echo "Coming up in the queue:"
-		found_current="true" 
-	    else
-		echo "$user: '$title' by '$artist'"
-	    fi
-	done
-    fi
-else
-    echo "Error: Printer name configuration file /usr/lib/gutenbach/config/printername does not exist!"
-    exit 1
-fi
+my $jobnum = 0;
+foreach $jobid(@jobs)
+{
+    $job_ref = $printer->getJob($jobid);
+    my $filepath = "/var/spool/cups/d0$job_ref->{'id'}-001";
+    my $fileinfo = ImageInfo($filepath);
+    my $magic = $fileinfo->{FileType};
+    
+    if ($jobnum == 0)
+    {
+	print $job_ref->{'user'}." is currently playing:\n";
+	print "\t".$magic." file ".$job_ref->{'title'}."\n";
+	
+	if ($magic)
+	{
+	    foreach my $key (qw/Title Artist Album AlbumArtist/)
+	    {
+		if (exists $fileinfo->{$key})
+		{
+		    print "\t$fileinfo->{$key}\n";
+		}
+	    }
+	}
+	
+	print "\nComing up the queue:\n\n";
+    }
+    else
+    {
+	if ($magic)
+	{
+	    my $user = $job_ref->{'user'};
+	    my $title = $fileinfo->{'Title'};
+	    my $artist = $fileinfo->{'Artist'};
+	    my $album = $fileinfo->{'Album'};
+	    print "$user: \"$title\" by \"$artist\" on \"$album\"\n";
+	}
+    }
+    
+    $jobnum += 1;
+}
