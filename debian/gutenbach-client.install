@@ -2,3 +2,7 @@ debian/tmp/usr/bin/gbq /usr/bin/
 debian/tmp/usr/bin/gbr /usr/bin/
 debian/tmp/usr/bin/gbrm /usr/bin/
 debian/tmp/usr/bin/gutenbach-client-config /usr/bin/
+debian/tmp/usr/share/man/man1/gbq.1.gz /usr/share/man/man1/
+debian/tmp/usr/share/man/man1/gbr.1.gz /usr/share/man/man1/
+debian/tmp/usr/share/man/man1/gbrm.1.gz /usr/share/man/man1/
+debian/tmp/usr/share/man/man1/gutenbach-client-config.1.gz /usr/share/man/man1/
