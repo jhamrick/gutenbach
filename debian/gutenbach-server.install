@@ -1,0 +1,7 @@
+debian/tmp/usr/lib/cups/backend/gutenbach /usr/lib/cups/backend/
+debian/tmp/usr/lib/gutenbach/gutenbach /usr/lib/gutenbach/
+debian/tmp/usr/lib/gutenbach/gutenbach-get-config /usr/lib/gutenbach/
+debian/tmp/usr/lib/gutenbach/README /usr/lib/gutenbach/
+debian/tmp/usr/lib/gutenbach/TODO /usr/lib/gutenbach/
+debian/tmp/usr/lib/gutenbach/inst/* /usr/lib/gutenbach/inst/
+debian/tmp/usr/lib/gutenbach/rm/* /usr/lib/gutenbach/rm

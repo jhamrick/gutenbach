@@ -1,0 +1,4 @@
+debian/tmp/usr/lib/gutenbach/queue/build-gutenbach-queue /usr/lib/gutenbach/queue/
+debian/tmp/usr/lib/gutenbach/queue/kill-gutenbach-queue /usr/lib/gutenbach/queue/
+debian/tmp/usr/lib/gutenbach/queue/queue /usr/lib/gutenbach/queue/
+debian/tmp/usr/lib/gutenbach/queue/view-gutenbach-queue /usr/lib/gutenbach/queue/
