@@ -1,3 +1,11 @@
+gutenbach (2.05) unstable; urgency=low
+
+  * Add manpages for gutenbach-client scripts
+  * Fix incorrect path in gutenbach-server.install
+  * Rename gutenbach to gutenbach-server in po
+
+ -- Jessica Hamrick <jhamrick@mit.edu>  Mon, 28 Jun 2010 22:23:15 -0400
+
 gutenbach (2.04) unstable; urgency=low
 
   * Create a single source package for all gutenbach-* packages.
