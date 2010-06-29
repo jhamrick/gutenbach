@@ -18,13 +18,13 @@ msgstr ""
 
 #. Type: string
 #. Description
-#: ../gutenbach.templates:1001
+#: ../gutenbach-server.templates:1001
 msgid "Your gutenbach printer name:"
 msgstr ""
 
 #. Type: string
 #. Description
-#: ../gutenbach.templates:1001
+#: ../gutenbach-server.templates:1001
 msgid ""
 "gutenbach creates a printer to which you can print music files.  gutenbach "
 "needs to know what you want to call the  printer, and then after "
@@ -34,13 +34,13 @@ msgstr ""
 
 #. Type: string
 #. Description
-#: ../gutenbach.templates:2001
+#: ../gutenbach-server.templates:2001
 msgid "Your gutenbach zephyr class:"
 msgstr ""
 
 #. Type: string
 #. Description
-#: ../gutenbach.templates:2001
+#: ../gutenbach-server.templates:2001
 msgid ""
 "When gutenbach plays a song, it sends a message to a zephyr class with the "
 "song information (title, artist, album, etc).  Please specify which class "
@@ -50,13 +50,13 @@ msgstr ""
 
 #. Type: string
 #. Description
-#: ../gutenbach.templates:3001
+#: ../gutenbach-server.templates:3001
 msgid "The hostname to be displayed:"
 msgstr ""
 
 #. Type: string
 #. Description
-#: ../gutenbach.templates:3001
+#: ../gutenbach-server.templates:3001
 msgid ""
 "When gutenbach sends a zephyr, it will display the hostname. If your "
 "hostname is particularly long, you may want to set this to an abbreviation "
