@@ -1,3 +1,9 @@
+gutenbach (2.06) unstable; urgency=low
+
+  * License gutenbach under GPLv2
+
+ -- Jessica Hamrick <jhamrick@mit.edu>  Mon, 28 Jun 2010 22:46:42 -0400
+
 gutenbach (2.05) unstable; urgency=low
 
   * Add manpages for gutenbach-client scripts
