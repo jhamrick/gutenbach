@@ -30,5 +30,5 @@ if (-r $configpath) {
     eval <$fh>;
 }
 
-my @args = ("lp", "-h$host", "-d$queue", "$file");
+my @args = ("CUPS_SERVER=$host", "lp", "-d$queue", "$file");
 exec (@args) or die "Couldn't execute lp command";
