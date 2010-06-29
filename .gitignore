@@ -10,3 +10,4 @@ debian/gutenbach-remctl/
 debian/gutenbach-server/
 debian/stamp-makefile-build
 debian/tmp/
+client/bin/*.1.gz
