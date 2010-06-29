@@ -1,0 +1,16 @@
+.TH gbq 1 "27 June 2010"
+.SH NAME
+gbq \- displays a remote Gutenbach queue
+.SH SYNOPSIS
+.B gbq 
+\fIQUEUE\fR
+.SH DESCRIPTION
+Uses the perl Net::CUPS library to access a remote queue and display
+the current jobs, along with ID numbers, owners, and filenames.  The
+Gutenbach queue must have previously been added with
+.B gutenbach-client-config
+so that gbq knows which host to use.
+.SH SEE ALSO
+gbr(1), gbrm(1), gutenbach-client-config(1)
+.SH AUTHOR
+Jessica Hamrick <jhamrick@mit.edu>

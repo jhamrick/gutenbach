@@ -8,3 +8,5 @@ install:
 	install -m 755 lib/* $(DESTDIR)/usr/lib/gutenbach/
 	install -m 755 inst/* $(DESTDIR)/usr/lib/gutenbach/inst/
 	install -m 755 rm/* $(DESTDIR)/usr/lib/gutenbach/rm/
+
+clean:
