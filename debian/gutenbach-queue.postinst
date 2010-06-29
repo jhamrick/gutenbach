@@ -30,9 +30,6 @@ case "$1" in
 	    ln -s /usr/lib/gutenbach/queue/view-gutenbach-queue /usr/bin/view-gutenbach-queue
 	fi
 
-	chown -R daemon:daemon /var/run/gutenbach
-	chmod og+rw /var/run/gutenbach
-
 	adduser daemon audio
     ;;
 

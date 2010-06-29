@@ -11,73 +11,63 @@
 
 case "$1" in
     start)
-	daemon -F /var/run/gutenbach/gutenbach-queue.pid --name gutenbach-queue --running
+	if [ ! -e /tmp/gutenbach ]; then
+	    mkdir /tmp/gutenbach
+	fi
+	chmod ugoa+rw /tmp/gutenbach
+
+	daemon -F /tmp/gutenbach/gutenbach-queue.pid --name gutenbach-queue --running
 	if [ "$?" == 0 ]; then
 	    echo "The gutenbach queue daemon is already running."
 	else
-	    if [ ! -e /var/run/gutenbach/current_queue ]; then
-		touch /var/run/gutenbach/current_queue
-		chmod ugoa+r /var/run/gutenbach/current_queue
+	    if [ ! -e /tmp/gutenbach/current_queue ]; then
+		touch /tmp/gutenbach/current_queue
+		chmod ugoa+r /tmp/gutenbach/current_queue
             fi
-            if [ ! -e /var/run/gutenbach/queue_times ]; then
-		touch /var/run/gutenbach/queue_times
-            fi
-            if [ ! -e /var/run/gutenbach/exiftool_data ]; then
-		touch /var/run/gutenbach/exiftool_data
-	    fi
-            if [ ! -e /var/run/gutenbach/current_queue_temp ]; then
-		touch /var/run/gutenbach/current_queue_temp
+            if [ ! -e /tmp/gutenbach/current_queue_temp ]; then
+		touch /tmp/gutenbach/current_queue_temp
             fi
 
 	    echo "Starting gutenbach daemon..."
-	    daemon -F /var/run/gutenbach/gutenbach-queue.pid --name gutenbach-queue -u daemon /usr/lib/gutenbach/queue/build-gutenbach-queue
+	    daemon -F /tmp/gutenbach/gutenbach-queue.pid --name gutenbach-queue -u daemon /usr/lib/gutenbach/queue/build-gutenbach-queue
 	    echo "Done."
 	fi
 	;;
 
     stop)
-	daemon -F /var/run/gutenbach/gutenbach-queue.pid --stop --name gutenbach-queue
+	daemon -F /tmp/gutenbach/gutenbach-queue.pid --stop --name gutenbach-queue
 	/usr/lib/gutenbach/queue/kill-gutenbach-queue
 
-	if [ -e /var/run/gutenbach/current_queue ]; then
-            rm /var/run/gutenbach/current_queue
+	if [ -e /tmp/gutenbach/current_queue ]; then
+            rm /tmp/gutenbach/current_queue
 	fi
-        if [ -e /var/run/gutenbach/queue_times ]; then
-            rm /var/run/gutenbach/queue_times
-	fi
-        if [ -e /var/run/gutenbach/exiftool_data ]; then
-            rm /var/run/gutenbach/exiftool_data
-	fi
-        if [ -e /var/run/gutenbach/current_queue_temp ]; then
-            rm /var/run/gutenbach/current_queue_temp
+        if [ -e /tmp/gutenbach/current_queue_temp ]; then
+            rm /tmp/gutenbach/current_queue_temp
         fi
 	;;
 
     restart)
-	daemon -F /var/run/gutenbach/gutenbach-queue.pid --stop --name gutenbach-queue
+	daemon -F /tmp/gutenbach/gutenbach-queue.pid --stop --name gutenbach-queue
         /usr/lib/gutenbach/queue/kill-gutenbach-queue
 
-	if [ -e /var/run/gutenbach/current_queue ]; then
-	    rm /var/run/gutenbach/current_queue
+	if [ -e /tmp/gutenbach/current_queue ]; then
+	    rm /tmp/gutenbach/current_queue
 	fi
-	if [ -e /var/run/gutenbach/queue_times ]; then
-	    rm /var/run/gutenbach/queue_times
-	fi
-	if [ -e /var/run/gutenbach/exiftool_data ]; then
-	    rm /var/run/gutenbach/exiftool_data
-	fi
-	if [ -e /var/run/gutenbach/current_queue_temp ]; then
-	    rm /var/run/gutenbach/current_queue_temp
+	if [ -e /tmp/gutenbach/current_queue_temp ]; then
+	    rm /tmp/gutenbach/current_queue_temp
 	fi
 
-	touch /var/run/gutenbach/current_queue
-	chmod ugoa+r /var/run/gutenbach/current_queue
-	touch /var/run/gutenbach/queue_times
-	touch /var/run/gutenbach/exiftool_data
-	touch /var/run/gutenbach/current_queue_temp
+	if [ ! -e /tmp/gutenbach ]; then
+	    mkdir /tmp/gutenbach
+	fi
+
+	chmod ugoa+rw /tmp/gutenbach
+	touch /tmp/gutenbach/current_queue
+	chmod ugoa+r /tmp/gutenbach/current_queue
+	touch /tmp/gutenbach/current_queue_temp
 
 	echo "Starting gutenbach daemon..."
-	daemon -F /var/run/gutenbach/gutenbach-queue.pid --name gutenbach-queue -u daemon /usr/lib/gutenbach/queue/build-gutenbach-queue
+	daemon -F /tmp/gutenbach/gutenbach-queue.pid --name gutenbach-queue -u daemon /usr/lib/gutenbach/queue/build-gutenbach-queue
 	echo "Done."
 	;;
 
