@@ -3,23 +3,6 @@
 echo "Reverting changes to /etc/cups/cupsd.conf..." >&2
 conffile="/etc/cups/cupsd.conf"
 
-mv "$conffile" "$conffile.bak"
-touch "$conffile"
-sed '/# Begin configurations for gutenbach/,/# End configurations for gutenbach/ d' < "$conffile.bak" > "$conffile"
-
-mv "$conffile" "$conffile.bak"
-touch "$conffile"
-while read line; do
-    listen_localhost=$(echo "$line" | grep '^#GUTENBACH' || true)
-    if [ -n "$listen_localhost" ]; then
-	echo "$(echo $line | sed s/#GUTENBACH//)" >> "$conffile"
-    else
-	root_location=$(echo "$line" | grep '^Allow from All # added by Gutenbach$' || true)
-	if [ -z "$root_location" ]; then
-	    echo "$line" >> "$conffile"
-	fi
-    fi
-
-done < "$conffile.bak"
-
-rm "$conffile.bak"
+if [ -e "$conffile.gutenbach-orig" ]; then
+    mv "$conffile.gutenbach-orig" "$conffile"
+fi
