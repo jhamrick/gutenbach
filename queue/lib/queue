@@ -28,10 +28,10 @@ foreach $jobid(@jobs)
     if ($jobnum == 0)
     {
 	print $job_ref->{'user'}." is currently playing:\n";
-	print "\t".$magic." file ".$job_ref->{'title'}."\n";
 	
 	if ($magic)
 	{
+	    print "\t".$magic." file ".$job_ref->{'title'}."\n";
 	    foreach my $key (qw/Title Artist Album AlbumArtist/)
 	    {
 		if (exists $fileinfo->{$key})
@@ -39,6 +39,10 @@ foreach $jobid(@jobs)
 		    print "\t$fileinfo->{$key}\n";
 		}
 	    }
+	}
+	else
+	{
+	    print "\t".$job_ref->{'title'}."\n";
 	}
 	
 	print "\nComing up the queue:\n\n";
@@ -52,6 +56,12 @@ foreach $jobid(@jobs)
 	    my $artist = $fileinfo->{'Artist'};
 	    my $album = $fileinfo->{'Album'};
 	    print "$user: \"$title\" by \"$artist\" on \"$album\"\n";
+	}
+	else
+	{
+	    my $user = $job_ref->{'user'};
+	    my $file = $job_ref->{'title'};
+	    print "$user: $file\n";
 	}
     }
     
