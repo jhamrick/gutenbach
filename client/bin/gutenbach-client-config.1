@@ -1,0 +1,39 @@
+.TH gutenbach-client-config 1 "27 June 2010"
+.SH NAME
+gutenbach-client-config \- displays a remote Gutenbach queue
+.SH SYNOPSIS
+.B gutenbach-client-config 
+[-l|--list|-a|--add|-d|--delete] [\fIQUEUE\fR] [--host \fIHOST\fR]
+.SH DESCRIPTION
+Provides options to add, remove, or list remote Gutenbach queues.  The
+list of queues is stored in the
+.B $HOME/.gutenbach
+directory, with a separate file for each queue.  This means that it is
+not necessary for the local representation of a remote queue to have
+the same name as the remote queue: for example, there could be a file
+in the config directory called "sipb", whose contents specify the
+remote to be "sipbmp3".  Then, when using other commands such as 
+.BR gbr ,
+.BR gbq , 
+or 
+.BR gbrm ,
+you would use "sipb" instead of "sipbmp3".
+.TP
+\fB\-l\fR, \fB\-\-list\fR
+List available queues
+.TP
+\fB\-a\fR, \fB\-\-add\fR QUEUE
+Add a remote queue.  Must be used in conjunction with
+.B --host
+.TP
+\fB\-d\fR, \fB\-\-delete\fR QUEUE
+Delete a remote queue.  Must be used in conjunction with
+.B --host
+.
+.TP
+\fB\-h\fR, \fB\-\-host\fR HOST
+Hostname for the queue
+.SH SEE ALSO
+gbr(1), gbrm(1), gbq(1)
+.SH AUTHOR
+Jessica Hamrick <jhamrick@mit.edu>

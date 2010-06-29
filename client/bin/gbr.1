@@ -1,0 +1,15 @@
+.TH gbr 1 "27 June 2010"
+.SH NAME
+gbr \- sends a file to a Gutenbach queue
+.SH SYNOPSIS
+.B gbr 
+\fIQUEUE\fR \fIFILE\fR
+.SH DESCRIPTION
+Prints a file to a Gutenbach queue, given the queue name and the path
+to the file.  The Gutenbach queue must have previously been added with
+.B gutenbach-client-config
+so that gbr knows which host to use.
+.SH SEE ALSO
+gbq(1), gbrm(1), gutenbach-client-config(1)
+.SH AUTHOR
+Jessica Hamrick <jhamrick@mit.edu>
