@@ -18,11 +18,21 @@ The current Gutenbach features are:
 All of these are located on GitHub:
 http://github.com/jhamrick/gutenbach
 
-Additionally, see README.old for how Gutenbach /used/ to be installed.
-This can sometimes offer insight into how to fix things that are
-broken.
+In terms of how the repository is structured: after discussing the
+possibility of supporting multiple systems, we decided it would be
+best to merge everything platform unspecific into the master branch,
+and then keep separate branches for each other system; e.g. at the
+moment we have the debian branch, which should be the same as the
+master branch except that it also contains a debian/ directory.  Now,
+this means that you should never edit platform-unspecific files in the
+debian directory; they should *always* be edited from the master
+branch.  The debian branch should never be merged into the master
+branch; merging should *always* happen the other way around.
 
-Questions or comments should be directed at gutenbach@mit.edu
+See README.old for how Gutenbach /used/ to be installed.  This can
+sometimes offer insight into how to fix things that are broken.
+
+Questions or comments should be directed at gutenbach AT mit DOT edu.
 
 NOTES:
 
@@ -78,6 +88,9 @@ TODO:
 
 - add regex support to the client scripts, so you can do something
   like `gbr sipbmp3 *.mp3` and have it send separate jobs to the queue
+
+- add client scripts for the remctl package, something maybe like
+  `gbvol [set|get] number`.  Or maybe just leave it with using remctl.
 
 - fix the web interface
 
