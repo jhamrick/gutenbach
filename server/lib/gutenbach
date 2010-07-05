@@ -163,15 +163,26 @@ elsif ($arguments{copies} == 42) {
   if ($filepath =~ m|http://www\.youtube\.com/watch\?v=|) {
     # YouTube URLs are resolved by the youtube-dl command.
     # Launch youtube-dl
-    open(YTDL, "-|", "youtube-dl", "-g", $filepath) or die "Unable to invoke youtube-dl";
-    # Read the title (currently not doing so because youtube-dl doesn't know how to get the title.
-    my $title = ""; # <YTDL>
+    $pid = open(YTDL, "-|");
+    if ($pid) {
+	print ZEPHYR "YouTube video $filepath.\nCurrently downloading, please wait...";
+	close ZEPHYR;
+	while (<YTDL>) {
+	    open(ZEPHYR, "|-", @zwrite_command);
+	    print ZEPHYR $_;
+	    close ZEPHYR;
+	}
+	open(ZEPHYR, "|-", @zwrite_command);
+	print ZEPHYR "Done downloading.";
+	close ZEPHYR;
+    }
+    else {
+	my @args = ("youtube-dl", "-q", "-o", "/tmp/youtube.flv", $filepath);
+	exec(@args) or die "Couldn't exec youtube-dl";
+    }
+
+    $filepath = "/tmp/youtube.flv";
     # Print the title to zephyr and the status string.
-    print ZEPHYR "YouTube video $filepath\n$title";
-    $status .= " YouTube video $filepath. $title.";
-    # youtube-dl prints the URL of the flash video, which we pass to mplayer as a filename.
-    $filepath = <YTDL>;
-    chomp $filepath;
   } else { # Doesn't appear to be a YouTube URL.
     print STDERR "Resolved external reference to $filepath\n";
     printf(ZEPHYR "%s\n", $filepath);
@@ -252,9 +263,10 @@ sub split_playlist {
     chomp;
     if (/^([^#]\S+)/) {
       printf (STDERR "Found playlist line: %s\n", $_);
-      open(LPR, "|-", 'lpr', '-P'.$queue.'@localhost', '-#', '42', '-J', $arguments->{"job-title"}, '-o', 'job-priority=100');
-      print LPR $1;
-      close(LPR);
+      $ENV{CUPS_SERVER}='localhost';
+      open(LP, "|-", "lp", "-d", "$queue", "-n", "42"); #'-#', '42', '-J', $arguments->{"job-title"}, '-o', 'job-priority=100');
+      print LP $1;
+      close(LP);
       $i++;
     }
   }
@@ -326,7 +338,7 @@ sub play_mplayer_audio {
     open(STDIN, "/dev/null");
 
     my @args = (qw|/usr/bin/mplayer -vo fbdev2 -zoom -x 1024 -y 768 -framedrop -nolirc -cache 512 -ao alsa -really-quiet |, $filepath);
-    #print STDERR "About to exec: ", Dumper([@args]);
+    #pint STDERR "About to exec: ", Dumper([@args]);
     exec(@args) ||
       die "Couldn't exec";
   }

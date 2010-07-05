@@ -6,7 +6,10 @@ gbr \- sends a file to a Gutenbach queue
 \fIQUEUE\fR \fIFILE\fR
 .SH DESCRIPTION
 Prints a file to a Gutenbach queue, given the queue name and the path
-to the file.  The Gutenbach queue must have previously been added with
+to the file.  The path may also be a URL to a 
+.B YouTube 
+video (e.g. http://www.youtube.com/watch?v=foo).  The Gutenbach queue
+must have previously been added with
 .B gutenbach-client-config
 so that gbr knows which host to use.
 .SH SEE ALSO
