@@ -5,12 +5,12 @@
 use strict;
 use warnings;
 
-my $usage = "Usage: gbr QUEUE FILE\n";
+my $usage = "Usage: gbr QUEUE FILES\n";
 
 my $q = $ARGV[0];
-my $file = $ARGV[1];
+my @files = @ARGV[1 .. $#ARGV];
 
-if (!$q or !$file) {
+if (!$q or !@files) {
     print $usage;
     exit 1
 }
@@ -32,12 +32,19 @@ if (-r $configpath) {
 
 $ENV{CUPS_SERVER}="$host";
 
-if ($file =~ m|http://www\.youtube\.com/watch\?v=|) {
-    open(LP, "|-", "lp", "-d$queue");
-    print LP "$file";
-    close LP;
-}
-else {
-    my @args = ("lp", "-d$queue", "$file");
-    exec (@args) or die "Couldn't execute lp command";
+foreach my $file(@files) {
+    if ($file =~ m|http://www\.youtube\.com/watch\?v=|) {
+	open(LP, "|-", "lp", "-d$queue") or die "Couldn't execute lp command";
+	print LP "$file";
+	close LP;
+    }
+    else {
+	my $pid = open(LP, "-|");
+	if (not $pid) {
+	    my @args = ("lp", "-d$queue", "$file");
+	    exec(@args) or die "Couldn't execute lp command";
+	}
+    }
+
+    print "Sent job '$file'\n";
 }

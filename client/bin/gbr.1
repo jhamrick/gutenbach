@@ -3,10 +3,13 @@
 gbr \- sends a file to a Gutenbach queue
 .SH SYNOPSIS
 .B gbr 
-\fIQUEUE\fR \fIFILE\fR
+\fIQUEUE\fR \fIFILES\fR
 .SH DESCRIPTION
-Prints a file to a Gutenbach queue, given the queue name and the path
-to the file.  The path may also be a URL to a 
+Prints files to a Gutenbach queue, given the queue name and the path
+to the files.  gbr correctly handles pathname expansion, so (for
+example), if you wish to play all .mp3 files in a directory, the
+command `gbr $queue *.mp3` will send each .mp3 as a separate job.  The
+path may also be a URL to a
 .B YouTube 
 video (e.g. http://www.youtube.com/watch?v=foo).  The Gutenbach queue
 must have previously been added with
