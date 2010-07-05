@@ -5,6 +5,9 @@
 use strict;
 use warnings;
 
+use Net::CUPS;
+use Net::CUPS::Destination;
+
 my $usage = "Usage: gbq QUEUE ID\n";
 
 my $q = $ARGV[0];
@@ -34,6 +37,14 @@ my @args;
 
 if ($id eq "all") {
     @args = ("cancel", "-a", "$queue");
+}
+elsif ($id eq "current") {
+    my $cups = Net::CUPS->new();
+    $cups->setServer("$host");
+    my $printer = $cups->getDestination("$queue");
+    my @jobs = $printer->getJobs(0, 0);
+    my $id = $jobs[0];
+    @args = ("cancel", "$id", "$queue");
 }
 else {
     @args = ("cancel", "$id", "$queue");

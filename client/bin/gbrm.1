@@ -3,15 +3,17 @@
 gbrm \- removes jobs from a Gutenbach queue
 .SH SYNOPSIS
 .B gbrm 
-\fIQUEUE\fR [all|\fIID\fR]
+\fIQUEUE\fR [all|current|\fIID\fR]
 .SH DESCRIPTION
 Removes a single job from a Gutenbach queue, given the job id, which
 can be obtained with the 
 .B gbq
 command.  If 
 .B all
-is used in place of an id, then all jobs are removed from the queue.
-The queue must have previously been added with
+is used in place of an id, then all jobs are removed from the queue.  If
+.B current 
+is used in place of an id, then the current (top) job is removed from
+the queue.  The queue must have previously been added with
 .B gutenbach-client-config
 so that gbrm knows which host to use.
 .SH SEE ALSO
