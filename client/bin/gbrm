@@ -33,9 +33,10 @@ if (-r $configpath) {
 my @args;
 
 if ($id eq "all") {
-    @args = ("CUPS_SERVER=$host", "cancel", "-a", "$queue");
+    @args = ("cancel", "-a", "$queue");
 }
 else {
-    @args = ("CUPS_SERVER=$host", "cancel", "$id", "$queue");
+    @args = ("cancel", "$id", "$queue");
 }
+$ENV{CUPS_SERVER}="$host";
 exec (@args) or die "Couldn't execute cancel command";

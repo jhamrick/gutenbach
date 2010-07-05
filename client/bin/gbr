@@ -30,5 +30,14 @@ if (-r $configpath) {
     eval <$fh>;
 }
 
-my @args = ("CUPS_SERVER=$host", "lp", "-d$queue", "$file");
-exec (@args) or die "Couldn't execute lp command";
+$ENV{CUPS_SERVER}="$host";
+
+if ($file =~ m|http://www\.youtube\.com/watch\?v=|) {
+    open(LP, "|-", "lp", "-d$queue");
+    print LP "$file";
+    close LP;
+}
+else {
+    my @args = ("lp", "-d$queue", "$file");
+    exec (@args) or die "Couldn't execute lp command";
+}
