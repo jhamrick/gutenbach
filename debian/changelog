@@ -1,3 +1,11 @@
+gutenbach (2.09) unstable; urgency=low
+
+  * Fixed support for playing YouTube videos
+  * Fixed error with CUPS_SERVER in gbr and gbrm
+  * Added supportfor playing YouTube URLs with gbr
+
+ -- Jessica Hamrick <jhamrick@mit.edu>  Mon, 05 Jul 2010 15:32:18 -0400
+
 gutenbach (2.08) unstable; urgency=low
 
   * Remove deprecated lpd files in gutenbach-server
