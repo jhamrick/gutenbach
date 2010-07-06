@@ -40,13 +40,26 @@ my @jobs = $printer->getJobs(0, 0);
 
 if ($id eq "all") {
     foreach $id(@jobs) {
-	$printer->cancelJob($id);
+	cancel_job($id, $printer);
     }
 }
 elsif ($id eq "current") {
     $id = $jobs[0];
-    $printer->cancelJob($id);
+    cancel_job($id, $printer);
+}
+elsif ($id eq "last") {
+    $id = $jobs[-1];
+    cancel_job($id, $printer);
 }
 else {
+    cancel_job($id, $printer);
+}
+
+sub cancel_job {
+    my ($id, $printer) = @_;
+    my $job_ref = $printer->getJob($id);
+    my $title = $job_ref->{'title'};
     $printer->cancelJob($id);
+
+    print "Canceled job '$title' (id $id)\n";
 }

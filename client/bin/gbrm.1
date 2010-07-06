@@ -13,7 +13,10 @@ command.  If
 is used in place of an id, then all jobs are removed from the queue.  If
 .B current 
 is used in place of an id, then the current (top) job is removed from
-the queue.  The queue must have previously been added with
+the queue.  If
+.B last
+is used in place of an id, then the last job is removed from the
+queue.  The queue must have previously been added with
 .B gutenbach-client-config
 so that gbrm knows which host to use.
 .SH SEE ALSO
