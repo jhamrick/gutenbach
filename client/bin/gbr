@@ -21,7 +21,7 @@ if (!$q or !@files) {
 
 my $configpath = "$ENV{'HOME'}/.gutenbach/$q";
 if (! -e $configpath) {
-    print "Queue '$q' does not exist!\n";
+    print "Queue '$q' does not exist!  Did you forget to add it with 'gutenbach-client-config'?\n";
     exit 1;
 }
 
