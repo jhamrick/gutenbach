@@ -1,0 +1,15 @@
+REMCTL_1.0 {
+    global:
+        remctl;
+        remctl_close;
+        remctl_command;
+        remctl_commandv;
+        remctl_error;
+        remctl_new;
+        remctl_open;
+        remctl_output;
+        remctl_result_free;
+
+    local:
+        *;
+};

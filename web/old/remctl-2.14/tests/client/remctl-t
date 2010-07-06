@@ -1,0 +1,71 @@
+#!/bin/sh
+#
+# Test suite for the remctl command-line client.
+#
+# Written by Russ Allbery <rra@stanford.edu>
+# Copyright 2006, 2007, 2009 Board of Trustees, Leland Stanford Jr. University
+#
+# See LICENSE for licensing terms.
+
+. "$SOURCE/tap/libtap.sh"
+. "$SOURCE/tap/kerberos.sh"
+. "$SOURCE/tap/remctl.sh"
+cd "$SOURCE"
+
+# Test setup.
+kerberos_setup
+if [ $? != 0 ] ; then
+    skip_all "Kerberos tests not configured"
+else
+    plan 11
+fi
+remctl="$BUILD/../client/remctl"
+if [ ! -x "$remctl" ] ; then
+    bail "can't locate remctl client binary"
+fi
+remctld_start "$BUILD/../server/remctld" "$SOURCE/data/conf-simple"
+
+# Now, we can finally run our tests.
+ok_program "basic" 0 "hello world" \
+    "$remctl" -s "$principal" -p 14373 localhost test test
+ok_program "no output" 0 "" \
+    "$remctl" -s "$principal" -p 14373 localhost test status 0
+ok_program "exit status 1" 1 "" \
+    "$remctl" -s "$principal" -p 14373 localhost test status 1
+ok_program "exit status 2" 2 "" \
+    "$remctl" -s "$principal" -p 14373 localhost test status 2
+ok_program "wrong principal" 255 "Access denied" \
+    "$remctl" -s "$principal" -p 14373 localhost test noauth
+ok_program "non-existent ACL" 255 "Access denied" \
+    "$remctl" -s "$principal" -p 14373 localhost test noacl
+ok_program "non-existent command" 255 "Cannot execute" \
+    "$remctl" -s "$principal" -p 14373 localhost test nonexistent
+ok_program "unknown command" 255 "Unknown command" \
+    "$remctl" -s "$principal" -p 14373 localhost test bad-command
+ok_program "201 arguments" 0 "201" \
+    "$remctl" -s "$principal" -p 14373 localhost test argv \
+    a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a \
+    a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a \
+    a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a \
+    a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a \
+    a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a \
+    a a a a a a a a a a a a a a a a a a a a a a a a a
+
+# Make sure that error messages end in a newline.
+"$remctl" -s "$principal" -p 14373 localhost test noauth \
+    > "$BUILD/data/output" 2>&1
+echo 'foo' >> "$BUILD/data/output"
+ok "error messages end in a newline" \
+    [ "`wc -l "$BUILD/data/output" | sed 's, /.*,,'`" -eq 2 ]
+
+# Check refused connections.
+"$remctl" -p 14445 localhost test noauth > "$BUILD/data/output" 2>&1
+output=`sed 's/):.*/)/' "$BUILD/data/output"`
+echo "# saw: $output"
+ok "correct connection refused error" \
+    [ "$output" = "remctl: cannot connect to localhost (port 14445)" ]
+
+# Clean up.
+rm -f "$BUILD/data/output"
+remctld_stop
+kerberos_cleanup

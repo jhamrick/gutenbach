@@ -1,0 +1,133 @@
+                     remctl Streaming Protocol Draft
+
+Introduction
+
+    This is a draft of what would become version three of the remctl
+    protocol.  It adds optional support for bidirectional streaming,
+    allowing the server and client to exchange arbitrary unsequenced data
+    while a command is running with coordinated termination of the
+    command.
+
+    This draft should not be used for implementation yet.  The details of
+    the protocol may change substantially before it is added to remctl.
+
+    Client library API changes are not discussed in this draft, only
+    protocol issues.
+
+Streaming Overview
+
+    A streaming command is a client-initiated operation.  The client
+    requests streaming when it sends the command.  The server either
+    accepts that request or rejects it.  If a particular command requires
+    streaming, the server may reject a non-streaming version of that
+    command.
+
+    Once the server accepts the streaming command, it runs the command,
+    passing as arguments the arguments provided in the initial command
+    token as before.  From that point on, all command output is
+    immediately sent back to the client, and the client may also send
+    data at any time which is passed as input to the command.  This
+    continues without ordering and sequencing until one side or the other
+    wants to start shutting things down.
+
+    The server can indicate the end of an output stream with a token
+    dedicated to that purpose.  This communicates an EOF on that stream to
+    the client without terminating the command processing.  The client can
+    similarly tell the server that it is done providing input tokens by
+    sending an end of stream token to the server, after which it is not
+    permitted to send any more input tokens until the server indicates the
+    command is finished.
+
+    When the command is over, the server sends a token indicating that
+    fact.  This token will also include the exit status of the command.
+    This token implies end of stream on all output streams.  The server is
+    solely responsible for determining when the command is over.  The most
+    the client can do is indicate the end of the input stream, but it must
+    still wait for the server to indicate the end of the command.
+
+    If the server indicates the end of the command before the client
+    closes the input stream, the server will continue to consume and
+    discard input tokens from the client until the client sends an end of
+    stream token.
+
+    There are therefore two ways for a streaming command to end:
+
+    * Client sends end of stream token.  Server sends end of streaming
+      command token, possibly preceeded by an arbitrary number of
+      streaming output or end of stream tokens.
+
+    * Server sends end of streaming command token.  Client sends end of
+      stream token, possibly preceeded by an arbitrary number of streaming
+      input tokens.
+
+    The streaming command is not over until the server has sent an end of
+    command token and the client has sent an end of input stream token.
+    Only after both of those tokens have been sent do both sides return to
+    normal processing of remctl commands.
+
+New Tokens
+
+  MESSAGE_COMMAND_STREAM
+
+    Identical to MESSAGE_COMMAND but starts a streaming command instead of
+    a regular command.  A separate token is used for this purpose to avoid
+    changing the format of the MESSAGE_COMMAND token to add an additional
+    flag.
+
+  MESSAGE_STREAM_DATA
+
+    Used by both the client and the server to send data during a streaming
+    command.  The format is the same as a MESSAGE_OUTPUT token.  For
+    tokens from the client, the stream is required to be 1.  Other streams
+    are reserved for future versions of the protocol.
+
+  MESSAGE_STREAM_END
+
+    Indicates an end of data on a stream, equivalent to an EOF condition.
+    The only content of this token is the stream number.  After this token
+    is sent, no further MESSAGE_STREAM_DATA tokens with that stream number
+    will be sent as part of this command.  When sent by the client, this
+    indicates the end of streaming data from the client and promises that
+    the client will send no further data until the server sends the end of
+    command token.
+
+  MESSAGE_COMMAND_END
+
+    Indicates the end of a streaming command.  The format is identical to
+    the MESSAGE_STATUS token.  A separate token is used rather than
+    reusing the MESSAGE_STATUS token only because the expected client
+    response is different (the client may need to send a final
+    MESSAGE_STREAM_END token) and it may be useful for the client to
+    easily distinguish.
+
+Implementation Issues
+
+    The remctl server will be responsible for translating the network
+    packets from the client into data on standard input for the command
+    and output from the command into network packets.  To do so safely
+    without making assumptions about ordering of data, it will need to
+    poll the running command and the client network connection and do
+    non-blocking reads and writes.  However, it may need to block the
+    client until the command can process data, or block the command while
+    waiting for client data.
+
+    I think the best way of handling this is to add buffering code to the
+    server with an upper limit on the allowed amount of data buffering.
+    The remctl server will then accept data from either the command or the
+    client up to the buffer size even if it can't yet write that data to
+    its destination.  Once the buffer is full, the server will stop
+    polling that connection until the buffer has been drained, forcing the
+    other end of that connection to block.
+
+    One challenge for such buffering is that the amount of data contained
+    in a single GSS-API token may vary, and ideally the server should not
+    partially consume that data.  If the server accepts a token, it should
+    read the entire token.  This is not strictly necessary, but I think
+    partially consuming an output token would significantly increase the
+    risk of deadlock.
+
+Limitations
+
+    This protocol does not address deadlock and instead requires that the
+    client and server be aware of deadlock issues and find ways of
+    avoiding deadlock within the implementation of a streaming command.

@@ -1,14 +1,24 @@
-This directory exists so that Subversion-based projects can share a single
-copy of the ``ez_setup`` bootstrap module for ``setuptools``, and have it
-automatically updated in their projects when ``setuptools`` is updated.
+This file is for you to describe the sipbmp3-web application. Typically
+you would include information such as the information below:
 
-For your convenience, you may use the following svn:externals definition::
+Installation and Setup
+======================
 
-    ez_setup svn://svn.eby-sarna.com/svnroot/ez_setup
+Install ``sipbmp3-web`` using the setup.py script::
 
-You can set this by executing this command in your project directory::
+    $ cd sipbmp3-web
+    $ python setup.py install
 
-    svn propedit svn:externals .
+Create the project database for any model classes defined::
 
-And then adding the line shown above to the file that comes up for editing.
-Then, whenever you update your project, ``ez_setup`` will be updated as well.
+    $ paster setup-app development.ini
+
+Start the paste http server::
+
+    $ paster serve development.ini
+
+While developing you may want the server to reload after changes in package files (or its dependencies) are saved. This can be achieved easily by adding the --reload option::
+
+    $ paster serve --reload development.ini
+
+Then you are ready to go.

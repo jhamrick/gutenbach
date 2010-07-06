@@ -1,0 +1,126 @@
+                        remctl Java Implementation
+
+OVERVIEW
+
+  This directory contains a remctl implementation written in Java.  Both a
+  client and a server are included, and the implementation supports
+  version two of the remctl protocol.  Both client and server are written
+  natively in Java and are entirely independent of the C implementation.
+
+  This implementation is not as mature or as well-tested as the C
+  implementation.  Any feedback and bug reports are gratefully accepted.
+
+REQUIREMENTS
+
+  This implementation works with the Sun Java JDK 1.4.2, 5, and 6.  It
+  will not build with gcj; it could be ported, but wouldn't be useful
+  until gcj has com.sun.security.auth.module.Krb5LoginModule or an
+  equivalent.
+
+  You can use either the provided simple Makefile or ant to build the JAR
+  file.  This source tree will also build in Eclipse and includes an
+  Eclipse .project and .classpath file.
+
+  To use 256-bit AES keys, you will need to get the "Java Cryptography
+  Extension (ECE) Unlimited Strength Jurisdiction Policy Files 6"
+  (filename jce_policy-6.zip), which is available (at least to US
+  residents) from <http://java.sun.com/javase/downloads/index.jsp>.
+
+BUILDING
+
+  If you have ant available, it's the easiest way to build the JAR file.
+  Running ant dist will build the JAR file and put it in dist/lib.  You
+  may have to set ANT_HOME and JAVA_HOME to point ant at the appropriate
+  directories.
+
+  If you do not have ant, you can use the provided Makefile, which will
+  create the JAR file in the current directory.  If your JDK isn't at
+  /usr/lib/jvm/java-6-sun, either edit the Makefile to change JAVA_HOME
+  and then run make, set the JAVA_HOME variable on the command line with:
+
+      make JAVA_HOME=/path/to/jdk
+
+  or set JAVA_HOME in the environment.
+
+  However you do the build, create a k5.conf file by copying your
+  /etc/krb5.conf file and then adding these lines to the [libdefaults]
+  section:
+
+      default_tgs_enctypes = des3-hmac-sha1 des-cbc-crc des-cbc-md5
+      default_tkt_enctypes = des3-hmac-sha1 des-cbc-crc des-cbc-md5
+      permitted_enctypes = des3-hmac-sha1 des-cbc-crc des-cbc-md5
+
+  MIT Kerberos and Heimdal do not need this configuration and it is wrong
+  for them, but the built-in list for Sun Java is limited and it will
+  break if it encounters encryption types that it doesn't understand.  The
+  sample k5.conf in this directory can be used, but change the default
+  realm.
+
+  You can remove the DES enctypes if your realm doesn't support DES.  If
+  you are using Java 6, you can add aes128-cts to the beginning of each
+  list.  If you have the jce_policy-6.zip file installed, you can also add
+  aes256-cts to the beginning of each line.
+
+RUNNING
+
+  You can now run the client from the JAR file:
+
+      java -Djava.security.krb5.conf=k5.conf \
+          -Djava.security.auth.login.config=j3.conf -jar remctl-*.jar \
+          org.eyrie.eagle.remctl.RemctlClient \
+          <host> <command> <subcommand> [<parameter> ...]
+
+  This connects to the remctld on <host> and sends the command <type>
+  <service> <parameter>.  If you're using ant, the JAR file will be in
+  dist/lib instead.  You can also run the client from the class files:
+
+      java -Djava.security.krb5.conf=k5.conf \
+          -Djava.security.auth.login.config=j3.conf \
+          -cp build:. org.eyrie.eagle.remctl.RemctlClient \
+          <host> <command> <subcommand> [<parameter> ...]
+
+  Also look at t5.java for an example of how to use the class in a Java
+  program.
+
+  To run the server, create a keytab that the server will use for
+  authentication and revise bcsKeytab.conf to match (you will need to
+  change the principal at least).  Then, start the server with:
+
+      java -Djavax.security.auth.useSubjectCredsOnly=false \
+          -Djava.security.auth.login.config=bcsKeytab.conf -cp build:. \
+          t7 4373 <principal>
+
+  This will start the server defined in t7.java, which just returns
+  information about what command it received.  4373 is the port to listen
+  to (4373 is the default value for remctl).  Replace <principal> for the
+  principal you created a keytab for.
+
+  To run this from Eclipse, select from the Run, Run..., "java
+  application", make an instance for the selected Main Class.  Under
+  Arguments, set VM arguments to be those above for "java", and set the
+  program arguments to be everything past the jar file or main class.
+
+CREATING A DISTRIBUTION
+
+  The java directory of the remctl distribution is not structured like a
+  conventional Java distribution.  However, you can generate an
+  independent source distribution that looks much more like a standard
+  Java distribution using ant.  Optionally first run ant dist to build the
+  JAR file and then run ant tar to generate the distribution (which will
+  then be found in dist).  This generated distribution will be structured
+  like an Apache Jakarta project:
+
+      dist/lib          The built JAR file with the version in its name
+      doc               This documentation and the sample configuration
+      src               The JAR file source
+
+  The running instructions above will be slightly different if you use
+  this distribution, since the configuration files will be in doc instead
+  of at the top level and the test Java files will be in bin.
+
+HISTORY
+
+  This Java remctl implementation was written by Marcus Watts, based
+  somewhat on the original remctl Java implementation by Anton Ushakov.
+  The build system and this documentation is based on the build system and
+  documentation provided by Marcus.

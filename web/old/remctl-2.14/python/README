@@ -1,0 +1,215 @@
+                        Python interface to remctl
+
+OVERVIEW
+
+  The Python interface to remctl provides Python bindings to the libremctl
+  client library plus a high-level interface that translates the libremctl
+  API into something closer to idiomatic Python.
+
+  This module provides three interfaces: a low-level interface that
+  provides a minimal translation from the libremctl API; a simple
+  interface in Python that performs a single call to a remctl server and
+  returns the result as an object; and a full interface in Python which
+  provides more control over the connection, returns individual output
+  tokens, and allows multiple commands to be sent via the same connection.
+
+REQUIREMENTS
+
+  The module has been tested with Python 2.5 and may not work with older
+  versions of Python, although the only known incompatibility are
+  parameters in setup.py not supported prior to Python 2.3.
+
+SIMPLIFIED INTERFACE
+
+  remctl.remctl(host, port, principal, command)
+      Runs a command on the remote system and returns an object containing
+      the results.
+
+      Arguments:
+      * host (required): string, the host to connect to
+      * port (optional): unsigned short, the port to connect to
+      * principal (optional): string, authentication identity of host
+      * command (required): sequence or iterator yielding the command
+
+      If port is not given, the library default is used (try 4373 first
+      and fall back to attempting the legacy 4444 port).  If principal is
+      not given, the library default (host/<host> with the realm
+      determined by the domain-realm mapping) is used.  To use the
+      defaults, only the host and command may be specified using named
+      arguments, or None can be passed as the port and principal
+      arguments.
+
+      command can be any sequence or iterator that returns a series of
+      strings or things that can be converted to strings making up the
+      command.
+
+      Returns an object of type RemctlSimpleResult with the following
+      attributes:
+      * stdout: string, the standard output from the command
+      * stderr: string, the standard error from the command
+      * status: integer, the exit status of the command
+
+      Exceptions:
+      * ValueError, TypeError: an invalid argument was supplied
+      * RemctlProtocolError: an error occurred in the remctl communication
+
+      The value attribute (or string value) of the RemctlProtocolError
+      exception contains the string returned by the remctl library.  This
+      may be an internal error (such as a network error) or an error
+      returned by the remote server (such as an unknown command error).
+
+  Here is an example using the simplified interface:
+
+      use remctl, sys
+      command = ('test', 'test')
+      try:
+          result = remctl(host = 'foo.example.com', command = command)
+      except RemctlProtocolError, error:
+          print "Error:", str(error)
+          sys.exit(1)
+      if result.stdout:
+          print "stdout:", result.stdout
+      if result.stderr:
+          print "stderr:", result.stderr
+      print "exit status:", result.status
+
+FULL INTERFACE
+
+  The full remctl interface requires the user to do more bookkeeping, but
+  provides more flexibility and visibility into what is happening at a
+  protocol level.  It allows issuing multiple commands on the same
+  persistant connection (provided that the remote server supports protocol
+  version two; if it doesn't, the library will transparently fall back to
+  opening a connection for each command).
+
+  To use the full interface, first create a connection object with
+  remctl.Remctl() (either passing it the connection arguments or then
+  calling its open() method), and then call the command() method to issue
+  a command.  Read output tokens with output() until a status token has
+  been received.  Then the command is complete and another command can be
+  issued.
+
+  remctl.Remctl(host, port, principal)
+      The constructor.  Create a new Remctl object.  The arguments are
+      optional; if given, the constructor immediately calls open() and
+      passes those arguments to it.  See below for their meaning and
+      possible exceptions.
+
+  All further methods below must be called on a Remctl object as returned
+  by the constructor.
+
+  Remctl.open(host, port, principal)
+      Open a connection to a remote server and authenticate.  There is no
+      return value; an exception is thrown on any error.
+
+      Arguments:
+      * host (required): string, the host to connect to
+      * port (optional): unsigned short, the port to connect to
+      * principal (optional): string, authentication identity of host
+      
+      If port is not given, the library default is used (try 4373 first
+      and fall back to attempting the legacy 4444 port).  If principal is
+      not given, the library default (host/<host> with the realm
+      determined by the domain-realm mapping) is used.      
+      
+      Exceptions:
+      * ValueError, TypeError: an invalid argument was supplied
+      * RemctlError: a network or authentication error occurred
+      
+      The value attribute (or string value) of the RemctlError exception
+      contains the string returned by the remctl library, the same as
+      would be returned by the error() method.
+
+  Remctl.command(command)
+      Send a command to the remote host.  There is no return value; an
+      exception is thrown on any error.
+
+      The Remctl object must already be connected.  The command may, under
+      the remctl protocol, contain any character, but be aware that most
+      remctl servers will reject commands or arguments containing ASCII 0
+      (NUL).  This currently therefore cannot be used for upload of
+      arbitrary unencoded binary data.
+
+      Arguments:
+      * command (required): sequence or iterator yielding the command
+
+      command can be any sequence or iterator that returns a series of
+      strings or things that can be converted to strings making up the
+      command.
+
+      Exceptions:
+      * ValueError, TypeError: an invalid argument was supplied
+      * RemctlError: a network or authentication error occurred
+      * RemctlNotOpenedError: no connection currently open
+
+      The value attribute (or string value) of the RemctlError exception
+      contains the string returned by the remctl library, the same as
+      would be returned by the error() method.
+
+  Remctl.output()
+      Reads an output token from the server and returns it as a tuple.  A
+      command will result in either one error token or zero or more output
+      tokens followed by a status token.  The output is complete as soon
+      as any token other than an output token has been received, but the
+      module will keep returning done tokens to the caller for as long as
+      output() is called without another call to command().
+
+      The members of the returned tuple are:
+      * type: string, "output", "status", "error", or "done"
+      * output: string, the returned output or error
+      * stream: integer, 1 for stdout or 2 for stderr for an output token
+      * status: integer, exit status of command for a status token
+      * error: integer, remctl protocol error for an error token
+
+      type will always be present.  The other members of the tuple may be
+      None depending on the type of token.  Output tokens will have
+      output and stream information, error tokens will have output and
+      error information, and status tokens will have status information.
+      done tokens will return None for all other elements.
+
+      For error tokens, error holds the numeric error code (see the remctl
+      protocol specification), which is the recommended value for programs
+      to check when looking for specific errors.  output will contain an
+      English text translation of the error code and the exact text may
+      change.
+
+      Exceptions:
+      * RemctlNotOpenedError: no connection currently open
+
+  Remctl.close()
+      Close a connection.  After calling this method, open() must be
+      called for this object before sending any further commands.  The
+      connection will also be automatically closed when the object is
+      destroyed, so calling this method is often not necessary.
+
+  Remctl.error()
+      Returns the error from the last failed Remctl method.  This will be
+      the same string as was returned as the string value of a RemctlError
+      or RemctlProtocolError exception.
+
+LOW-LEVEL INTERFACE
+
+  This module also provides a _remctl module, which exports a low-level
+  interface with essentially the same API as the C API.  It is very
+  similar to the simplified and full interface above except that the
+  simplified call returns its results as a tuple, status codes are
+  returned from functions instead of throwing exceptions (exceptions are
+  only thrown for things like out-of-memory errors), argument checking
+  won't be as nice and in some cases relies on the underlying libremctl C
+  library to do the error checking, and command arguments have to be lists
+  and not arbitrary sequences or iterators.
+
+  The _remctl interface is not currently documented or intended for direct
+  use.  Use at your own risk.
+
+HISTORY
+
+  The original implementation was written by Thomas L. Kula
+  <kula@tproa.net> and was known as pyremctl.  As of remctl 2.13 it is
+  part of the stock remctl distribution and ongoing maintenance is done by
+  Russ Allbery and Thomas L. Kula.
+
+THANKS
+
+  Andrew Mortensen for general code formatting comments and a reminder to
+  free malloc'd memory.

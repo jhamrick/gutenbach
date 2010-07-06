@@ -1,0 +1,619 @@
+                       User-Visible remctl Changes
+
+remctl 2.14 (2009-05-22)
+
+    The remctld configuration file may now specify that one argument to a
+    command is passed on standard input instead of on the command line
+    using the stdin= option.  This option allows passing data to commands
+    that's too long to fit into a command-line argument or that contains
+    nul characters.
+
+    remctld logging of commands or arguments now replaces unprintable
+    characters (characters between ASCII 0 and 31 and ASCII 127) with
+    periods rather than assuming syslog will cope with them correctly.
+
+    Use command and subcommand as the names for the first two parameters
+    to the remctl client and the first two strings in a remctl command
+    instead of the unintuitive "type" and "service" terminology borrowed
+    from sysctl.  This only changes documentation and some internal
+    variable names; no external APIs should be affected.
+
+    Declare message_fatal_cleanup extern in util.h.  Fixes compilation
+    problems on Mac OS X and probably elsewhere.
+
+    Diagnose and explicitly reject on the server nul characters in command
+    arguments that don't support them rather than truncating the argument
+    silently.
+
+    Plug several memory leaks in the remctld server.  (These would have
+    little practical effect unless a client stayed connected and issued
+    multiple commands.)
+
+    The protocol now permits commands with no arguments.  remctld
+    currently doesn't support them, but now returns ERROR_UNKNOWN_COMMAND
+    instead of ERROR_BAD_COMMAND when receiving one.
+
+    Add documentation on extending remctl in docs/extending.
+
+    Add initial protocol version three draft in docs/protocol-v3.
+
+    Better check logmask options when parsing the server configuration
+    file and report errors instead of silently ignoring them.  Masking the
+    command is also no longer supported (it previously worked by
+    accident).
+
+    Support building against Solaris 10's native generic GSS-API
+    libraries.  Thanks, Peter Eriksson.
+
+    Update to rra-c-util 1.0:
+
+    * Fix open call parameters in daemon portability test.
+    * Fix AI_ADDRCONFIG portability on BSD/OS systems.
+    * Split die into a separate object to not link it in shared libraries.
+    * Don't break if the user clobbers CPPFLAGS at build time.
+    * Correctly set -L options with --with-gssapi-lib, not -I.
+    * Change AC_TRY_* to AC_*_IFELSE as recommended by Autoconf.
+    * Update portable and util test suite for C TAP Harness 1.0.
+    * Use native Kerberos instead of forking kinit in test suite.
+
+    Update to C TAP Harness 1.0:
+
+    * Rewrite of all test cases to use the new TAP library support.
+    * Much improved and simplified builddir != srcdir test suite support.
+    * Support running a single test with tests/runtests -o.
+    * Correctly handle completely skipped tests, like client/pod.
+    * Better reporting of fatal errors in the test suite.
+
+remctl 2.13 (2008-11-14)
+
+    Add support for ACL methods in the remctld server.  The supported
+    schemes in this release are file and princ, which together provide the
+    same functionality as earlier releases, plus deny to explicitly reject
+    a user who matches another ACL and support for the CMU GPUT
+    authorization system.  There is now a framework in place for adding
+    new ACL methods in the future.  This work was contributed by Jeffrey
+    Hutzelman.
+
+    When processing the include of a directory for configuration files or
+    ACL files, limit the files read to those whose names contain only
+    characters in [a-zA-Z0-9_-].  This replaces the previous exclusion of
+    files containing periods and also excludes Emacs backup and temporary
+    files.  Thanks, Timothy G. Abbott.
+
+    Add a PHP remctl PECL module from Andrew Mortensen, enabled with
+    --enable-php at configure time.  These bindings are only tested with
+    PHP 5.
+
+    Add Python bindings from Thomas L. Kula, enabled with --enable-python
+    at configure time.  These bindings are tested with Python 2.5 but
+    should work with versions back to 2.3.
+
+    Include all *.class files in the JAR file built by java/Makefile,
+    making the resulting JAR actually useful.  Thanks, Marcus Watts.
+
+    Add an ant build configuration for the Java remctl implementation.
+    It also has the capability to generate a distribution of just the Java
+    implementation using a file layout more similar to an Apache Jakarta
+    project than the layout of the java subdirectory.
+
+    Several Windows fixes from Matthew Loar, plus really include
+    portable/winsock.c in the distribution.  This version should now build
+    and run on Windows.
+
+    With --with-gssapi, attempt to determine if the library directory is
+    lib32 or lib64 instead of lib and set LDFLAGS accordingly.  Based on
+    an idea from the CMU Autoconf macros.
+
+    Add --with-gssapi-include and --with-gssapi-lib options to set the
+    include and library paths separately if needed.
+
+    Restore GSS-API portability checks for old versions of MIT Kerberos
+    accidentally dropped in the previous release.
+
+    Provide a proper bool type when built with Sun Studio 12 on Solaris
+    10.  Thanks, Jeffrey Hutzelman.
+
+    Sanity-check the results of krb5-config before proceeding and error
+    out in configure if they don't work.
+
+    Fix Autoconf syntax error when probing for libkrb5support.  Thanks,
+    Mike Garrison.
+
+    Create the docs directory in the build tree if it's missing, fixing a
+    build failure when builddir != srcdir.  Thanks, Jeffrey Hutzelman.
+
+    In standalone mode, close the main server socket immediately in the
+    child handler processes.  Since the socket was already marked close on
+    exec, this probably only matters for consistent test suite results,
+    ensuring that the port is released immediately, but it's more correct.
+
+remctl 2.12 (2008-04-04)
+
+    If no server principal is specified on the remctl command line or in
+    the remctl() or remctl_open() C or Perl library interfaces, remctl now
+    uses a host-based service name for the server instead of a Kerberos
+    principal of host/server.  The practical effect of this is that
+    domain-realm mapping rules will be applied rather than assuming the
+    server's principal is in the local domain and, for the C and Perl
+    library interfaces, server name canonicalization will be done if
+    configured in the GSS-API library.  Users of the C or Perl library
+    interfaces will find that remctl now authenticates to a principal for
+    the host after a forward and reverse DNS lookup instead of the host
+    specified in the API call with most GSS-API libraries.  To disable
+    this canonicalization behavior, see your GSS-API library
+    documentation; setting rdns in [libdefaults] to false works for MIT
+    Kerberos.  The remctl command-line client continues to canonicalize
+    its host argument always prior to any network connection or GSS-API
+    calls.
+
+    Add documentation of hostname canonicalization and the choice of
+    authentication principals to the remctl client, remctl() and
+    remctl_open() C API, and Net::Remctl Perl API documentation.
+
+    Fix a place in libremctl where the library would call exit rather than
+    returning an error on memory allocation failure.
+
+    Standardize on lowercase first characters in library error strings.
+
+    Include the Windows port of the client done by Matthew Loar.  See
+    README for information on requirements and compilation.  Only the
+    client shared library and command-line utility are supported or built
+    currently.  I cannot easily test this code and probably broke it when
+    integrating the patch; please report any problems so that they can be
+    fixed in subsequent releases.
+
+    When running the server in standalone mode, set the network file
+    descriptors close-on-exec so that they're not inherited by commands
+    run by remctl.  Also close the low-numbered file descriptors before
+    running a command to catch the replay cache file, which isn't marked
+    close-on-exec in older versions of MIT Kerberos.
+
+    When passing a variable set to undef into remctl_open in the Perl API,
+    the principal was converted to the empty string.  Adjust Net::Remctl
+    to recognize the empty string as an unspecified principal.
+
+    The configure option to specify the path to the GSS-API libraries is
+    now --with-gssapi instead of --with-kerberos and the GSS-API probes
+    should be more robust.
+
+    Delete the man page symlinks before recreating them so that reinstalls
+    work.  Thanks, Nicholas Riley.
+
+    Belatedly bump the libtool versioning for libremctl for the port
+    number change in the previous release.  (This is primarily for
+    documentation purposes and doesn't change the library SONAME.)
+
+remctl 2.11 (2007-11-09)
+
+    remctl now has an official port registered with IANA (4373), replacing
+    the original, poorly-chosen port of 4444.  The previous port conflicts
+    with the krb524 service.  The remctld server and example configuration
+    files have been changed to bind to port 4373 by default if no port is
+    specified.  The client will attempt to connect to port 4373 first if
+    no port is specified and then fall back to trying 4444.  All sites
+    running remctl are encouraged to upgrade their clients and then
+    migrate their servers to the new port.  Support for the old port
+    without explicit configuration will be phased out in a future release.
+
+    Stop using stdout and stderr as structure members, fixing compilation
+    problems on AIX, NetBSD, and other platforms.
+
+    Fix (non-exploitable) segfaults in remctld when sent a command with a
+    type and no service (not permitted by the command-line client but
+    possible with the library API).  Thanks to Marcus Watts for the
+    analysis.
+
+    Port to the Kerberos GSS-API implementation shipped with AIX 5.2.
+    Thanks to Sandor Sklar for bug reports and testing.
+
+    Improve the configuration file documentation in the remctld man page.
+    Document the first-match properties.
+
+remctl 2.10 (2007-08-26)
+
+    Include a rewritten Java client and a Java server implementation, both
+    by Marcus Watts.  The rewritten Java client supports protocol version
+    two and works with Sun Java 1.4.2, 5, and 6.
+
+    Fix a (non-exploitable) remctld crash when the client sent more
+    command arguments than it claimed it was going to send.  Thanks,
+    Marcus Watts.  Also added a test with a variety of malformed command
+    tokens in an effort to keep bugs like this from going unnoticed in the
+    future.
+
+    The remctl client now also requests sequence protection, but the
+    client and server do not insist on it or on replay protection since
+    Heimdal 0.6 doesn't support replay protection.  This has been
+    documented in the protocol specification as well.
+
+    remctld when running in stand-alone mode now removes the PID file (if
+    any) and exits cleanly after receiving SIGINT or SIGTERM.  Based on a
+    patch by Marcus Watts.
+
+    remctld when running in stand-alone mode now re-reads its
+    configuration file file after receiving a SIGHUP.
+
+    Don't self-destruct after an hour in stand-alone mode, fixing a bug
+    introduced in 2.8.
+
+    The libremctl client library now uses symbol versioning on Linux.
+
+    Allow port and principal to be omitted in calls to Net::Remctl::open,
+    matching the documentation.  Thanks, Marcus Watts.
+
+    Include a dummy symbol in libportable so that it always contains at
+    least one object.  Fixes compilation problems on Mac OS X 10.4 and
+    Solaris 10.
+
+    Fix builds outside the source directory by creating the docs directory
+    properly, based on a patch by Marcus Watts.  Also fix make clean and
+    the POD tests when run outside the source directory.
+
+    Change the Net::Remctl documentation for remctl() to suggest 0 and the
+    empty string as default values for port and principal, since this
+    avoids Perl warnings.
+
+    Check for the MIT Kerberos GSS-API library first in reduced dependency
+    mode for improved reproducibility of the Debian build.
+
+remctl 2.9 (2007-06-29)
+
+    Fix remctl client library crashes due to an uninitialized variable
+    when the network connection fails.
+
+    Added complete C API documentation (as section 3 manual pages) for the
+    libremctl library.
+
+    Fix several inaccuracies in the Net::Remctl API documentation.
+    Thanks, Alf Wachsmann.
+
+    Pass DESTDIR to the Perl module installation as well.  Thanks, Darren
+    Patterson.
+
+remctl 2.8 (2007-06-27)
+
+    Add a Net::Remctl Perl module, optionally compiled (and enabled with
+    the --enable-perl configure flag), that provides native Perl bindings
+    to the libremctl client library.
+
+    Fix various null pointer dereferences in the simplified remctl client
+    library call when the server returns an error.
+
+    When running in stand-alone mode, remctld now forks a new child for
+    each incoming connection and can therefore handle multiple
+    simultaneous connections.  This makes stand-alone mode useful for more
+    than just testing.  Also, remctld now backgrounds itself by default in
+    stand-alone mode; disable this with the -F flag.  Based on a patch by
+    Andrew Mortensen.
+
+    Add a new -k flag to remctld to tell it to use a non-default keytab.
+    Thanks, Andrew Mortensen.
+
+    Default to port 4444 in the library if a port of 0 is passed in, and
+    (following the documentation) default to host/<hostname> if a NULL
+    principal is passed in.
+
+    remctld now exits properly when it can't parse its configuration file
+    rather than proceeding with a null configuration.
+
+    Fix problems with the parameter types for GSS-API memory freeing
+    functions in some error cases.
+
+    In the test suite, fix the kinit flags for MIT Kerberos 1.6.
+
+remctl 2.7 (2007-03-25)
+
+    In remctld, consider the command complete once the child process
+    exits.  Do not wait for its standard output and error to be closed,
+    since the child process may have spawned a long-running daemon that
+    doesn't clean up its file descriptors properly.
+
+    When the command-line remctl client canonicalizes the name of the
+    server host to get the right principal, it then needs to connect to
+    the canonical hostname.  Otherwise, DNS schemes that return a
+    different answer each time one asks for a given host may cause remctl
+    to connect to a different host than the canonical name used for the
+    principal, resulting in authentication failure.
+
+    Fixed a subtle bookkeeping error when sending commands larger than the
+    maximum token size that would have resulted in malformed tokens for
+    boundary cases of argument lengths.
+
+    Fixed memory and file descriptor leaks in remctld that only become
+    apparent when the server runs many commands before exiting.
+
+    Various minor fixes so that make warnings and make check work on a
+    Solaris 8 system without IPv6 configured.
+
+    Use a portability wrapper around the GSS-API header to avoid repeating
+    the same portability code in every file.
+
+remctl 2.6 (2007-02-03)
+
+    SECURITY: If an ACL listed for a command didn't exist, the
+    authorization check was treated as a success instead of a failure.
+    This had, embarassingly, apparently been broken since at least 2.0.
+
+remctl 2.5 (2007-02-03)
+
+    Automatically use a continued MESSAGE_COMMAND if the total command
+    length is larger than 64KB (minus token overhead).  The remctl client
+    library can now send arbitrarily large commands, at some cost in
+    memory consumption on the client and server.  The server is still
+    limited by the OS-imposed maximum length of a command line.
+
+    When the server runs a command, open /dev/null for standard input
+    rather than leaving standard input closed.  Some programs don't cope
+    with a closed standard input.
+
+    Audited memory handling of buffers sent to and read from the network
+    and closed several memory leaks.
+
+    Use the same limit (1MB) on token size everywhere.  Enforce the
+    protocol limit on unencrypted data size (64KB) in both the server and
+    when sending messages in the client.
+
+    Correctly handle a zero-length argument at the end of a command in the
+    server.  Previously, that argument was ignored.
+
+    Check that the expected argument count matches the count of arguments
+    seen in the server and that all of the client data was consumed when
+    parsing arguments.
+
+    Add a newline to the end of error messages when converting to protocol
+    version one replies.  The old remctl client didn't add a newline.
+
+    Document the limits on token size and unencrypted data size in the
+    protocol specification.  Improve the protocol documentation for the
+    continue status for MESSAGE_COMMAND.  Use octet instead of byte
+    uniformly.
+
+remctl 2.4 (2007-01-17)
+
+    IPv6 support is now automatically enabled on systems that support it.
+    The remctl code uniformly uses the new IPv6-aware host and address
+    functions, using replacements on systems that don't provide them in
+    libc.  Thanks to Jonathan Kollasch for the initial patch.
+
+    When sending tokens, correctly check for network errors rather than
+    ignoring them due to a miswritten test.
+
+    In the remctl command-line client, print a newline after protocol
+    error messages from the server.
+
+    Add error messages to the protocol specification for sending too many
+    arguments in a command and sending too much data with a command.
+    Return the more specific error message if the number of command
+    arguments exceed the current hard-coded limit rather than just
+    reporting a bad command token.
+
+    Don't use $< in non-pattern rules (again), fixing a build error on
+    some systems with non-GNU make (although since the generated man
+    pages are part of the distribution, only those modifying the POD
+    source would have seen this error).
+
+remctl 2.3 (2006-12-06)
+
+    Increase the maximum number of arguments the server will accept for a
+    command to 4096 from 64.  This is an arbitrary limit to protect
+    against memory-consumption denial-of-service attacks.
+
+    Document the exit status of the remctl client.
+
+    Add the -S flag to remctld, which tells it to log to standard output
+    and standard error rather than syslog.  Use this flag in the test
+    suite so that make check doesn't spew into a system's syslog.
+
+    Require Automake 1.10 and Autoconf 2.60 and use AC_CONFIG_LIBOBJ_DIR
+    to locate replacements for missing system functions.  This means that
+    an Automake patch is no longer required for bootstrapping and remctl
+    will now work with stock Autoconf and Automake.
+
+remctl 2.2 (2006-09-08)
+
+    Add appropriate casts when passing size_t variables to printf on
+    64-bit systems.
+
+    Include <sys/socket.h> in appropriate places for socklen_t on Solaris.
+
+    Make the xmalloc test suite indifferent to filename differences from
+    builddir != srcdir builds.
+
+    Work around strange GCC 4.1 behavior on AMD64 that creates a const
+    temporary variable in the macro expansion of the W* wait macros on
+    glibc systems, causing the build of runtests to fail.  For some reason
+    this apparently only affects AMD64.
+
+    Redirect /dev/null into kinit in the test suite so that the Heimdal
+    syntax doesn't cause an MIT kinit to hang.
+
+    Try all kinit varients in the remctl client test as well as the C API
+    tests.
+
+remctl 2.1 (2006-08-22)
+
+    Set REMOTE_USER in the environment for commands run by remctld, using
+    the same value as REMUSER.  This makes it easier to use programs that
+    also run as CGI scripts.  Also set REMOTE_ADDR to the IP address of
+    the remote host and set REMOTE_HOST to the hostname if available.
+
+    Stop setting SCPRINCIPAL in the environment.  This was for backward
+    compatibility with sysctl and it's highly unlikely that anyone still
+    cares (not to mention that the value was qualified with the realm and
+    therefore didn't match sysctld's setting anyway).
+
+    Properly nul-terminate error replies when using the simplified remctl
+    client API.
+
+    Support make check with builddir != srcdir builds.  Thanks to Ralf
+    Wildenhues for the help in identifying the issues.
+
+remctl 2.0 (2006-08-09)
+
+    Implement a new version 2 protocol, with automatic down-negotiation
+    to the old protocol for backward compatibility.  The new protocol is
+    more binary-safe for command arguments, supports streaming output
+    from the server, allows distinguishing between stdout output and
+    stderr output, has no arbitrary limits on output size, and supports
+    persistant connections.
+
+    Document the details of the remctl protocol, both the old version 1
+    protocol and the new version 2 protocol, in hopefully sufficient
+    detail for anyone else to implement it.
+
+    Don't consider inclusion of empty directories in a configuration file
+    an error.
+
+    Add the -P flag to remctld to write its PID to a file when invoked in
+    stand-alone mode.
+
+    Add an automated test suite.
+
+    Completely rewrite the build system to use Automake, a supporting
+    utility library, separate subdirectories for different parts of the
+    source tree, and a wrapper include file for system headers.
+
+    Don't use $< in non-pattern rules, fixing a build error on some
+    systems with non-GNU make.
+
+remctl 1.12 (2006-01-01)
+
+    Initialize memory properly when parsing the server configuration file.
+
+    Library probes with --enable-static cannot use krb5-config, since we
+    can't distinguish between the Kerberos libraries that should be static
+    and the system library dependencies that must not be made static.
+
+remctl 1.11 (2005-12-22)
+
+    Support include directives in remctld ACL files with the same syntax
+    and semantics as include directives in configuration files.
+
+    Stop option parsing at the first non-option on Linux (this is the
+    standard behavior of getopt on other platforms).  Otherwise, calling
+    remote programs that take options is annoying.
+
+    Use krb5-config where available to get Kerberos libraries and compiler
+    flags unless --enable-reduced-depends is used.
+
+    Fix builds and installs where builddir != srcdir.
+
+    Initial port to Heimdal.  remctl now compiles but isn't able to talk
+    to a server built with MIT Kerberos, so further porting is still
+    needed.
+
+    Remove some debugging code for displaying the GSS-API OID as a string
+    that isn't supported by the Heimdal API and is of questionable
+    usefulness regardless.
+
+remctl 1.10 (2005-12-01)
+
+    Move the -v option to remctl and remctld to -d (debug), since the
+    verbose output or logging is only really useful when debugging.
+
+    Add -h (show usage) and -v (show version) options to both remctl
+    and remctld and add real option parsing (so combining multiple options
+    in one switch should now work).
+
+    Overhaul error and status reporting in remctl and remctld.  Among
+    other advantages, this should eliminate any lingering format string
+    worries and get rid of the trailing newlines in syslog messages from
+    remctld, as well as regularize the text of the error messages and the
+    priority of syslog messages.
+
+remctl 1.9 (2005-05-10)
+
+    Fix serious bug with inclusion of configuration directories.  When
+    reading any file after the first, remctl would use random bits of
+    memory as the file name.
+
+remctl 1.8 (2005-05-04)
+
+    Support include <file> in the configuration file.  Also support
+    including a directory, which includes every file in that directory
+    that doesn't have a period in the name.
+
+    Support continuation lines (using backslash) in the configuration
+    file, and clean up the parser to be more flexible about whitespace on
+    otherwise empty lines or comment lines.
+
+    Change the default remctl.conf location to be relative to sysconfdir
+    (<prefix>/etc by default) instead of the current directory.
+
+    remctld now only logs the initial connection authentication and the
+    argument count if -v was given, reducing to one the number of syslog
+    messages per command.
+
+    Improve the remctld man page, documenting all of the supported options
+    including stand-alone mode.
+
+remctl 1.7 (2005-02-22)
+
+    Close extra file descriptors before spawning a child process in
+    remctl.  The only file descriptors open should be standard output and
+    standard error.  This will fix problems with using remctld to start
+    long-running daemons; before, remctld would never realize that the
+    child process had exited.
+
+    Use select to wait for child output in remctld rather than
+    busy-waiting so as not to burn CPU cycles when the child takes a while
+    to produce output.
+
+    Document the -p option for the client.
+
+remctl 1.6 (2004-05-18)
+
+    Fix format string vulnerabilities when logging the remote command.
+
+remctl 1.5 (2004-03-04)
+
+    Fix a bug in remctld where it would segfault when trying to check the
+    ACLs for a command not present in the configuration file.
+
+    Portability fix to return the exit status of the command in network
+    byte order.
+
+remctl 1.4 (2003-11-12)
+
+    Add support for a logmask=n option in the configuration file that
+    masks those arguments in the logging output (used when some of the
+    options for that command contain private information).
+
+    Add optimizations in the GSS code to do fewer network writes.
+
+    Significant improvements to the Java client.
+
+    Some minor cleanups to logging, installation, and the configure
+    script.
+
+remctl 1.3 (2003-07-21)
+
+    Exit with non-zero status if the remote command failed rather than
+    always exiting with zero status if the network exchange worked
+    successfully.
+
+    Adjust logging priorities and include some additional information in
+    the log of the command.
+
+    Improved the README and added a make dist target to the makefile.
+
+remctl 1.2 (2003-04-04)
+
+    Read from both standard out and standard error of the spawned command
+    in turn to better prevent deadlock.
+
+    Set the REMUSER environment variable to the remote authenticated user
+    (and continue setting SCPRINCIPAL as well for backward compatibility).
+
+remctl 1.1 (2003-02-28)
+
+    Add an snprintf implementation for systems that don't have it and use
+    it for log messages.
+
+    Additional fleshing out of the Java client.
+
+    Lots of code cleanup and style fixes.
+
+remctl 1.0 (2002-11-22)
+
+    Initial release.

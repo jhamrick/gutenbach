@@ -1,0 +1,132 @@
+=for stopwords
+remctl const API hostname IP NUL-terminated GSS-API DNS KRB5CCNAME NULs
+ENOMEM CNAME lookups canonicalization libdefaults canonicalize Allbery
+DNS-based
+
+=head1 NAME
+
+remctl, remctl_result_free - Simple remctl call to a remote server
+
+=head1 SYNOPSIS
+
+#include <remctl.h>
+
+struct remctl_result *
+ B<remctl>(const char *I<host>, unsigned short I<port>,
+        const char *I<principal>, const char **I<command>);
+
+void B<remctl_result_free>(struct remctl_result *I<result>);
+
+=head1 DESCRIPTION
+
+remctl() provides a simplified client API for the remctl protocol.  Given
+the host, port, service principal for authentication, and command to run,
+it opens a connection to the remote system, sends the command via the
+remctl protocol, reads the results, closes the connection, and returns the
+result as a remctl_result struct.
+
+I<host> is a hostname or IP address and must be non-NULL.  I<port> is the
+port to connect to; if 0, the library first attempts to connect to the
+registered port of 4373 and then tries the legacy port of 4444 if that
+fails.  Future versions of the library will drop this fallback to 4444.
+I<principal> is the service principal to use for authentication; if NULL,
+C<host/I<host>> is used, with the realm determined by domain-realm
+mapping.  I<command> is the command to run as a NULL-terminated array of
+NUL-terminated strings.
+
+If no principal is specified and the default is used, the underlying
+GSS-API library may canonicalize I<host> via DNS before determining the
+service principal, depending on your library configuration.  Specifying a
+principal disables this behavior.
+
+The remctl protocol uses Kerberos v5 via GSS-API for authentication.  The
+underlying GSS-API library will use the default ticket cache for
+authentication, so to successfully use remctl(), the caller should already
+have Kerberos tickets for an appropriate realm stored in its default
+ticket cache.  The environment variable KRB5CCNAME can be used to control
+which ticket cache is used.
+
+remctl() returns a newly allocated remctl_result struct, which has the
+following members:
+
+    struct remctl_result {
+        char *error;                /* remctl error if non-NULL. */
+        char *stdout_buf;           /* Standard output. */
+        size_t stdout_len;          /* Length of standard output. */
+        char *stderr_buf;           /* Standard error. */
+        size_t stderr_len;          /* Length of standard error. */
+        int status;                 /* Exit status of remote command. */
+    };
+
+If error is non-NULL, a protocol error occurred and the command was not
+successfully completed.  Otherwise, standard output from the command will
+be stored in stdout_buf with the length in stdout_len, standard error from
+the command will be stored in stderr_buf with the length in stderr_len,
+and status will hold the exit status of the command.  Following the
+standard Unix convention, a 0 status should normally be considered success
+and any non-zero status should normally be considered failure, although a
+given command may have its own exit status conventions.
+
+remctl_result_free() frees the remctl_result struct when the calling
+program is through with it.
+
+If you want more control over the steps of the protocol, if you want to
+issue multiple commands on the same connection, or if you need to send
+data as part of the command that contains NULs, use the full API described
+in remctl_new(3), remctl_open(3), remctl_commandv(3), and
+remctl_output(3).
+
+=head1 RETURN VALUE
+
+remctl() returns NULL on failure to allocate a new remctl_result struct or
+on failure to allocate space to store an error message.  Otherwise, it
+returns a newly allocated remctl_result struct with either an error
+message in the error field or the results of the command filled out as
+described above.  If remctl() returns NULL, errno will be set to an
+appropriate error code (generally ENOMEM).
+
+=head1 CAVEATS
+
+If the I<principal> argument to remctl() is NULL, most GSS-API libraries
+will canonicalize the I<host> using DNS before deriving the principal name
+from it.  This means that when connecting to a remctl server via a CNAME,
+remctl() will normally authenticate using a principal based on the
+canonical name of the host instead of the specified I<host> parameter.
+This behavior may cause problems if two consecutive DNS lookups of I<host>
+may return two different results, such as with some DNS-based
+load-balancing systems.
+
+The canonicalization behavior is controlled by the GSS-API library; with
+the MIT Kerberos GSS-API library, canonicalization can be disabled by
+setting C<rdns> to false in the [libdefaults] section of F<krb5.conf>.  It
+can also be disabled by passing an explicit Kerberos principal name via
+the I<principal> argument, which will then be used without changes.  If
+canonicalization is desired, the caller may wish to canonicalize I<host>
+before calling remctl() to avoid problems with multiple DNS calls
+returning different results.
+
+The default behavior, when a port of 0 is given, of trying 4373 and
+falling back to 4444 will be removed in a future version of this library
+in favor of using the C<remctl> service in F</etc/services> if set and
+then falling back on only 4373.  4444 was the poorly-chosen original
+remctl port and should be phased out.
+
+=head1 NOTES
+
+The remctl port number, 4373, was derived by tracing the diagonals of a
+QWERTY keyboard up from the letters C<remc> to the number row.
+
+=head1 SEE ALSO
+
+remctl_new(3), remctl_open(3), remctl_command(3), remctl_commandv(3),
+remctl_output(3), remctl_close(3)
+
+The current version of the remctl library and complete details of the
+remctl protocol are available from its web page at
+L<http://www.eyrie.org/~eagle/software/remctl/>.
+
+=head1 AUTHOR
+
+Russ Allbery <rra@stanford.edu>
+
+=cut

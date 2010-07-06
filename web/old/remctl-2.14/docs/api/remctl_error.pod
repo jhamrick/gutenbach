@@ -1,0 +1,45 @@
+=for stopwords
+remctl const API Allbery
+
+=head1 NAME
+
+remctl_error - Retrieve the error from a failed remctl operation
+
+=head1 SYNOPSIS
+
+#include <remctl.h>
+
+const char *B<remctl_error>(struct remctl *I<r>);
+
+=head1 DESCRIPTION
+
+remctl_error() returns the error from a previously failed remctl
+operation.  Its only argument is a remctl struct as returned by
+remctl_new().  If the previous remctl operation was successful, returns
+the constant string "No error".
+
+The caller may not modify the returned string.  The string may even be
+stored in read-only memory and attempting to modify it may cause a memory
+fault.  The returned pointer will be invalidated by the next call to any
+remctl API function with the same client object, other than
+remctl_error().
+
+=head1 RETURN VALUE
+
+remctl_error() returns either the previous error or the constant string
+"No error".  It will never return NULL.
+
+=head1 SEE ALSO
+
+remctl_new(3), remctl_open(3), remctl_command(3), remctl_commandv(3),
+remctl_output(3)
+
+The current version of the remctl library and complete details of the
+remctl protocol are available from its web page at
+L<http://www.eyrie.org/~eagle/software/remctl/>.
+
+=head1 AUTHOR
+
+Russ Allbery <rra@stanford.edu>
+
+=cut

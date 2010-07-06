@@ -1,0 +1,89 @@
+=for stopwords
+remctl const TCP GSS-API DNS DNS-based KRB5CCNAME lookups canonicalization
+libdefaults Allbery CNAME
+
+=head1 NAME
+
+remctl_open - Connect to a remote remctl server
+
+=head1 SYNOPSIS
+
+#include <remctl.h>
+
+int B<remctl_open>(struct remctl *I<r>, const char *I<host>,
+                   unsigned short I<port>,
+                   const char *I<principal>);
+
+=head1 DESCRIPTION
+
+remctl_open() opens a TCP connection to the given I<host> on the given
+I<port> and then authenticates using the remctl protocol and the service
+principal I<principal>.  I<r> is a remctl struct created via remctl_new().
+I<host> must not be NULL.  If I<port> is 0, the library first attempts to
+connect to the registered port of 4373 and then tries the legacy port of
+4444 if that fails.  Future versions of the library will drop this
+fallback to 4444.  If I<principal> is NULL, a service principal of
+C<host/I<host>> is used, with the realm determined by domain-realm
+mapping.
+
+If no principal is specified and the default is used, the underlying
+GSS-API library may canonicalize I<host> via DNS before determining the
+service principal, depending on your library configuration.  Specifying a
+principal disables this behavior.
+
+The remctl protocol uses Kerberos v5 via GSS-API for authentication.  The
+underlying GSS-API library will use the default ticket cache for
+authentication, so to successfully use remctl_open(), the caller should
+already have Kerberos tickets for an appropriate realm stored in its
+default ticket cache.  The environment variable KRB5CCNAME can be used to
+control which ticket cache is used.
+
+=head1 RETURN VALUE
+
+remctl_open() returns true on success and false on failure.  On failure,
+the caller should call remctl_error() to retrieve the error message.
+
+=head1 CAVEATS
+
+If the I<principal> argument to remctl_open() is NULL, most GSS-API
+libraries will canonicalize the I<host> using DNS before deriving the
+principal name from it.  This means that when connecting to a remctl
+server via a CNAME, remctl_open() will normally authenticate using a
+principal based on the canonical name of the host instead of the specified
+I<host> parameter.  This behavior may cause problems if two consecutive
+DNS lookups of I<host> may return two different results, such as with some
+DNS-based load-balancing systems.
+
+The canonicalization behavior is controlled by the GSS-API library; with
+the MIT Kerberos GSS-API library, canonicalization can be disabled by
+setting C<rdns> to false in the [libdefaults] section of F<krb5.conf>.  It
+can also be disabled by passing an explicit Kerberos principal name via
+the I<principal> argument, which will then be used without changes.  If
+canonicalization is desired, the caller may wish to canonicalize I<host>
+before calling remctl_open() to avoid problems with multiple DNS calls
+returning different results.
+
+The default behavior, when a port of 0 is given, of trying 4373 and
+falling back to 4444 will be removed in a future version of this library
+in favor of using the C<remctl> service in F</etc/services> if set and
+then falling back on only 4373.  4444 was the poorly-chosen original
+remctl port and should be phased out.
+
+=head1 NOTES
+
+The remctl port number, 4373, was derived by tracing the diagonals of a
+QWERTY keyboard up from the letters C<remc> to the number row.
+
+=head1 SEE ALSO
+
+remctl_new(3), remctl_error(3)
+
+The current version of the remctl library and complete details of the
+remctl protocol are available from its web page at
+L<http://www.eyrie.org/~eagle/software/remctl/>.
+
+=head1 AUTHOR
+
+Russ Allbery <rra@stanford.edu>
+
+=cut

@@ -1,0 +1,325 @@
+                           remctl release 2.14
+            (remote authenticated command execution with ACLs)
+
+                   Originally written by Anton Ushakov
+         Currently maintained by Russ Allbery <rra@stanford.edu>
+
+  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Board of
+  Trustees, Leland Stanford Jr. University.  This software is distributed
+  under a BSD-style license.  Please see the file LICENSE in the
+  distribution for more information.
+
+BLURB
+
+  remctl is a client/server application that supports remote execution of
+  specific commands, using Kerberos v5 GSS-API for authentication.
+  Authorization is controlled by a configuration file and ACL files and
+  can be set separately for each command, unlike with rsh.  remctl is like
+  a Kerberos-authenticated simple CGI server, or a combination of Kerberos
+  rsh and sudo without most of the features and complexity of either.
+
+DESCRIPTION
+
+  remctl is a client/server application that supports remote execution of
+  specific commands, using Kerberos v5 GSS-API for authentication.  Which
+  commands a given user can execute is controlled by a configuration file
+  and ACL files and can be easily tightly limited, unlike with rsh.
+
+  remctld is very similar to a CGI server that uses a different network
+  protocol than HTTP and always does strong authentication before
+  executing the desired command.  Alternately, you can think of it as a
+  very simple combination of Kerberos rsh and sudo, without most of the
+  features of both but with simpler authorization.
+
+  This package was developed to replace the use of sysctl, another package
+  that allowed remote code execution with Kerberos (v4) authentication.
+  sysctl embedded Tcl and allowed for arbitrary Tcl code to be run, but at
+  Stanford we found that in practice all we did with it was execute
+  programs on the host system.  remctl is a Kerberos v5 equivalent that
+  does only the portions we actually needed.
+
+  Both C and Java clients and servers are provided, as well as Perl, PHP,
+  and Python bindings for the C client library.  For more information
+  about the Java client, see java/README.  For more information about the
+  PHP bindings, see php/README.  For more information about the Python
+  bindings, see python/README.
+
+  Complete protocol documentation is available in docs/protocol.html.
+  Also present, as docs/design.html, is the original design document (now
+  somewhat out of date).
+
+REQUIREMENTS
+
+  The remctld server and the standard client are written in C and require
+  a C compiler to build.  Both will build against either MIT Kerberos or
+  Heimdal (tested with Heimdal 0.6 and later).  remctl will also build
+  against the Kerberos GSS-API implementation shipped with AIX 5.2.
+
+  To build the remctl client for Windows, the Microsoft Windows SDK for
+  Windows Vista and the MIT Kerberos for Windows SDK are required, along
+  with a Microsoft Windows build environment (probably Visual Studio).
+  remctl has only been tested with the 3.2.1 MIT Kerberos for Windows SDK.
+  To run the resulting binary, MIT Kerberos for Windows must be installed
+  and configured.  The client has been tested on Windows XP and Vista and
+  should work on Windows 2000 and up.  The server is not supported on
+  Windows.
+
+  To build the Perl bindings for the C client library, you will need Perl
+  5.6.0 or later.  To run the full test suite for the Perl bindings, the
+  Perl modules Test::More and Test::Pod must be installed.  Test::More
+  comes with Perl 5.8 and later.  Test::Pod currently must be installed
+  separately, but the POD tests will be skipped without interfering with
+  the rest of the tests if it's not installed.  The Perl bindings have not
+  been tested in Windows.
+
+  To build the PHP bindings for the C client library, you will need PHP
+  5.x (only tested with 5.2) and phpize, plus any other programs that
+  phpize requires.
+
+  To build the Python bindings for the C client library, you will need
+  Python 2.3 or later (primarily tested with Python 2.5).  The Python
+  bindings have not been tested on Windows.
+
+  A Java client and Java server are available in the java subdirectory,
+  but they are not integrated into the normal build or built by default.
+  There is a basic Makefile in that directory that may require some
+  tweaking.  It currently requires the Sun Java JDK (1.4.2, 5, or 6).
+
+  To run the test suite, you will need Test::Pod as described above.  The
+  test suite will also need to be able to build to 127.0.0.1 on port 11119
+  and 14373 to run test network server programs.  In order to fully test
+  remctl, you will also need to create a keytab for a valid Kerberos
+  principal in your local realm; see tests/data/README for more
+  information.
+
+  To check spelling in the POD documentation, Pod::Spell (available from
+  CPAN) and either aspell or ispell with the american dictionary are also
+  required.  The user's path is searched for aspell or ispell and aspell
+  is preferred.  Spelling tests are disabled by default since spelling
+  dictionaries differ too much between systems.  To enable those tests,
+  set RRA_MAINTAINER_TESTS to a true value.
+
+  To bootstrap from a Git checkout, or if you change the Automake files
+  and need to regenerate Makefile.in, you will need Automake 1.10 or
+  later.  For bootstrap or if you change configure.ac or any of the m4
+  files it includes and need to regenerate configure or config.h.in, you
+  will need Autoconf 2.63 or later.  Perl and xml2rfc are also required to
+  generate the manual pages and protocol documentation from a fresh Git
+  checkout.
+
+INSTALLATION (UNIX)
+
+  You can build and install remctl with the standard commands:
+
+      ./configure
+      make
+      make install
+
+  The last step will probably have to be done as root.  By default, remctl
+  installs itself under /usr/local; you can change that path by passing
+  the --prefix=PATH argument to configure.
+
+  To also build the Perl bindings for the libremctl client library, pass
+  the --enable-perl option to configure.  The Perl module build is handled
+  by the normal Perl extension build system, and therefore will be built
+  with compiler flags defined by your Perl installation and installed into
+  your local Perl module directory regardless of the --prefix argument to
+  configure.  To change this, you will need to run perl on Makefile.PL in
+  the perl subdirectory of the build tree with appropriate options and
+  rebuild the module after running make and before running make install.
+
+  To also build the remctl PECL extension for PHP, pass the --enable-php
+  option to configure.  The PHP PECL module build is handled by the normal
+  PHP extension build system and therefore will be installed into your
+  local PHP module directory.  The configure script will look for phpize
+  on your PATH by default; if it's in some other directory, set the PHPIZE
+  environment variable to the full path or set it on the configure command
+  line.  The configure script for the PECL extension will be run during
+  the build instead of during configure.  This is unfortunately apparently
+  unavoidable given how the PECL build system works.
+
+  To also build the Python bindings for the libremctl client library, pass
+  the --enable-python option to configure.  The Python module build is
+  handled by the normal Python extension build system, and therefore will
+  be installed into your local Python module directory regardless of the
+  --prefix argument to configure.  To change this, you will need to run
+  python setup.py install by hand in the python directory with whatever
+  options you want to use.
+
+  Normally, configure will use krb5-config to determine the flags to use
+  to compile with your Kerberos GSS-API libraries.  If krb5-config isn't
+  found, it will look for the standard Kerberos libraries in locations
+  already searched by your compiler.  If the the krb5-config script first
+  in your path is not the one corresponding to the Kerberos libraries you
+  want to use or if your Kerberos libraries and includes aren't in a
+  location searched by default by your compiler, you need to specify
+  --with-gssapi=PATH:
+
+      ./configure --with-gssapi=/usr/pubsw
+
+  You can also individually set the paths to the include directory and the
+  library directory with --with-gssapi-include and --with-gssapi-lib.  You
+  may need to do this if Autoconf can't figure out whether to use lib,
+  lib32, or lib64 on your platform.  Note that these settings aren't used
+  if a krb5-config script is found.
+
+  To specify a particular krb5-config script to use, either set the
+  KRB5_CONFIG environment variable or pass it to configure like:
+
+      ./configure KRB5_CONFIG=/path/to/krb5-config
+
+  To not use krb5-config and force library probing even if there is a
+  krb5-config script on your path, set KRB5_CONFIG to a nonexistent path:
+
+      ./configure KRB5_CONFIG=/nonexistent
+
+  remctl will automatically build with GPUT support if the GPUT header and
+  library are found.  You can pass --with-gput to configure to specify the
+  root directory where GPUT is installed, or set the include and library
+  directories separately with --with-gput-include and --with-gput-lib.
+
+  You can build remctl in a different directory from the source if you
+  wish.  To do this, create a new empty directory, cd to that directory,
+  and then give the path to configure when running configure.  Everything
+  else should work as above.
+
+  Usage information is available in the manual pages which will be
+  installed with remctl.  You will need to set up a remctl.conf file for
+  the server; see docs/remctl.conf for an example.  The default location
+  for remctl.conf is <prefix>/etc, but can be changed with the
+  --sysconfdir flag to configure.
+
+  You can pass the --enable-reduced-depends flag to configure to try to
+  minimize the shared library dependencies encoded in the binaries.  This
+  omits from the link line all the libraries included solely because the
+  Kerberos libraries depend on them and instead links the programs only
+  against libraries whose APIs are called directly.  This will only work
+  with shared Kerberos libraries and will only work on platforms where
+  shared libraries properly encode their own dependencies (such as Linux).
+  It is intended primarily for building packages for Linux distributions
+  to avoid encoding unnecessary shared library dependencies that make
+  shared library migrations more difficult.  If none of the above made any
+  sense to you, don't bother with this flag.
+
+  The Java client and server aren't integrated with the regular build
+  system.  For information on building and installing them, see
+  java/README.
+
+INSTALLATION (Windows)
+
+  First, install the Microsoft Windows SDK for Windows Vista if you have
+  not already.  This is a free download from Microsoft for users of
+  "Genuine Microsoft Windows."  The vcvars32.bat environment provided by
+  Visual Studio may work as an alternative, but has not been tested.
+
+  Next, install the MIT Kerberos for Windows SDK, available for download
+  from http://web.mit.edu/kerberos/www/dist/index.html.  remctl has been
+  tested with version 3.2.1 but should hopefully work with later versions.
+
+  Then, follow these steps:
+
+  1. Run the InitEnv.cmd script included with the Windows SDK with
+     parameters "/xp /release".
+
+  2. Run the configure.bat script, giving it as an argument the location
+     of the Kerberos for Windows SDK.  For example, if you installed the
+     KfW SDK in "c:\KfW SDK", you should run:
+
+         configure "c:\KfW SDK"
+
+  3. Run nmake to start compiling.  You can ignore the warnings.
+
+  If all goes well, you will have remctl.exe and remctl.dll.  The latter
+  is a shared library used by the client program.  It exports the same
+  interface as the UNIX libremctl library.
+
+TESTING
+
+  remctl comes with an extensive test suite which you can run after
+  building remctl with:
+
+      make check
+
+  In order to do more than limited tests of the low-level routines, you
+  should first create a keytab for testing use containing the key for a
+  principal in your local domain.  See tests/data/README for instructions
+  on what to create and where to place the files.
+
+  If a test case fails, please run the that individual test case with
+  verbose output using:
+
+      tests/runtests -o <name-of-test>
+
+  and send me the output when reporting the problem.  Note that on
+  particularly slow or loaded systems, you may see intermittant failures
+  from the server/streaming test because it's timing-sensitive.
+
+HOMEPAGE AND SOURCE REPOSITORY
+
+  The remctl web page at:
+
+      http://www.eyrie.org/~eagle/software/remctl/
+
+  will always have the current version of this package, the current
+  documentation, and pointers to any additional resources.
+
+  remctl is maintained using Git.  You can access the current source by
+  cloning the repository at:
+
+      git://git.eyrie.org/kerberos/remctl.git
+
+  or view the repository via the web at:
+
+      http://git.eyrie.org/?p=kerberos/remctl.git
+
+THANKS
+
+  To Anton Ushakov for the original design document, much of the version
+  one protocol design, and the initial implementation.
+
+  To Roland Schemers for extensive review of the initial code and protocol
+  and help with the original Java client.
+
+  To Romain LENGLET for the idea and code for examples/rsh-wrapper.
+
+  To Thomas Kula for testing of remctl 2.0 and later versions on NetBSD
+  and Heimdal and for the Python bindings.
+
+  To Ralf Wildenhues for help in getting make check to work with builddir
+  != srcdir builds.
+
+  To Darren Patterson and Digant Kasundra for contributions to the RPM
+  spec file and testing on Red Hat.
+
+  To Jonathan Kollasch for the initial IPv6 patch and for identifying all
+  of the places the code was making IPv4 assuptions.
+
+  To Andrew Mortensen for the initial -F and -k flag support for remctld.
+
+  To Alf Wachsmann for catching inaccuracies in the Perl documentation.
+
+  To Jeffrey Hutzelman and Chaskiel Grundman for testing with Heimdal 0.6
+  and teaching me a great deal about GSS-API flags and the security issues
+  that surround them.
+
+  To Marcus Watts for testing and various bug fixes, lots of improvements
+  to the standalone server mode, and fixes for the Perl API.  Marcus also
+  rewrote the Java client, adding support for protocol version two and a
+  server implementation.
+
+  To Sandor Sklar for testing multiple patches for the remctl build on AIX
+  5.2 and providing an account so that I could investigate test suite
+  issues.
+
+  To Matthew Loar for the Windows port of the remctl client.
+
+  To Andrew Mortensen for the initial remctl PECL extension for PHP and
+  for general code formatting comments and a reminder to free malloc'd
+  memory in the Python bindings.
+
+  To Jeffrey Hutzelman for adding the framework for ACL method support and
+  implementing the file, princ, deny, and gput schemes, as well as lots of
+  testing and portability bug reports.
+
+  To Timothy G. Abbott for suggesting additional restrictions on the names
+  of files read when processing an include of a directory.

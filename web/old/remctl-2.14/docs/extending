@@ -1,0 +1,164 @@
+                             Extending remctl
+
+Introduction
+
+    This is a guide for users and implementors of remctl who notice
+    features or support currently missing and want to see how to add it,
+    or who are curious which parts of remctl can be easily extended and
+    which parts are more difficult.  Most of the easy extensibility is on
+    the server, which is written to permit straightforward addition of new
+    features, particularly to the configuration and ACL files.
+
+    Extension areas are presented here in roughly the order of complexity
+    of additions.
+
+    If you're considering extending remctl, please feel free to contact me
+    at rra@stanford.edu and let me know what you're planning and what
+    problem you're trying to solve.  I'm generally happy to offer advice
+    and incorporate and maintain extensions in the base distribution, even
+    if they're optional features that require external libraries to build.
+
+ACL Methods
+
+    remctl currently supports four ACL methods, but there is support in
+    the ACL syntax for tagging an ACL with a new method and it's
+    relatively straightforward to add new ACL methods to the server.
+
+    An ACL method name may be any alphanumerics plus hyphen (-).  The
+    current methods are defined in server/config.c (but may be broken int
+    a separate file if many more ACL methods are added).  The methods
+    struct defined in that file associates method names with the function
+    implementing that method.
+
+    To add a new ACL method, first write a function that checks a given
+    user against an ACL of that method.  Your function must take four
+    arguments: the remote username as a string, the ACL data as a string
+    (this is the part after the colon in the ACL for the current command),
+    and the file and line number in the ACL for error reporting.  The
+    function must return CONFIG_SUCCESS if the user is authorized by that
+    ACL data, CONFIG_NOMATCH if they are not, and CONFIG_ERROR on some
+    sort of failure, such as failure of a remote service or a syntax error
+    in the ACL data.
+
+    For example, the standard acl_check_princ function which implements
+    the princ ACL method does a string comparison of the ACL data to the
+    remote user identity and returns CONFIG_SUCCESS if they match and
+    CONFIG_NOMATCH otherwise.
+
+    Once you've written that function, add it and its method name to the
+    methods struct definition in server/config.c.  That's all there is to
+    it (although if you're submitting it for inclusion into remctl,
+    documentation additions to docs/remctld.pod and either a new test
+    suite or an addition to tests/server/acl-t.c would be nice).
+
+Config Options
+
+    remctld configuration options are handled somewhat similarly to ACLs,
+    but implementing them is likely to require more work since most new
+    options will not be as self-contained in only one portion of remctld.
+    But apart from implementing the effects of the option, adding a new
+    option is straightforward.
+
+    An option name must begin with a letter and may contain any
+    alphanumerics plus hyphen (-).  All options must have a value, and
+    options are always written in the configuration file as
+    <option>=<value>, after the command and before any ACLs.  Boolean
+    options should interpret "yes", "on", "true", and "1" as turning them
+    on and "no", "off", "false", and "0" as turning them off.
+
+    To add a new option, first write a parser for it in server/config.c.
+    That function should have a name starting with option_ and will take a
+    pointer to the configuration line, the value of the option as a
+    string, and the name and line number of the configuration file for
+    error reporting.  It should return CONFIG_SUCCESS on successful
+    parsing and CONFIG_ERROR on any error to parse (such as a syntax
+    error).
+
+    What the function does is up to you, but normally configuration
+    options will add an additional member to the confline struct and the
+    parser should analyze the value of the option and add the appropriate
+    parsed information to the confline struct.  Then, elsewhere (usually
+    in server/command.c), once the command being run has been determined,
+    that data can be used to do whatever the option is supposed to do.
+    The members of the confline struct are defined in server/internal.h.
+
+    As with ACL methods, if you submit the new option for inclusion,
+    documentation for docs/remctld.pod and either a new test case or an
+    addition to an existing test case are appreciated.  (If you don't
+    write them, I'll have to in order to incorporate the code.)
+
+Client Library
+
+    The main way in which people have wanted to enhance the client library
+    is to add bindings for additional programming languages.  remctl now
+    supports Perl, PHP, and Python, as well as a separate implementation
+    in Java, but there are many other languages that could be added (Ruby,
+    for example).
+
+    I'm happy to include new language bindings in the main remctl
+    distribution, and will also try to do the work to build packages for
+    Debian and Ubuntu.  Please follow the following guidelines for adding
+    new language bindings:
+
+    * Bindings for the C library rather than a native reimplementation in
+      that language is preferred.  Java is something of a special
+      exception in that it's expected to run without external
+      dependencies, but additional protocol implementations make for more
+      maintenance work in the long run.  If there are problems with the C
+      interface that prevent you from using the C libraries, talk to me
+      and I'll try to help.
+
+    * While the interface should adjust for the language, please try to
+      keep both the terminology and basics of the interface relatively
+      consistent with the C library.  Specifically, there should probably
+      be a simple interface that runs a command and returns the result as
+      an object or hash, and a more complex interface that permits sending
+      multiple commands and reading the individual output, status, or
+      error tokens from the server.
+
+    * The C interface allows optional parameters to remctl and remctl_open
+      and defaults to trying particular port numbers and principals for
+      the server.  Please preserve these optional parameters and defaults
+      in the language bindings.
+
+    * Please use the "native" way the language provides to write bindings.
+      In particular, please don't use SWIG unless that's what the language
+      community actively recommends.
+
+    * Please include a test suite in the native module testing mechanism
+      used by that language.
+
+    * Language bindings should be optional and not built by default.  They
+      should be enabled with a --enable-<lauguage> flag to configure.  See
+      the existing configure logic for the languages already supported and
+      the Makefile.am code for doing optional builds for examples.
+
+    * The build must support building in a directory other than the source
+      directory with the source files set read-only.  This may mean that
+      you need to copy some files from the source directory to the build
+      directory if builddir != srcdir, since most language build systems
+      don't support VPATH builds.  See Makefile.am for how that's handled
+      for existing languages and copy that setup.
+
+    * Please include a README or some other documentation for users of
+      that language explaining the complete interface.  php/README and
+      python/README are good examples.
+
+Protocol
+
+    The remctl protocol is designed to be extensible by introducing a new
+    protocol version.  All commands come tagged with the protocol version
+    required to understand them, and the server will automatically reject,
+    with a version error, protocol commands with too high of a version.
+    The client can also ask the server what version it supports.
+
+    Currently, the protocol version is two.  An initial draft of the
+    changes for protocol version three is available in docs/protocol-v3,
+    but may change prior to implementation.
+
+    The remctl protocol is defined by docs/protocol.xml, which is
+    translated into docs/protocol.txt and docs/protocl.html by xml2rfc.
+    Any changes to the protocol should be documented here.
+
+    I would like to keep remctl interoperable, so please talk to me before
+    making changes that would modify the protocol.

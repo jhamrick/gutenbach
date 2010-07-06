@@ -1,0 +1,18 @@
+# /etc/xinetd.d/remctl -- xinetd configuration for remctl.
+#
+# By default, remctl runs as root and the programs it runs are responsible
+# for dropping privileges where appropriate.  If all of the programs you
+# run are run by the same user, you may wish to start remctld as a user
+# other than root.  If you do, it will still need to be able to read the
+# host keytab (or some other keytab, if you specify a different principal
+# in the client).
+
+service remctl
+{
+    socket_type = stream
+    protocol    = tcp
+    wait        = no
+    user        = root
+    server      = /usr/sbin/remctld
+    port        = 4373
+}

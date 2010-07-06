@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE project [
+]>
+<project name="jremctl" default="dist" basedir=".">
+  <description>Build file for Java remctl</description>
+
+  <property file="local.properties" />
+  <property name="release.number" value="@PACKAGE_VERSION@" />
+  <property name="release.path" value="jremctl-${release.number}" />
+  <property name="src" value="src" />
+  <property name="build" value="build" />
+  <property name="dist" value="dist" />
+  <property name="jar" value="${dist}/lib/remctl-${release.number}.jar" />
+  <property name="tar" value="dist/jremctl-${release.number}.tgz" />
+
+  <mkdir dir="${build}" />
+
+  <uptodate property="build.done">
+    <srcfiles dir="${src}" includes="**/*.java" excludes="t?.java" />
+    <mapper type="glob" from="*.java" to="*.class" />
+  </uptodate>
+  <uptodate property="dist.done" targetfile="${jar}">
+    <srcfiles dir="${build}" includes="**/*.class" />
+  </uptodate>
+
+  <target name="build" unless="build.done" description="compile the source">
+    <javac destdir="${build}" debug="true" includes="**/*.java"
+           excludes="t?.java" >
+      <src path="${src}" />
+      <compilerarg value="-Xlint:unchecked" />
+    </javac>
+  </target>
+  <target name="dist" depends="build" unless="dist.done"
+          description="generate the distribution">
+    <mkdir dir="${dist}/lib" />
+    <jar jarfile="${jar}" basedir="${build}">
+      <manifest>
+        <attribute name="Built-By" value="${user.name}" />
+        <attribute name="Main-Class"
+                   value="org.eyrie.eagle.remctl.RemctlClient" />
+        <section name="common">
+          <attribute name="Specification-Title" value="Java Remctl" />
+          <attribute name="Specification-Version" value="${release.number}" />
+          <attribute name="Specification-Vendor" value="Russ Allbery" />
+          <attribute name="Package-Title" value="org.eyrie.eagle.remctl" />
+          <attribute name="Package-Version" value="${release.number}" />
+          <attribute name="Package-Vendor" value="Russ Allbery" />
+        </section>
+      </manifest>
+    </jar>
+  </target>
+  <target name="clean" description="clean up">
+    <delete dir="${build}" />
+    <delete dir="${dist}" />
+  </target>
+  <target name="tar" depends="dist"
+          description="generate a customary distribution">
+    <tar destfile="${tar}" compression="gzip">
+      <tarfileset dir="${src}" prefix="${release.path}/src">
+        <include name="**/*.java" />
+      </tarfileset>
+      <tarfileset dir="." prefix="${release.path}">
+         <include name="**/build.xml" />
+      </tarfileset>
+      <tarfileset dir="." prefix="${release.path}/doc">
+        <include name="**/README" />
+        <include name="**/bcsKeytab.conf" />
+        <include name="**/gss_jaas.conf" />
+        <include name="**/j3.conf" />
+        <include name="**/k5.conf" />
+      </tarfileset>
+      <tarfileset file="${jar}" prefix="${release.path}/dist/lib" />
+    </tar>
+  </target>
+</project>

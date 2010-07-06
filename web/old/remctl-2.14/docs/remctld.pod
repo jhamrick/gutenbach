@@ -1,0 +1,462 @@
+=for stopwords
+remctld remctl -dFhmSv keytab GSS-API tcpserver inetd subcommand AFS
+backend logmask NUL acl ACL princ filename gput CMU GPUT xform ANYUSER IP
+IPv4 IPv6 hostname SCPRINCIPAL sysctld Heimdal MICs Ushakov Allbery
+subcommands REMUSER
+
+=head1 NAME
+
+remctld - Server for remctl, a remote command execution utility
+
+=head1 SYNOPSIS
+
+remctld [B<-dFhmSv>] [B<-f> I<config>] [B<-k> I<keytab>] [B<-P> I<file>]
+[B<-p> I<port>] [B<-s> I<service>]
+
+=head1 DESCRIPTION
+
+B<remctld> is the server for remctl.  It accepts a connection from remctl,
+receives the command to execute and the arguments, verifies authorization
+of the user and executes the command, returning the result back to the
+client.  All connections are authenticated using GSS-API Kerberos v5, and
+all transmissions are also encrypted using the GSS-API privacy layer.
+
+B<remctld> is normally started using B<tcpserver> or from B<inetd>, but it
+may be run in stand-alone mode as a daemon using B<-m>.  Either B<-s> must
+be given to use an alternate identity (which will require the same flag be
+used for B<remctl> client invocations), or it must be run as root to read
+the host keytab file.  B<remctld> logs its activity using syslog (the
+daemon facility).
+
+The location of the configuration file may be specified with the B<-f>
+option.  The default location is F<@sysconfdir@/remctl.conf>.  For
+information on the format of the configuration file, see L<"CONFIGURATION
+FILE"> below.
+
+When the command is run, several environment variables will be set
+providing information about the remote connection.  See L<ENVIRONMENT>
+below for more information.
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<-d>
+
+Enable verbose debug logging to syslog (or to standard output if B<-S> is
+also given).
+
+=item B<-F>
+
+Normally when running in stand-alone mode (B<-m>), B<remctld> backgrounds
+itself to run as a daemon, changes directory to F</>, and drops any
+controlling terminal.  This flag suppresses this behavior, usually for
+debugging or so that B<remctld> can be monitored by other processes.
+
+=item B<-f> I<config>
+
+The configuration file for B<remctld>, overriding the default path.
+
+=item B<-h>
+
+Show a brief usage message and then exit.
+
+=item B<-k> I<keytab>
+
+Use I<keytab> as the keytab for server credentials rather than the system
+default or the value of the KRB5_KTNAME environment variable.  Using B<-k>
+just sets the KRB5_KTNAME environment variable internally in the process.
+
+=item B<-m>
+
+Enable stand-alone mode.  B<remctld> will listen to its configured port
+and fork a new child for each incoming connection.  By default, when this
+option is used, B<remctld> also changes directory to F</>, backgrounds
+itself, and closes standard input, output, and error.  To not background,
+pass B<-F> as well.  To not close standard output and error and continue
+using them for logging, pass B<-S> as well.
+
+To determine the port, B<remctld> attempts to look up the C<remctl>
+service in the local F</etc/services> file and uses the port defined
+there.  If the C<remctl> service could not be found, it uses 4373, the
+registered remctl port.
+
+=item B<-P> I<file>
+
+When running in stand-alone mode (B<-m>), write the PID of B<remctld> to
+I<file>.  This option is ignored unless B<-m> is also given.
+
+=item B<-p> I<port>
+
+When running in stand-alone mode, Listen on port I<port> rather than the
+default.  This option does nothing unless used with B<-m>.
+
+=item B<-S>
+
+Rather than logging to syslog, log debug and routine connection messages
+to standard output and error messages to standard error.  This option is
+mostly useful for testing and debugging.
+
+=item B<-s> I<service>
+
+Specifies which principal is used as the server identity for client
+authentication.  The client must also use the same identity as the server
+identity for authentication to succeed.  By default, B<remctld> accepts
+any principal with a key in the default keytab file (which can be changed
+with the B<-k> option).  This is normally the most desirable behavior.
+
+=item B<-v>
+
+Print the version of B<remctld> and exit.
+
+=back
+
+=head1 CONFIGURATION FILE
+
+The configuration file defines the allowed commands and specifies access
+control information.  The configuration file format is lines of space- or
+tab-separated strings, where each line is:
+
+    command subcommand executable [option=value ...] acl [acl ...]
+
+Each command consists of a command, a subcommand, and zero or more
+arguments.  Each configuration line defines an acceptable command and
+subcommand (or, if C<ALL> is used as mentioned below under I<service>, a
+set of commands).  The first configuration line matching the received
+command is used, so list more specific entries before more general
+entries.
+
+Blank lines and lines beginning with C<#> are ignored.  Lines can be
+continued on the next line by ending them with a backslash (C<\>).  Be
+aware that comments can be continued with a backslash as well.
+
+As a special case, a line like:
+
+    include file
+
+will include I<file> as if its contents were pasted verbatim into the
+configuration file at that point.  I<file> may be a directory, in which
+case all files whose names do not contain a period found in that directory
+will be included (in no particular order).  I<file> should be a fully
+qualified path.
+
+The meaning of these fields is:
+
+=over 4
+
+=item I<command>
+
+The command being issued.  Normally, related commands (such as all
+commands for managing a particular service) are grouped together as
+subcommands under one command.
+
+=item I<subcommand>
+
+The subcommand within the command being requested, such as C<release> for
+the release function of the AFS volume backend.  If the keyword C<ALL> is
+used instead of a specific subcommand, this line matches all subcommands
+with the given command and can be used to dispatch all subcommands under
+that command to the same executable with the same ACLs.  Since the first
+matching entry is used, list entries for specific services first (if any)
+and then the C<ALL> catch-all.
+
+B<remctld> accepts commands with no subcommand argument.  Such commands
+will only match lines in the configuration file with C<ALL> for the
+service.  (The B<remctl> client will not send such commands, but they can
+be sent using the client library or via another implementation.)
+
+The subcommand is always passed as the first argument to the executable
+program that is listed for that service unless no subcommand was given.
+
+=item I<executable>
+
+The full path to the command executable to run for this command and
+subcommand combination.  (See examples below.)
+
+=item I<option>=I<value>
+
+An option setting that applies to this command.  Supported option settings
+are:
+
+=over 4
+
+=item I<logmask>=I<n>[,...]
+
+Limit logging of command arguments.  Any argument listed in the logmask
+list will have its value logged as "**MASKED**".  This is to avoid logging
+the arguments of commands that take private information such as passwords.
+The logmask list should contain argument numbers separated by commas, with
+the I<subcommand> considered argument 1.  The I<command> argument cannot
+be masked.
+
+For example, if the command is C<admin passwd I<username> I<password>>,
+then you'd want to set logmask to C<3>, so the password argument gets
+logged as C<**MASKED**>.  If the command is C<user passwd I<username>
+I<old-password> I<new-password>>, you'd want to set logmask to C<3,4>.
+
+=item I<stdin>=(I<n> | C<last>)
+
+Specifies that the I<n>th or last argument to the command be passed on
+standard input instead of on the command line.  The value of this option
+must either be the number of argument to pass on standard input (with the
+I<subcommand> considered argument 1) or the special value C<last>, which
+indicates that the final argument (no matter how many there are) be passed
+on standard input.
+
+The I<subcommand> cannot be passed on standard input, so I<n> must be at
+least C<2>.  If this option is set to C<last> and no arguments are given
+except the I<command> and possibly the I<subcommand>, nothing will be
+passed on standard input.
+
+This option is used primarily for passing large amounts of data that may
+not fit on the command line or data that contains NUL characters.  It can
+also be used for arguments like passwords that shouldn't be exposed on the
+command line.  Only at most one argument may be passed on standard input
+to the command.
+
+=back
+
+=item I<acl>
+
+One or more entries of the form [I<method>:]I<data>, where I<method>
+specifies an access control method to be used, and I<data> contains
+parameters whose meaning depends on the method.  If the method is omitted,
+the data is processed as described for the C<file> method.
+
+If I<method> is omitted, I<acl> must either begin with C</> or must not
+contain C<=>.  Otherwise, it will be parsed as an option instead.  If
+there is any ambiguity, prepend the I<method>.
+
+Each entry is checked in order, and access is granted as soon as an
+entry matches.  If no entry matches, access is denied.  The following
+methods are supported:
+
+=over 4
+
+=item file
+
+The data is the full path of an ACL file or to a directory containing ACL
+files.  Directories are handled as described for the include directive in
+configuration files.  An ACL file contains one entry per line, in the
+[I<method>:]I<data> form described above.  Entries are handled exactly as
+if they had appeared in the configuration file except that the default
+method is C<princ> instead of C<file>.  Blank lines and lines beginning
+with C<#> are ignored in the ACL files.
+
+For backward compatibility, a line like:
+
+    include [<method>:]<data>
+
+in an ACL file behaves exactly as if the C<include> directive had been
+omitted, except that the default method is C<file>.  Thus, writing:
+
+    include <path>
+
+in an ACL file is the same as writing:
+
+    file:<path>
+
+and is handled identically to the include directive in configuration
+files.
+
+=item princ
+
+The data is the name of a Kerberos v5 principal which is to be granted
+access, such as C<username@EXAMPLE.ORG>.
+
+=item deny
+
+This method is used to selectively deny access.  The data is parsed as a
+[I<method>:]I<data> and evaluated as described above, with the default
+scheme being C<princ>.  If it matches, access is denied immediately
+without examining any further entries.  Otherwise, processing continues.
+
+Remember that access is granted as soon as an entry matches.  For C<deny>
+rules to be effective, they therefore must come before any ACLs they are
+intended to override.  Be careful when using C<deny> when including a
+directory of ACL files, since the files in that directory are read in an
+undefined order (not in alphabetical order by filename).  It's best to
+explicitly include the file containing C<deny> ACL rules first.
+
+Note that C<deny> only denies access; it never grants it.  Thus, deny
+alone does not grant access to anyone, and using deny on itself as in
+C<deny:deny:foo> neither denies nor grants access to anyone.
+
+=item gput
+
+This method is used to grant access based on the CMU GPUT (Global
+Privileged User Table -- see gput(5)).  The data is either a GPUT role
+name or a string of the form I<group>[I<xform>], where I<group> is a GPUT
+role name and I<xform> is a GPUT transform string.  Access is granted if
+the user is a member of the specified GPUT group, after applying either
+the optional I<xform> or the default transform.
+
+This method is supported only if B<remctld> was compiled with GPUT support
+by using the C<--with-gput> configure option.
+
+=back
+
+The keyword ANYUSER may be used instead of the ACLs to allow access to all
+users.  The user still needs to authenticate to B<remctld>; this only
+affects authorization.  This can be used for backend programs that want to
+check ACLs themselves and will retrieve the authenticated principal from
+the REMOTE_USER environment variable.  Note that ANYUSER accepts B<any>
+authenticated user, including cross-realm users from foreign Kerberos
+realms.
+
+Support for ACL schemes is new in remctl 2.13.  Prior versions of
+B<remctld> expected only files in the main B<remctld> configuration file,
+and only principals or lines starting with C<include> in those files,
+without any I<method>: prefixes.
+
+=back
+
+=head1 ENVIRONMENT
+
+The following environment variables will be set for any commands run via
+B<remctld>:
+
+=over 4
+
+=item REMOTE_USER
+
+=item REMUSER
+
+Set to the Kerberos principal of the authenticated client.  REMUSER has
+always been set by B<remctld>; REMOTE_USER is also set (to the same value)
+starting with remctl 2.1.
+
+=item REMOTE_ADDR
+
+The IP address of the remote host.  Currently, this is always an IPv4
+address, but in the future it may be set to an IPv6 address.  This
+environment variable was added in remctl 2.1.
+
+=item REMOTE_HOST
+
+The hostname of the remote host, if it was available.  If reverse name
+resolution failed, this environment variable will not be set.  This
+variable was added in remctl 2.1.
+
+=back
+
+B<remctld> also used to set SCPRINCIPAL for (partial) backward
+compatibility with B<sysctld>, but stopped doing so as of remctl 2.1.
+
+If the B<-k> flag is used, B<remctld> will also set KRB5_KTNAME to the
+provided keytab path.  This is primarily for communication with the
+GSS-API library, but this setting will also be inherited by any commands
+run by B<remctld>.
+
+=head1 EXAMPLES
+
+Typically B<remctld> is to be started as follows, where "hostname" is the
+machine where remctld will run, and 4373 is the port:
+
+    tcpserver hostname 4373 remctld
+
+The equivalent line for F</etc/inetd.conf> is:
+
+    4373 stream tcp nowait root /usr/sbin/tcpd /usr/sbin/remctld
+
+or:
+
+    remctl stream tcp nowait root /usr/sbin/tcpd /usr/sbin/remctld
+
+if the C<remctl> service is listed in your F</etc/services> file.
+
+To start B<remctld> in stand-alone mode instead, run:
+
+    remctld -m
+
+Example configuration file:
+
+ # Comments can be used like this.
+ accounts create /usr/local/bin/doaccount  /etc/acl/group1 \
+     /etc/acl/group2
+ accounts delete /usr/local/bin/doaccount  /etc/acl/group3
+ accounts view   /usr/local/bin/doaccount  ANYUSER
+ accounts passwd /usr/local/bin/dopasswd   logmask=3 /etc/acl/group1
+ printing ALL    /usr/local/bin/printthing /etc/acl/group2 
+
+The commands C<accounts create>, C<accounts delete>, and so forth will all
+be passed to /usr/local/bin/doaccount with the first argument being the
+specific subcommand, with the exception of C<accounts passwd>.  That
+command will be passed to /usr/local/bin/dopasswd instead, but it will
+still get C<passwd> as its first argument.  The third argument to
+C<accounts passwd> (presumably the password) will not be logged to syslog.
+All commands starting with C<printing> will be passed to
+/usr/local/bin/printthing.
+
+Example ACL file using the scheme support new in remctl 2.13:
+
+    # This is a comment.
+    deny:baduser@EXAMPLE.ORG
+    file:/etc/remctl/acl/admins
+    principal:service/admin@EXAMPLE.ORG
+    service/other@EXAMPLE.ORG
+
+This ACL file will reject C<baduser@EXAMPLE.ORG> even if that user would
+have been allowed by one of the other ACL rules.  It will then grant
+access according to the ACL entries in F</etc/remctl/acl/admins> and the
+specific principals C<service/admin@EXAMPLE.ORG> and
+C<service/other@EXAMPLE.ORG>.  The last line takes advantage of the
+default ACL method of C<principal> when processing an ACL file.
+
+=head1 CAVEATS
+
+When using Heimdal with triple-DES keys and talking to old clients that
+only speak version one of the remctl protocol, B<remctld> may have
+problems with MIC verification.  This doesn't affect new clients and
+servers since the version two protocol doesn't use MICs.  If you are using
+Heimdal and run into MIC verification problems, see the COMPATIBILITY
+section of gssapi(3).
+
+B<remctld> does not itself impose any limits on the number of child
+processes or other system resources.  You may want to set resource limits
+in your inetd server or with B<ulimit> when running it as a standalone
+daemon or under B<tcpserver>.
+
+Command arguments may not contain NUL characters and must be shorter than
+the operating system limit on the length of a command line since they're
+passed to the command as command-line arguments.  The exception is an
+argument passed via standard input using the C<stdin=> option in the
+configuration file.  At most one argument may be passed that way.
+
+=head1 NOTES
+
+The remctl port number, 4373, was derived by tracing the diagonals of a
+QWERTY keyboard up from the letters C<remc> to the number row.
+
+=head1 SEE ALSO
+
+remctl(1), syslog(3), tcpserver(1)
+
+The current version of this program is available from its web page at
+L<http://www.eyrie.org/~eagle/software/remctl/>.
+
+=head1 AUTHOR
+
+Anton Ushakov <antonu@stanford.edu> is the original author.  Updates and
+current maintenance are done by Russ Allbery <rra@stanford.edu>.
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Board of
+Trustees, Leland Stanford Jr. University.  All rights reserved.
+  
+Permission to use, copy, modify, and distribute this software and its
+documentation for any purpose and without fee is hereby granted, provided
+that the above copyright notice appear in all copies and that both that
+copyright notice and this permission notice appear in supporting
+documentation, and that the name of Stanford University not be used in
+advertising or publicity pertaining to distribution of the software
+without specific, written prior permission.  Stanford University makes no
+representations about the suitability of this software for any purpose.
+It is provided "as is" without express or implied warranty.
+
+THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+
+=cut

@@ -1,0 +1,43 @@
+=for stopwords
+remctl API ENOMEM Allbery
+
+=head1 NAME
+
+remctl_new - Create a new remctl client
+
+=head1 SYNOPSIS
+
+#include <remctl.h>
+
+struct remctl *B<remctl_new>(void);
+
+=head1 DESCRIPTION
+
+remctl_new() creates a new remctl client.  The resulting remctl struct is
+opaque from the perspective of the caller, but should be the first
+argument to all subsequent calls into the remctl API.  Normally, the next
+call after remctl_new() would be remctl_open() to connect to a remote
+server.
+
+The resulting struct should be freed by calling remctl_close().
+
+=head1 RETURN VALUE
+
+remctl_new() returns a pointer to an opaque remctl struct on success and
+NULL on failure.  If it returns NULL, errno will be set to an appropriate
+error code (normally ENOMEM).
+
+=head1 SEE ALSO
+
+remctl_open(3), remctl_command(3), remctl_commandv(3), remctl_output(3),
+remctl_close(3)
+
+The current version of the remctl library and complete details of the
+remctl protocol are available from its web page at
+L<http://www.eyrie.org/~eagle/software/remctl/>.
+
+=head1 AUTHOR
+
+Russ Allbery <rra@stanford.edu>
+
+=cut

@@ -1,0 +1,14 @@
+This directory contains data used by remctl's test suite.  To enable tests
+that require GSS-API authentication and a working end-to-end Kerberos
+environment, create the K5 keytab that will be used for both the server
+and the client and put it in this directory as test.keytab.  Then, create
+a file named test.principal and in it put the principal name corresponding
+to the key in the keytab on a single line ending with a newline.
+
+The presence of these two files will enable the tests that actually do
+GSS-API authentication.
+
+If you are building in a different directory tree than the source tree,
+don't put the files in this directory.  Instead, after running configure,
+you will have an empty tests/data directory in your build tree.  Put the
+test.keytab and test.principal files in that directory instead.

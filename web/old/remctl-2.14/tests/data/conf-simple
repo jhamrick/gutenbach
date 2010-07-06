@@ -1,0 +1,12 @@
+test test data/cmd-hello ANYUSER
+test status data/cmd-status ANYUSER
+test nonexistent data/cmd-nonexistent ANYUSER
+test noauth data/cmd-hello data/acl-nonexistent
+test noacl data/cmd-hello data/acl-no-such-file
+test streaming data/cmd-streaming ANYUSER
+test env data/cmd-env ANYUSER
+test argv data/cmd-argv ANYUSER
+test closed data/cmd-closed ANYUSER
+test background data/cmd-background ANYUSER
+test stdin data/cmd-stdin stdin=last ANYUSER
+all ALL data/cmd-hello ANYUSER

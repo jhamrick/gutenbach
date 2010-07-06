@@ -1,0 +1,42 @@
+#!/bin/sh
+#
+# One of the things that one can do with remctl is create commands that
+# actually run on remote systems, or even emulate rsh with tighter ACLs
+# and no remote accounts.
+#
+# For example, suppose you want to let users run a variety of commands
+# on remote servers.  First, write a program that looks at its first
+# argument to figure out what command to run and then passes along its other
+# arguments appropriately.  Install that program on the systems where users
+# should be able to start commands.  On each system, also install remctld
+# with a configuration file containing something like:
+#
+#     start ANY /usr/local/sbin/start-backend /etc/remctl/acl/starters
+#
+# where /usr/local/sbin/start-backend is that implementation.  Put the
+# Kerberos principals of the people who should be able to run the backend in
+# /etc/remctl/acl/starters.
+#
+# Now, install the following script as "start".  Users can then type:
+#
+#     start <host> <action> <option> ...
+#
+# very similar to the syntax of rsh.  In fact, if you use "rsh" as the type
+# in your remctld configuration, you can even install this script as rsh.
+#
+# This means that you can even tell software that only knows how to use
+# rsh that the start script is your rsh program and let that software run
+# remote commands with the tighter ACL checking of remctld and no need for
+# an account on the remote system.
+#
+# This idea and sample script are from Romain LENGLET.
+
+if [ $# -lt 2 ] ; then
+    echo "Invalid number of parameters"
+    exit 1
+fi
+TYPE="$0"
+HOST="$1"
+SERVICE="$2"
+shift 2
+exec remctl "${HOST}" "${TYPE}" "${SERVICE}" "$@"

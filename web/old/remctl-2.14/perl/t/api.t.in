@@ -1,0 +1,141 @@
+#!/usr/bin/perl -w
+#
+# Tests for the Net::Remctl API.  This relies on being run as part of the
+# larger remctl build tree and uses the built remctld for testing.
+#
+# Written by Russ Allbery <rra@stanford.edu>
+# Copyright 2007, 2008, 2009
+#     Board of Trustees, Leland Stanford Jr. University
+#
+# See LICENSE for licensing terms.
+
+BEGIN { our $total = 30 }
+use Test::More tests => $total;
+
+use Net::Remctl;
+
+# Returns the principal to use for authentication.
+sub get_principal {
+    open (PRINC, 'data/test.principal') or return;
+    my $princ = <PRINC>;
+    close PRINC;
+    chomp $princ;
+    return $princ;
+}
+
+# Do the bizarre dance to start a test version of remctld.
+sub start_remctld {
+    unlink ('data/pid');
+    my $princ = get_principal;
+    my $pid = fork;
+    if (not defined $pid) {
+        die "cannot fork: $!\n";
+    } elsif ($pid == 0) {
+        chdir ('@abs_top_srcdir@/tests')
+            or die "can't chdir to @abs_top_srcdir@: $!\n";
+        exec ('@abs_top_builddir@/server/remctld', '-m', '-p', '14373',
+              (defined ($princ) ? ('-s', $princ) : ()),
+              '-P', '@abs_top_builddir@/tests/data/pid',
+              '-f', 'data/conf-simple',
+              '-d', '-S', '-F', '-k',
+              '@abs_top_builddir@/tests/data/test.keytab')
+            or die "cannot exec @abs_top_builddir@/server/remctld: $!\n";
+    }
+}
+
+# Stop the running test remctld.
+sub stop_remctld {
+    if (open (PID, 'data/pid')) {
+        my $pid = <PID>;
+        chomp $pid;
+        kill (15, $pid);
+        unlink ('data/pid');
+    }
+}
+
+# Obtain tickets, which requires iterating through several different possible
+# ways of running kinit.
+sub run_kinit {
+    $ENV{KRB5CCNAME} = 'data/test.cache';
+    my $princ = get_principal;
+    return unless $princ;
+    my @commands = ([ qw(kinit -k -t data/test.keytab), $princ ],
+                    [ qw(kinit -t data/test.keytab), $princ ],
+                    [ qw(kinit -k -K data/test.keytab), $princ ]);
+    my $status;
+    for (@commands) {
+        $status = system "@$_ > /dev/null < /dev/null";
+        if ($status == 0) {
+            return 1;
+        }
+    }
+    warn "Unable to obtain Kerberos tickets\n";
+    unless (-f 'data/pid') {
+        sleep 1;
+    }
+    stop_remctld;
+    return;
+}
+
+# Test setup.
+chdir '@abs_top_builddir@/tests';
+my $okay = (-f 'data/test.principal' && -f 'data/test.keytab');
+if ($okay) {
+    start_remctld;
+    $okay = run_kinit;
+}
+SKIP: {
+    skip "no Kerberos configuration", $total unless $okay;
+
+    sleep 1 unless -f 'data/pid';
+    die "remctld did not start" unless -f 'data/pid';
+
+    # Now we can finally run our tests.  Basic interface, success.
+    my $principal = get_principal;
+    my $result = remctl ('localhost', 14373, $principal, 'test', 'test');
+    isa_ok ($result, 'Net::Remctl::Result', 'Basic remctl return');
+    is ($result->status, 0, '... exit status');
+    is ($result->stdout, "hello world\n", '... stdout output');
+    is ($result->stderr, undef, '... stderr output');
+    is ($result->error, undef, '... error return');
+
+    # Basic interface, failure.
+    $result = remctl ('localhost', 14373, $principal, 'test', 'bad-command');
+    isa_ok ($result, 'Net::Remctl::Result', 'Error remctl return');
+    is ($result->status, 0, '... exit status');
+    is ($result->stdout, undef, '... stdout output');
+    is ($result->stderr, undef, '... stderr output');
+    is ($result->error, 'Unknown command', '... error return');
+
+    # Complex interface, success.
+    my $remctl = Net::Remctl->new;
+    isa_ok ($remctl, 'Net::Remctl', 'Object');
+    is ($remctl->error, 'no error', '... no error set');
+    ok ($remctl->open ('localhost', 14373, $principal), 'Connect to server');
+    is ($remctl->error, 'no error', '... no error set');
+    ok ($remctl->command ('test', 'test'), 'Send successful command');
+    is ($remctl->error, 'no error', '... no error set');
+    my $output = $remctl->output;
+    isa_ok ($output, 'Net::Remctl::Output', 'Output token');
+    is ($output->type, 'output', '... of type output');
+    is ($output->length, 12, '... and length 12');
+    is ($output->data, "hello world\n", '... with the right data');
+    is ($output->stream, 1, '... and the right stream');
+    $output = $remctl->output;
+    isa_ok ($output, 'Net::Remctl::Output', 'Second output token');
+    is ($output->type, 'status', '... of type status');
+    is ($output->status, 0, '... with status 0');
+
+    # Complex interface, failure.
+    ok ($remctl->command ('test', 'bad-command'), 'Send failing command');
+    is ($remctl->error, 'no error', '... no error set');
+    $output = $remctl->output;
+    isa_ok ($output, 'Net::Remctl::Output', 'Output token');
+    is ($output->type, 'error', '... of type error');
+    is ($output->data, 'Unknown command', '... with the error message');
+    is ($output->error, 5, '... and the right code');
+}
+
+END {
+    stop_remctld;
+}

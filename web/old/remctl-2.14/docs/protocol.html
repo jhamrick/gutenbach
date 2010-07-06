@@ -1,0 +1,624 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en"><head><title>remctl Protocol: remctl: Remote Authenticated Command Service</title>
+<meta http-equiv="Expires" content="Fri, 22 May 2009 23:07:44 +0000">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="description" content="remctl: Remote Authenticated Command Service">
+<meta name="generator" content="xml2rfc v1.33 (http://xml.resource.org/)">
+<style type='text/css'><!--
+        body {
+                font-family: verdana, charcoal, helvetica, arial, sans-serif;
+                font-size: small; color: #000; background-color: #FFF;
+                margin: 2em;
+        }
+        h1, h2, h3, h4, h5, h6 {
+                font-family: helvetica, monaco, "MS Sans Serif", arial, sans-serif;
+                font-weight: bold; font-style: normal;
+        }
+        h1 { color: #900; background-color: transparent; text-align: right; }
+        h3 { color: #333; background-color: transparent; }
+
+        td.RFCbug {
+                font-size: x-small; text-decoration: none;
+                width: 30px; height: 30px; padding-top: 2px;
+                text-align: justify; vertical-align: middle;
+                background-color: #000;
+        }
+        td.RFCbug span.RFC {
+                font-family: monaco, charcoal, geneva, "MS Sans Serif", helvetica, verdana, sans-serif;
+                font-weight: bold; color: #666;
+        }
+        td.RFCbug span.hotText {
+                font-family: charcoal, monaco, geneva, "MS Sans Serif", helvetica, verdana, sans-serif;
+                font-weight: normal; text-align: center; color: #FFF;
+        }
+
+        table.TOCbug { width: 30px; height: 15px; }
+        td.TOCbug {
+                text-align: center; width: 30px; height: 15px;
+                color: #FFF; background-color: #900;
+        }
+        td.TOCbug a {
+                font-family: monaco, charcoal, geneva, "MS Sans Serif", helvetica, sans-serif;
+                font-weight: bold; font-size: x-small; text-decoration: none;
+                color: #FFF; background-color: transparent;
+        }
+
+        td.header {
+                font-family: arial, helvetica, sans-serif; font-size: x-small;
+                vertical-align: top; width: 33%;
+                color: #FFF; background-color: #666;
+        }
+        td.author { font-weight: bold; font-size: x-small; margin-left: 4em; }
+        td.author-text { font-size: x-small; }
+
+        /* info code from SantaKlauss at http://www.madaboutstyle.com/tooltip2.html */
+        a.info {
+                /* This is the key. */
+                position: relative;
+                z-index: 24;
+                text-decoration: none;
+        }
+        a.info:hover {
+                z-index: 25;
+                color: #FFF; background-color: #900;
+        }
+        a.info span { display: none; }
+        a.info:hover span.info {
+                /* The span will display just on :hover state. */
+                display: block;
+                position: absolute;
+                font-size: smaller;
+                top: 2em; left: -5em; width: 15em;
+                padding: 2px; border: 1px solid #333;
+                color: #900; background-color: #EEE;
+                text-align: left;
+        }
+
+        a { font-weight: bold; }
+        a:link    { color: #900; background-color: transparent; }
+        a:visited { color: #633; background-color: transparent; }
+        a:active  { color: #633; background-color: transparent; }
+
+        p { margin-left: 2em; margin-right: 2em; }
+        p.copyright { font-size: x-small; }
+        p.toc { font-size: small; font-weight: bold; margin-left: 3em; }
+        table.toc { margin: 0 0 0 3em; padding: 0; border: 0; vertical-align: text-top; }
+        td.toc { font-size: small; font-weight: bold; vertical-align: text-top; }
+
+        ol.text { margin-left: 2em; margin-right: 2em; }
+        ul.text { margin-left: 2em; margin-right: 2em; }
+        li      { margin-left: 3em; }
+
+        /* RFC-2629 <spanx>s and <artwork>s. */
+        em     { font-style: italic; }
+        strong { font-weight: bold; }
+        dfn    { font-weight: bold; font-style: normal; }
+        cite   { font-weight: normal; font-style: normal; }
+        tt     { color: #036; }
+        tt, pre, pre dfn, pre em, pre cite, pre span {
+                font-family: "Courier New", Courier, monospace; font-size: small;
+        }
+        pre {
+                text-align: left; padding: 4px;
+                color: #000; background-color: #CCC;
+        }
+        pre dfn  { color: #900; }
+        pre em   { color: #66F; background-color: #FFC; font-weight: normal; }
+        pre .key { color: #33C; font-weight: bold; }
+        pre .id  { color: #900; }
+        pre .str { color: #000; background-color: #CFF; }
+        pre .val { color: #066; }
+        pre .rep { color: #909; }
+        pre .oth { color: #000; background-color: #FCF; }
+        pre .err { background-color: #FCC; }
+
+        /* RFC-2629 <texttable>s. */
+        table.all, table.full, table.headers, table.none {
+                font-size: small; text-align: center; border-width: 2px;
+                vertical-align: top; border-collapse: collapse;
+        }
+        table.all, table.full { border-style: solid; border-color: black; }
+        table.headers, table.none { border-style: none; }
+        th {
+                font-weight: bold; border-color: black;
+                border-width: 2px 2px 3px 2px;
+        }
+        table.all th, table.full th { border-style: solid; }
+        table.headers th { border-style: none none solid none; }
+        table.none th { border-style: none; }
+        table.all td {
+                border-style: solid; border-color: #333;
+                border-width: 1px 2px;
+        }
+        table.full td, table.headers td, table.none td { border-style: none; }
+
+        hr { height: 1px; }
+        hr.insert {
+                width: 80%; border-style: none; border-width: 0;
+                color: #CCC; background-color: #CCC;
+        }
+--></style>
+</head>
+<body>
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<table summary="layout" width="66%" border="0" cellpadding="0" cellspacing="0"><tr><td><table summary="layout" width="100%" border="0" cellpadding="2" cellspacing="1">
+<tr><td class="header">remctl Protocol</td><td class="header">R. Allbery</td></tr>
+<tr><td class="header">&nbsp;</td><td class="header">Stanford University</td></tr>
+<tr><td class="header">&nbsp;</td><td class="header">September 2007</td></tr>
+</table></td></tr></table>
+<h1><br />remctl: Remote Authenticated Command Service</h1>
+
+<h3>Abstract</h3>
+
+<p>This document specifies the remctl wire protocol, used to send
+      commands and arguments to a remote system and receive the results of
+      executing that command.  The protocol uses GSS-API and Kerberos v5
+      for authentication, confidentiality, and integrity protection.  Both
+      the current (version 2) protocol and the older version 1 protocol
+      are described.  The version 1 protocol should only be implemented
+      for backward compatibility.
+</p><a name="toc"></a><br /><hr />
+<h3>Table of Contents</h3>
+<p class="toc">
+<a href="#format">1.</a>&nbsp;
+Basic Packet Format<br />
+<a href="#proto2">2.</a>&nbsp;
+Network Protocol (version 2)<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#packet">2.1.</a>&nbsp;
+Session Sequence<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#messages">2.2.</a>&nbsp;
+Message Format<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#negotiation">2.3.</a>&nbsp;
+Protocol Version Negotiation<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#command">2.4.</a>&nbsp;
+MESSAGE_COMMAND<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#output">2.5.</a>&nbsp;
+MESSAGE_OUTPUT and MESSAGE_STATUS<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#error">2.6.</a>&nbsp;
+MESSAGE_ERROR<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#quit">2.7.</a>&nbsp;
+MESSAGE_QUIT<br />
+<a href="#proto1">3.</a>&nbsp;
+Network Protocol (version 1)<br />
+<a href="#security">4.</a>&nbsp;
+Security Considerations<br />
+<a href="#credits">Appendix&nbsp;A.</a>&nbsp;
+Acknowledgements<br />
+<a href="#rfc.authors">&#167;</a>&nbsp;
+Author's Address<br />
+</p>
+<br clear="all" />
+
+<a name="format"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.1"></a><h3>1.&nbsp;
+Basic Packet Format</h3>
+
+<p>The remctl network protocol consists of data packets sent from a
+      client to a server or a server to a client over a TCP connection.
+      The remctl protocol may be used over any port, but the
+      IANA-registered port and the RECOMMENDED default for the protocol is
+      4373.  Each data packet has the following format:
+</p><div style='display: table; width: 0; margin-left: 3em; margin-right: auto'><pre>
+    1 octet     flags
+    4 octets    length
+    &lt;length&gt;    data payload
+</pre></div>
+<p>The total size of each token, including the five octet prefix,
+      MUST NOT be larger than 1,048,576 octets (1MB).
+</p>
+<p>The flag octet contains one or more of the following
+        values, combined with binary xor:
+</p><div style='display: table; width: 0; margin-left: 3em; margin-right: auto'><pre>
+    0x01        TOKEN_NOOP
+    0x02        TOKEN_CONTEXT
+    0x04        TOKEN_DATA
+    0x08        TOKEN_MIC
+    0x10        TOKEN_CONTEXT_NEXT
+    0x20        TOKEN_SEND_MIC
+    0x40        TOKEN_PROTOCOL
+</pre></div>
+<p>Only TOKEN_CONTEXT, TOKEN_CONTEXT_NEXT, TOKEN_DATA, and
+        TOKEN_PROTOCOL are used for version 2 packets.  The other flags
+        are used only with the legacy version 1 protocol.
+</p>
+<p>The length field is a four-octet length in network byte order,
+      specifying the number of octets in the following data payload.
+</p>
+<p>The data payload is empty, the results of gss_accept_sec_context,
+      the results of gss_init_sec_context, or a data payload protected
+      with gss_wrap.  The length of the data passed to gss_wrap MUST NOT
+      be larger than 65,536 octets (64KB), even if the underlying Kerberos
+      implementation supports longer input buffers.
+</p>
+<a name="proto2"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.2"></a><h3>2.&nbsp;
+Network Protocol (version 2)</h3>
+
+<a name="packet"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.2.1"></a><h3>2.1.&nbsp;
+Session Sequence</h3>
+
+<p>A remctl connection is always initiated by a client opening a
+        TCP connection to a server.  The protocol then proceeds as
+        follows:
+          </p>
+<ol class="text">
+<li>Client sends message with an empty payload and flags
+            TOKEN_NOOP, TOKEN_CONTEXT_NEXT, and TOKEN_PROTOCOL (0x51).  If
+            the client doesn't include TOKEN_PROTOCOL, it is speaking the
+            version 1 protocol, and the server MUST either drop the
+            connection or fall back to the version 1 protocol.  This
+            initial message is useless in a pure version 2 protocol world
+            and is done only for backward compatibility with the version 1
+            protocol.
+</li>
+<li>Client calls gss_init_sec_context and replies with the
+            results and TOKEN_CONTEXT and TOKEN_PROTOCOL (0x42).  The
+            client MUST pass GSS_C_MUTUAL_FLAG, GSS_C_CONF_FLAG, and
+            GSS_C_INTEG_FLAG as requested flags and SHOULD pass
+            GSS_C_REPLAY_FLAG and GSS_C_SEQUENCE_FLAG.
+</li>
+<li>Server replies with the results of gss_accept_sec_context
+            and flags TOKEN_CONTEXT and TOKEN_PROTOCOL (0x42).  If the
+            server doesn't include TOKEN_PROTOCOL in the flags, it is
+            speaking the version 1 protocol, and the client MUST either
+            drop the connection or fall back to the version 1
+            protocol.
+</li>
+<li>Client passes data to gss_init_sec_context and replies with
+            the results and TOKEN_CONTEXT and TOKEN_PROTOCOL (0x42).  The
+            client must pass GSS_C_MUTUAL_FLAG, GSS_C_CONF_FLAG, and
+            GSS_C_INTEG_FLAG as requested flags and SHOULD pass
+            GSS_C_REPLAY_FLAG and GSS_C_SEQUENCE_FLAG.
+</li>
+<li>Server and client repeat, passing in the payload from the
+            last packet from the other side, for as long as GSS-API
+            indicates that continuation is required.  If either side drops
+            TOKEN_PROTOCOL from the flags, it is an considered an error
+            and the connect MUST be dropped.  (This could be a
+            down-negotiation attack.)  After the establishment of the
+            security context, both client and server MUST confirm that
+            GSS_C_MUTUAL_FLAG, GSS_C_CONF_FLAG, and GSS_C_INTEG_FLAG are
+            set in the resulting security context and MUST immediately
+            close the connection if this is not the case.
+</li>
+<li>After the security context has been established, the client
+            and server exchange commands and responses as described below.
+            All commands are sent with flags TOKEN_DATA and TOKEN_PROTOCOL
+            (0x44) and the data payload of all packets is protected with
+            gss_wrap.  The conf_req_flag parameter of gss_wrap MUST be set
+            to non-zero, requesting both confidentiality and integrity
+            services.
+</li>
+</ol><p>
+        
+</p>
+<a name="messages"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.2.2"></a><h3>2.2.&nbsp;
+Message Format</h3>
+
+<p>All client and server messages will use the following format
+        inside the data payload.  This is the format of the message before
+        passing it to gss_wrap for confidentiality and integrity
+        protection.
+</p><div style='display: table; width: 0; margin-left: 3em; margin-right: auto'><pre>
+    1 octet     protocol version
+    1 octet     message type
+    &lt;command-specific data&gt;
+</pre></div>
+<p>The protocol version for the version 2 protocol is 2.  (Note
+        that the version 1 protocol does not use this message format, and
+        therefore a protocol version of 1 is invalid.)  See below for
+        protocol version negotiation.
+</p>
+<p>The message type is one of the following
+          constants:
+</p><div style='display: table; width: 0; margin-left: 3em; margin-right: auto'><pre>
+    1   MESSAGE_COMMAND
+    2   MESSAGE_QUIT
+    3   MESSAGE_OUTPUT
+    4   MESSAGE_STATUS
+    5   MESSAGE_ERROR
+    6   MESSAGE_VERSION
+</pre></div>
+<p>The first two message types are client messages and MUST NOT be
+        sent by the server.  The remaining message types are server messages
+        and MUST NOT by sent by the client.
+</p>
+<a name="negotiation"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.2.3"></a><h3>2.3.&nbsp;
+Protocol Version Negotiation</h3>
+
+<p>If the server ever receives a message from a client that claims a
+        protocol version higher than the server supports, the server MUST
+        otherwise ignore the contents of the message and SHOULD respond with
+        a message type of MESSAGE_VERSION and the following message
+        payload:
+</p><div style='display: table; width: 0; margin-left: 3em; margin-right: auto'><pre>
+    1 octet     highest supported version
+</pre></div>
+<p>The client MUST then either send only messages supported at
+        that protocol version or lower or send MESSAGE_QUIT and close the
+        connection.
+</p>
+<a name="command"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.2.4"></a><h3>2.4.&nbsp;
+MESSAGE_COMMAND</h3>
+
+<p>Most client messages will be of type MESSAGE_COMMAND, which has
+        the following format:
+</p><div style='display: table; width: 0; margin-left: 3em; margin-right: auto'><pre>
+    1 octet     keep-alive flag
+    1 octet     continue status
+    4 octets    number of arguments
+    4 octets    argument length
+    &lt;length&gt;    argument
+    ...
+</pre></div>
+<p>If the keep-alive flag is 0, the server SHOULD close the
+        connection after processing the command.  If it is 1, the server
+        SHOULD leave the connection open (up to a timeout period) and wait
+        for more commands.  This is similar to HTTP keep-alive.
+</p>
+<p>If the continue status is 1, it indicates that there is more
+        data coming.  The server should accept the data sent, buffer or
+        process it, and wait for more data before responding.  If the the
+        continue status is 2, it indicates that this message is logically
+        a part of the previous message (which MUST have had a continue
+        status of 1 or 2) and still has more data coming.  If the continue
+        status is 3, it says that this message is logically part of the
+        previous message, like 2, but it also says that this is the end of
+        the command.
+</p>
+<p>A continuation of a message starts with the keep-alive flag and
+        continue status and then the next chunk of data.  To reconstruct a
+        continued message, remove the first two octets from each chunk and
+        concatenate the pieces together.  The result is the portion of a
+        MESSAGE_COMMAND starting with the number of arguments.  Messages
+        may be broken into multiple MESSAGE_COMMANDs even in the middle of
+        the number of arguments or an argument length.  In other words,
+        the first three octets of the number of arguments could be in the
+        first MESSAGE_COMMAND (with continue status 1) and the last octet
+        would then be in the next MESSAGE_COMMAND (with continue status 2
+        or 3).
+</p>
+<p>Number of arguments is a four-octet number in network byte
+        order that gives the total number of command arguments.  For each
+        argument, there is then a length and argument data pair, where the
+        length is a four-octet number in network byte order indicating the
+        number of octets of data in the following argument.  Argument
+        length may be 0.  Commands with no arguments are permitted by the
+        protocol.
+</p>
+<p>Servers may impose limits on the number of arguments and the
+        size of argument data to limit resource usage.  If the client
+        message exceeds one of those limits, the server MUST respond with
+        MESSAGE_ERROR with an error code of ERROR_TOOMANY_ARGS or
+        ERROR_TOOMUCH_DATA as appropriate.
+</p>
+<a name="output"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.2.5"></a><h3>2.5.&nbsp;
+MESSAGE_OUTPUT and MESSAGE_STATUS</h3>
+
+<p>The server response to MESSAGE_COMMAND is zero or more
+        MESSAGE_OUTPUT messages followed by either a MESSAGE_STATUS or a
+        MESSAGE_ERROR response.  Each MESSAGE_OUTPUT message has the
+        following format:
+</p><div style='display: table; width: 0; margin-left: 3em; margin-right: auto'><pre>
+    1 octet     output stream
+    4 octets    output length
+    &lt;length&gt;    output
+</pre></div>
+<p>The output stream is either 1 for standard output or 2 for
+        standard error.  Output length is a four-octet number in network
+        byte order that specifies the length of the following output
+        data.
+</p>
+<p>The MESSAGE_STATUS message has the following format:
+</p><div style='display: table; width: 0; margin-left: 3em; margin-right: auto'><pre>
+    1 octet     exit status
+</pre></div>
+<p>MESSAGE_STATUS indicates the command has finished and returns
+        the final exit stauts of the command.  Exit status is 0 for
+        success and non-zero for failure, where the meaning of non-zero
+        exit statuses is left to the application to define.  (This is
+        identical to a Unix command exit status.)
+</p>
+<p>Unless the MESSAGE_COMMAND message from the client had the
+        keep-alive flag set to 1, the server MUST close the network
+        connection immediately after sending the MESSAGE_STATUS response
+        message.
+</p>
+<a name="error"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.2.6"></a><h3>2.6.&nbsp;
+MESSAGE_ERROR</h3>
+
+<p>At any point before sending MESSAGE_STATUS, the server may
+        respond with MESSAGE_ERROR if some error occurred.  This can be
+        the first response after a MESSAGE_COMMAND, or it may be sent
+        after one or more MESSAGE_OUTPUT messages.  The format of
+        MESSAGE_ERROR is as follows:
+</p><div style='display: table; width: 0; margin-left: 3em; margin-right: auto'><pre>
+    4 octets    error code
+    4 octets    message length
+    &lt;length&gt;    error message
+</pre></div>
+<p>The error code is a four-octet number in network byte order
+        indicating the type of error.  The error code may be one of the
+        following values:
+</p><div style='display: table; width: 0; margin-left: 3em; margin-right: auto'><pre>
+    1  ERROR_INTERNAL           Internal server failure
+    2  ERROR_BAD_TOKEN          Invalid format in token
+    3  ERROR_UNKNOWN_MESSAGE    Unknown message type
+    4  ERROR_BAD_COMMAND        Invalid command format in token
+    5  ERROR_UNKNOWN_COMMAND    Unknown command
+    6  ERROR_ACCESS             Access denied
+    7  ERROR_TOOMANY_ARGS       Argument count exceeds server limit
+    8  ERROR_TOOMUCH_DATA       Argument size exceeds server limit
+</pre></div>
+<p>Additional error codes may be added without changing the
+        version of the remctl protocol, so clients MUST accept error codes
+        other than the ones above.
+</p>
+<p>The message length is a four-octet number in network byte order
+        that specifies the length in octets of the following error
+        message.  The error message is a free-form informational message
+        intended for human consumption and MUST NOT be interpreted by an
+        automated process.  Software should instead use the error
+        code.
+</p>
+<p>Unless the MESSAGE_COMMAND message from the client had the
+        keep-alive flag set to 1, the server MUST close the network
+        connection immediately after sending the MESSAGE_ERROR response
+        message.  Otherwise, the server SHOULD still honor that flag,
+        although the server MAY terminate the connection after an
+        unreasonable number of errors.
+</p>
+<a name="quit"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.2.7"></a><h3>2.7.&nbsp;
+MESSAGE_QUIT</h3>
+
+<p>MESSAGE_QUIT is a way of terminating the connection cleanly if
+        the client asked for keep-alive and then decided not to use it.
+        There is no message body.  Upon receiving this message, the server
+        MUST immediately close the connection.
+</p>
+<a name="proto1"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.3"></a><h3>3.&nbsp;
+Network Protocol (version 1)</h3>
+
+<p>The old network protocol supported only 64KB of data payload,
+      only a single command and response, and had some additional
+      unnecessary protocol components.  It SHOULD NOT be used by clients,
+      but MAY be supported by servers for backward compatibility.  It is
+      recognized by the server and client by the lack of TOKEN_PROTOCOL in
+      the flags of the initial security context negotiation.
+</p>
+<p>The old protocol always uses the following steps:
+        </p>
+<ol class="text">
+<li>Client opens TCP connection to server.
+</li>
+<li>Client sends message with flags TOKEN_NOOP and
+          TOKEN_CONTEXT_NEXT and an empty payload.
+</li>
+<li>Client calls gss_init_sec_context and sends message with the
+          results and flags TOKEN_CONTEXT.  The client MUST pass
+          GSS_C_MUTUAL_FLAG, GSS_C_CONF_FLAG, and GSS_C_INTEG_FLAG as
+          requested flags and SHOULD pass GSS_C_REPLAY_FLAG and
+          GSS_C_SEQUENCE_FLAG, although the version one protocol does not
+          check the results of this negotiation.
+</li>
+<li>Server replies with the results of gss_accept_sec_context and
+          flags TOKEN_CONTEXT.
+</li>
+<li>Client calls gss_init_sec_context again with the data from
+          the server and replies with the results and flags TOKEN_CONTEXT,
+          using the same requested flags as described above.
+</li>
+<li>Server and client repeat, passing in the payload from the
+          last packet from the other side, for as long as GSS-API
+          indicates that continuation is required.  Each of these packets
+          have only TOKEN_CONTEXT set in the flags.
+</li>
+<li>Client sends command with flags TOKEN_DATA and TOKEN_SEND_MIC
+          and the following payload format:  four-octet number of
+          arguments, and then for each argument, a four-octet length and
+          then the argument value.  All numbers are in network type order.
+          The payload MUST be protected with gss_wrap and the
+          conf_req_flag parameter of gss_wrap MUST be set to non-zero,
+          requesting both confidentiality and integrity services.
+</li>
+<li>Server accepts and decrypts data, generates a MIC with
+          gss_get_mic, and sends the MIC back to the client with flags
+          TOKEN_MIC.  This is the only packet that isn't encrypted with
+          gss_wrap.  Client receives and then SHOULD verify this MIC.
+</li>
+<li>Server runs the command, collects the output, and sends the
+          output back with flags TOKEN_DATA and the following payload
+          format:  four-octet exit status, four-octet data length, data.
+          All numbers are in network byte order.  The exit status is 0 if
+          there were no errors and non-zero otherwise, where the meaning
+          of non-zero values are defined by the application.  The payload
+          MUST be protected with gss_wrap with a conf_req_flag set to
+          non-zero.
+</li>
+<li>Server and client close connection.
+</li>
+</ol><p>
+      
+</p>
+<a name="security"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.4"></a><h3>4.&nbsp;
+Security Considerations</h3>
+
+<p>It would be preferrable to insist on replay and sequence
+      protection (GSS_C_REPLAY_FLAG and GSS_C_SEQUENCE_FLAG) for all
+      contexts, but some older Kerberos GSS-API implementations don't
+      support this and hence it is not mandatory in the protocol.  Clients
+      SHOULD always request replay and sequence protection, however, and
+      servers MAY require such protection be negotiated.
+</p>
+<p>The old protocol doesn't provide integrity protection for the
+      flags, but since it always follows the same fixed sequence of
+      operations, this should pose no security concerns in practice.  The
+      new protocol only uses the flag field outside of the encrypted
+      section of the packet for initial negotiation and closes the
+      connection if the flags aren't what was expected (avoiding a
+      down-negotiation attack).
+</p>
+<p>In the old protocol, the server calculated and sent a MIC back to
+      the client, which then verified that the command as received by the
+      server was correct.  Not only does GSS-API already provide integrity
+      protection, but this verification also happens after the server has
+      already started running the command.  It has been dropped in the new
+      protocol.
+</p>
+<p>The old protocol doesn't require the client and server check the
+      results of the GSS-API flag negotiation, although all old protocol
+      clients passed GSS_C_MUTUAL_FLAG.  However, the old protocol
+      requires gss_wrap be used for all payload with conf_req_flag set to
+      non-zero, so any context that didn't negotiate confidentiality and
+      integrity services would fail later.
+</p>
+<a name="credits"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.A"></a><h3>Appendix A.&nbsp;
+Acknowledgements</h3>
+
+<p>The original remctl protocol design was done by Anton Ushakov,
+      with input from Russ Allbery and Roland Schemers.  Thank you to
+      David Hoffman and Mike Newton for their review of the version 2
+      remctl protocol.
+</p>
+<a name="rfc.authors"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<h3>Author's Address</h3>
+<table width="99%" border="0" cellpadding="0" cellspacing="0">
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">Russ Allbery</td></tr>
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">Stanford University</td></tr>
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">255 Panama Street, MC 4136</td></tr>
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">Stanford, CA  94305-4136</td></tr>
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">US</td></tr>
+<tr><td class="author" align="right">Email:&nbsp;</td>
+<td class="author-text"><a href="mailto:rra@stanford.edu">rra@stanford.edu</a></td></tr>
+<tr><td class="author" align="right">URI:&nbsp;</td>
+<td class="author-text"><a href="http://www.eyrie.org/~eagle/">http://www.eyrie.org/~eagle/</a></td></tr>
+</table>
+</body></html>

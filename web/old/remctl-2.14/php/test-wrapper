@@ -1,0 +1,119 @@
+#! /bin/sh
+#
+# This wrapper exists for two reasons: to work around a bug in the
+# phpize-generated test suite on Debian, and because I'm not a PHP programmer
+# and didn't want to figure out how to spawn a test version of remctld inside
+# PHP.
+#
+# This script starts a remctl server, if the right configuration is available,
+# and works around the Debian bug, then runs make test, and then cleans up.
+# It takes the path to the top of the remctl build directory and the top of
+# the source directory as its arguments and should be run from the php
+# directory.
+#
+# Written by Russ Allbery <rra@stanford.edu>
+# Copyright 2008, 2009 Board of Trustees, Leland Stanford Jr. University
+#
+# See LICENSE for licensing terms.
+
+if [ -z "$1" ] ; then
+    echo 'Missing top build directory argument' >&2
+    exit 1
+fi
+top="$1"
+if [ -z "$2" ] ; then
+    echo 'Missing top source directory argument' >&2
+    exit 1
+fi
+source="$2"
+
+# Debian loads additional modules from /etc/php5/cli/conf.d, and the test
+# framework doesn't deal with this.  PHP only allows one module directory, so
+# when the test framework overrides the module directory, none of the standard
+# modules can be found.  This causes initialization to fail and the tests to
+# fail.
+#
+# Work around it by extracting the regular PHP module directory from the
+# generated Makefile and then symlinking all modules in that directory into
+# the modules/ subdirectory used by the test suite.
+path=`grep '^EXTENSION_DIR *=' Makefile | sed 's/.* //'`
+if [ -z "$path" ] ; then
+    echo 'Cannot find EXTENSION_DIR in Makefile' >&2
+    exit 1
+fi
+for module in "$path"/*.so ; do
+    name=`basename "$module"`
+    if [ "$name" = "remctl.so" ] ; then
+        continue
+    fi
+    ln -s "$module" modules/"$name"
+done
+
+# Check whether we have a Kerberos configuration.  If we do, we'll start a
+# remctl daemon and obtain a local ticket cache, and then touch a file telling
+# PHP to do the tests that require authentication.
+if [ -f "$top/tests/data/test.keytab" ] ; then
+    rm -f remctl-test.pid
+    principal=`cat "$top/tests/data/test.principal"`
+    keytab="$top/tests/data/test.keytab"
+    ( cd "$source/tests" && "$top/server/remctld" -m -p 14373 \
+        -s "$principal" -P "$top/php/remctl-test.pid" -f "data/conf-simple" \
+        -d -S -F -k "$keytab" 2>&1 &) > remctl-test.out
+
+    # Try a few different syntaxes for kinit to allow for Heimdal, MIT, or the
+    # Stanford-local hack.
+    KRB5CCNAME="`pwd`"/remctl-test.cache
+    export KRB5CCNAME
+    kinit -k -t "$keytab" "$principal" >/dev/null </dev/null
+    status=$?
+    if [ $status != 0 ] ; then
+        kinit -t "$keytab" "$principal" >/dev/null </dev/null
+        status=$?
+    fi
+    if [ $status != 0 ] ; then
+        kinit -k -K "$keytab" "$principal" >/dev/null </dev/null
+        status=$?
+    fi
+
+    # Wait for the remctl server to finish starting.  Then, if we couldn't get
+    # Kerberos tickets, kill the remctl server.
+    [ -f remctl-test.pid ] || sleep 1
+    if [ $status != 0 ] ; then
+        echo 'Unable to obtain Kerberos tickets' >&2
+        if [ -f remctl-test.pid ] ; then
+            kill -HUP `cat remctl-test.pid`
+        fi
+        rm -f remctl-test.pid
+    else
+        if [ ! -f remctl-test.pid ] ; then
+            echo 'remctld did not start' >&2
+        else
+            echo "$principal" > remctl-test.princ
+        fi
+    fi
+fi
+
+# Now we can finally run the tests, which will use remctl-test.pid as a flag
+# for whether to try the Kerberos tests.
+env LD_LIBRARY_PATH="$top"/client/.libs make test
+status=$?
+
+# Kill the remctl server.
+rm -f remctl-test.cache remctl-test.princ
+if [ "$status" = 0 ] ; then
+    rm -f remctl-test.out
+fi
+if [ -f remctl-test.pid ] ; then
+    kill -TERM `cat remctl-test.pid`
+    rm -f remctl-test.pid
+fi
+
+# Clean up our symlinks.
+for file in modules/* ; do
+    if [ `basename "$file"` != remctl.so ] ; then
+        rm "$file"
+    fi
+done
+
+# Exit with the exit status of the tests.
+exit "$status"

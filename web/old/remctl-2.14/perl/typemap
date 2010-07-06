@@ -1,0 +1,32 @@
+# Typemap file for the Perl bindings to the remctl client library.
+#
+# Written by Russ Allbery <rra@stanford.edu>
+# Copyright 2007 Board of Trustees, Leland Stanford Jr. University
+#
+# See LICENSE for licensing terms.
+
+TYPEMAP
+
+Net::Remctl             T_PTROBJ_NU
+Net::Remctl::Result	T_PTROBJ_NU
+Net::Remctl::Output	T_PTROBJ_NU
+
+INPUT
+
+T_PTROBJ_NU
+    if ($arg == &PL_sv_undef) {
+        $var = NULL;
+    } else if (sv_isa($arg, \"${ntype}\")) {
+        IV tmp = SvIV((SV *) SvRV($arg));
+        $var = INT2PTR($type, tmp);
+    } else {
+        croak(\"$var is not of type ${ntype}\");
+    }
+
+OUTPUT
+
+T_PTROBJ_NU
+    if ($var == NULL)
+        $arg = &PL_sv_undef;
+    else
+        sv_setref_pv($arg, \"${ntype}\", (void *) $var);

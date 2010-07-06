@@ -1,0 +1,1 @@
+foo bar /usr/bin/true logmask=1,biteme ANYUSER

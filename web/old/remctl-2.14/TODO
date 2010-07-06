@@ -1,0 +1,155 @@
+                            remctl To-Do List
+
+Protocol:
+
+ * Add support for running commands as filters, passing standard input
+   asynchronously from the client.  This requires significant
+   re-engineering of the client loop and should wait for better
+   configuration since we don't want to do this with every command.  It
+   also introduces out-of-order responses and possible deadlocks to the
+   protocol.  docs/protocol-v3 has an initial draft.
+
+Server:
+
+ * Add support for built-in command summaries.  A command of help with no
+   subcommand would provide a list of all commands that the authenticated
+   user is permitted to run.  To do this, add a configuration option of
+   summary=<arg> to the config syntax for commands that will display a
+   summary of their supported subcommands if given <arg>.  Then, for any
+   "<command> ANY" lines the user is authorized to run, run the binary
+   with "<arg>" as the arguments, and for any "<command> <subcommand>"
+   lines, run the binary with "<arg> <subcommand>" as the arguments,
+   returning the output.
+
+ * Add support for in-depth help for a particular command.  A command of
+   "help <command>" would provide help for that command if the user was
+   authorized to run that command with its help subcommand, and a command
+   of "help <command> <subcommand>" would provide help for that command
+   and subcommand if the user is authorized to run both the help
+   subcommand and the specified one.  To implement, add a configuration
+   option of help=<arg> to the config syntax for commands that support
+   help, and then run the command with "<arg>" as the arguments for the
+   first case and "<arg> subcommand" as the arguments for the second
+   case.
+
+ * Allow a more expressive configuration syntax that can set more options
+   per command.  Among the things we want to configure (besides the
+   logmask configuration we already have) are changing users before
+   running the command, specifying an argument to pass on standard input
+   (see below), or supporting things like LDAP ACLs.
+
+ * Maximum argument count and maximum data size in MESSAGE_COMMAND should
+   be configurable parameters of the server rather than hard-coded
+   values.  This may need to wait for better configuration parsing.
+
+ * Support LDAP-based ACLs in addition to file system ACLs.
+
+ * Add support for external ACL checking programs.  If the program exits
+   with a zero status, access is granted.  If it exits 1, access is not
+   granted but checking continues.  If it exits with any other exit
+   status, access is not granted and checking aborts.
+
+   Ideally, for writing generic ACL checking programs, the program should
+   get the type and service of the remctl command as well as any
+   arguments.  However, it would also be good to support passing other
+   arguments into the program as specified in the ACL file.
+
+ * Possibly support binding to both the new and the old port in the
+   standalone server for backward compatibility (only if requested by
+   another flag).
+
+ * Sort the files in a directory before processing them so that the order
+   is deterministic.  Affects both configuration (earlier entries
+   override later ones) and ACL rules in the presence of deny ACLs.
+
+ * Provide a way to specify handling of the empty command and then permit
+   it rather than returning a syntax error.
+
+ * Add a timeout for commands after which the server kills the command.
+
+ * Support binding to an IPv6 address.  Currently, the server only
+   supports IPv4.
+
+ * The server should call gss_inquire_context to retrieve the mechanism
+   OID and then pass that in to calls to gssapi_error_string rather than
+   hard-coding the Kerberos v5 OID.
+
+Client:
+
+ * Allow sending commands with no subcommands in the command-line client.
+
+ * Implement file upload in the remctl client.
+
+ * Add readline support to the remctl client for multiple commands to the
+   same server in the same authenticated session.
+
+ * Support setting a timeout and failing the remctl call if the server
+   takes too long to connect or send back data.
+
+ * Add an option that prompts the user, with echo disabled, for a piece of
+   secure data, prompting twice to ensure both times match, and then sends
+   that as the last argument to the command.  This would be useful for
+   remctl interfaces to change passwords.
+
+ * Allow sending the empty command in the command-line client once the
+   server supports it.
+
+Client library:
+
+ * Add a varient of open that takes a timeout.
+
+ * The client should ideally not specify an OID for the authentication
+   mechanism and instead permit GSS-API to negotiate an appropriate
+   mechanism.  It should then call gss_inquire_context to retrieve the
+   mechanism OID and then pass that in to calls to gssapi_error_string
+   rather than hard-coding the Kerberos v5 OID.
+
+Build system:
+
+ * Add logic to detect Solaris vs. GNU ld on Solaris and pass the
+   appropriate option to use the symbol versioning map file on Solaris as
+   well.
+
+ * Incorporate a program that can generate a Kerberos ticket cache from
+   a keytab and use that for running the Kerberos tests instead of
+   requiring the user to generate a keytab.
+
+ * Add pkgconfig support for libremctl.
+
+Portability layer:
+
+ * Refactor getopt to be easier to understand and less deeply nested.
+
+Windows port:
+
+ * With more modifications, it should be possible to build remctl against
+   SSPI, the GSS-API-like interface built into Windows, and remove the
+   dependency on MIT Kerberos for Windows.  However, limitations
+   surrounding realm trusts in the Kerberos implementation in versions of
+   Windows prior to Vista would make this a less general solution.
+
+ * Support the remctl server.
+
+Java implementation:
+
+ * Fix the coding style of the Java implementation to match the coding
+   style of the rest of remctl.
+
+ * Consider reorganizing the java directory so that it already matches the
+   layout of an Apache Jakarta project rather than having ant tar shuffle
+   everything around.
+
+ * Add a JUnit test suite for the Java implementation.
+
+ * Integrate the Java build into the rest of the build system so that it
+   is enabled using an --enable-java flag similar to the bindings, finds
+   ant and a JAVA_HOME in configure, and does the JAR build in the main
+   Makefile using ant.
+
+ * Consider eliminating the simple Makefile in the java directory and
+   requiring ant.
+
+ * Java cannot obtain tickets from a ticket cache created using the
+   k5.conf file included in the java directory using the current MIT
+   Kerberos on Debian.  It has to prompt for a password and get tickets
+   itself.  Figure out why and fix it.

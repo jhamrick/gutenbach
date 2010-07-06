@@ -1,0 +1,38 @@
+=for stopwords
+remctl Allbery
+
+=head1 NAME
+
+remctl_close - Close a remctl connection and free the client object
+
+=head1 SYNOPSIS
+
+#include <remctl.h>
+
+void B<remctl_close>(struct remctl *I<r>);
+
+=head1 DESCRIPTION
+
+remctl_close() cleanly closes any connection to a remote server created
+via remctl_open() for the given client object and then frees the object
+created by remctl_new().  It should be called when the caller is finished
+with a remctl client object to avoid resource leaks.  Following the call
+to remctl_close(), the I<r> pointer to the remctl client object is no
+longer valid.
+
+remctl_close() is always successful, even if it is unable to send a clean
+protocol quit command to the remote server.
+
+=head1 SEE ALSO
+
+remctl_new(3), remctl_open(3)
+
+The current version of the remctl library and complete details of the
+remctl protocol are available from its web page at
+L<http://www.eyrie.org/~eagle/software/remctl/>.
+
+=head1 AUTHOR
+
+Russ Allbery <rra@stanford.edu>
+
+=cut

@@ -1,0 +1,25 @@
+#!/bin/sh
+#
+# Run this shell script to bootstrap as necessary after a fresh checkout.
+
+set -e
+
+autoreconf -i --force
+rm -rf autom4te.cache
+
+# Generate manual pages.
+version=`grep '^remctl' NEWS | head -1 | cut -d' ' -f2`
+pod2man --release="$version" --center="remctl" docs/remctl.pod > docs/remctl.1
+pod2man --release="$version" --center="remctl" --section=8 docs/remctld.pod \
+    > docs/remctld.8.in
+for doc in remctl remctl_close remctl_command remctl_error remctl_new \
+           remctl_open remctl_output ; do
+    pod2man --release="$version" --center="remctl Library Reference" \
+        --section=3 --name=`echo "$doc" | tr a-z A-Z` docs/api/"$doc".pod \
+        > docs/api/"$doc".3
+done
+
+# Generate protocol documentation.
+cd docs
+xml2rfc protocol.xml protocol.html
+xml2rfc protocol.xml protocol.txt

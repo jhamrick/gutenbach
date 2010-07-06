@@ -1,0 +1,220 @@
+                      remctl PECL Extension for PHP
+
+OVERVIEW
+
+  The remctl PECL extension for PHP provides PHP bindings to the libremctl
+  client library.  The provided interface is roughly the same as the C and
+  Perl interfaces, with some minor variations to be more consistent with
+  the normal PHP function interface.
+
+  This PECL extension provides two interfaces, one which performs a single
+  call to a remctl server and returns the result, and another which
+  provides more control over the connection, returns individual output
+  tokens, and allows multiple commands to be sent via the same connection.
+
+REQUIREMENTS
+
+  The module has only been tested with PHP 5.2 and may or may not work
+  with earlier versions.  As with all libremctl bindings, it does not
+  itself obtain Kerberos tickets and requires that a Kerberos ticket cache
+  already be set up before making remctl calls.
+
+  The PECL module build infrastructure is created on the fly by the
+  configure script for the main remctl package using phpize.  This means
+  that you must have phpize and all of its dependencies installed to build
+  the PECL module.
+
+SIMPLIFIED INTERFACE
+
+  remctl(HOSTNAME, PORT, PRINCIPAL, COMMAND)
+      Runs COMMAND on the remote system and returns an object containing
+      the results.  COMMAND should be an array of the command, the
+      subcommand, and any parameters.  HOSTNAME is the remote host to
+      connect to.  PORT is the port; pass 0 to use the default library
+      behavior (first try 4373 and then fall back to 4444).  PRINCIPAL is
+      the principal of the server to use for authentication; pass in the
+      empty string to use the default of host/HOSTNAME with the realm
+      determined by domain-realm mapping.
+
+  The return value of remctl() is an object which will have the following
+  properties:
+
+  error
+      The error message from the remote host or the local client library
+      if the remctl command fails.  Set to the empty string if there was
+      no error.  Checking whether error is the empty string is the
+      suppported way of determining whether the call succeeded.
+
+  stdout
+      The command's standard output or null if there was none.
+
+  stdout_len
+      The length of the command's standard output or 0 if there was none.
+
+  stderr
+      The command's standard error or null if there was none.
+
+  stderr_len
+      The length of the command's standard error or 0 if there was none.
+
+  status
+      The exit status of the command.
+
+  Here is an example using the simplified interface:
+
+      dl('remctl.so');
+      if (!extension_loaded('remctl')) {
+          echo "Failed to load remctl extension\n";
+          exit(2);
+      }
+      $command = array('test', 'echo', 'hello world');
+      $result = remctl('server.example.com', 0, '', $command);
+      if ($result->error) {
+          echo "remctl failed: $result->error\n";
+          exit(2);
+      }
+      if ($result->stdout_len) {
+          echo "stdout: $result->stdout";
+      }
+      if ($result->stderr_len) {
+          echo "stderr: $result->stderr";
+      }
+      echo "status: $result->status";
+
+  Each call to remctl() will open a new connection to the remote host and
+  close it after retrieving the results of the command.
+
+FULL INTERFACE
+
+  The full remctl interface requires the user to do more bookkeeping, but
+  provides more flexibility and visibility into what is happening at a
+  protocol level.  It allows issuing multiple commands on the same
+  persistant connection (provided that the remote server supports protocol
+  version two; if it doesn't, the library will transparently fall back to
+  opening a connection for each command).
+
+  To use the full interface, first create a connection object with
+  remctl_new(), connect to a server with remctl_open(), and then
+  issue a command with remctl_command() and read output tokens with
+  remctl_output().  Once a status token has been received, the command is
+  complete and another command can be issued.
+
+  The provided functions are:
+
+  remctl_new()
+      Create a new connection object.  This doesn't attempt to connect to
+      a host and will only fail if the extension cannot allocate memory.
+
+  remctl_error(CONNECTION)
+      Returns, as a string, the error message from the last failed
+      operation on the connection object CONNECTION.
+
+  remctl_open(CONNECTION, HOSTNAME[, PORT[, PRINCIPAL]])
+      Connect to HOSTNAME on port PORT using PRINCIPAL as the remote
+      server's principal for authentication.  If PORT is omitted or 0, use
+      the default (first try 4373, the registered remctl port, and fall
+      back to the legacy 4444 port if that fails).  If PRINCIPAL is
+      omitted or the empty string, use the default of host/HOSTNAME, with
+      the realm determined by domain-realm mapping.  Returns true on
+      success, false on failure.
+
+  remctl_command(CONNECTION, COMMAND)
+      Send COMMAND (which should be an array) to the remote host.  The
+      command may, under the remctl protocol, contain any character, but
+      be aware that most remctl servers will reject commands or arguments
+      containing ASCII 0 (NUL).  This currently therefore cannot be used
+      for upload of arbitrary unencoded binary data.  Returns true on
+      success (meaning success in sending the command and implying nothing
+      about the result of the command), and false on failure.
+
+  remctl_output(CONNECTION)
+      Returns the next output token from the remote host.  This will be an
+      object with one or more of the following properties:
+
+      type
+          The type of the output token, which will be one of "output",
+          "error", "status", or "done".  A command will result in either
+          one "error" token or zero or more "output" tokens followed by a
+          "status" token.  The output is complete as soon as any token
+          other than an "output" token has been received, but the library
+          will keep returning "done" tokens to the caller for as long as
+          remctl_output() is called without another remctl_command().
+
+      data
+          Returns the contents of the token for either an "error" or
+          "output" token.  The returned data may contain any character,
+          including ASCII 0 (NUL).
+
+      stream
+          For an "output" token, returns the stream with which the data is
+          associated.  Currently, this will either be 1 for standard
+          output or 2 for standard error.  This value is undefined for all
+          other token types.
+
+      status
+          For a "status" token, returns the exit status of the remote
+          command.  This value is undefined for all other token types.
+
+      error
+          For an "error" token, returns the remctl error code for the
+          protocol error.  The text message will be returned in data.
+
+  remctl_close(CONNECTION)
+      Explicitly close the connection and destroy the connection object.
+      This will also be done automatically when the object is destroyed,
+      so calling remctl_close explicitly is often not necessary.
+
+  Here is an example using the full interface:
+
+      dl('remctl.so');
+      if (!extension_loaded('remctl')) {
+          echo "Failed to load remctl extension\n";
+          exit(2);
+      }
+      $r = remctl_new();
+      if ($r == null) {
+          echo "remctl_new failed\n";
+          exit(2);
+      }
+      if (!remctl_open($r, 'server.example.com')) {
+          echo "remctl_open failed: " . remctl_error($r) . "\n";
+          exit(2);
+      }
+      $command = array('test', 'echo', 'hello world');
+      if (!remctl_command($r, $command)) {
+          echo "remctl_command failed: " . remctl_error($r) . "\n";
+      }
+      $output = remctl_output($r);
+      while ($output != null && $output->type != "done") {
+          switch($output->type) {
+          case "output":
+              if ($output->stream == 1) {
+                  echo "stdout: $output->data";
+              } elseif ($output->stream == 2) {
+                  echo "stderr: $output->data";
+              }
+              break;
+          case "error":
+              echo "error: $output->error ($output->data)\n";
+              break;
+          case "status":
+              echo "status: $output->status\n";
+              break;
+          default:
+              echo "unknown output token type $output->type\n";
+          }
+          $output = remctl_output($r);
+      }
+      if ($output == null) {
+          echo "remctl_output failed: " . remctl_error($r) . "\n";
+          exit(2);
+      }
+      remctl_close($r)
+
+  As mentioned above, the final remctl_close() is normally not needed.
+
+HISTORY
+
+  This binding was originally written by Andrew Mortensen. part of the
+  stock remctl distribution and ongoing maintenance is done by Russ
+  Allbery.

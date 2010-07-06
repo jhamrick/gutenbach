@@ -1,0 +1,41 @@
+#include <config.h>
+#include <winver.h>
+#include <winresrc.h>
+//
+// Version
+//
+
+VS_VERSION_INFO		VERSIONINFO
+  FILEVERSION		VERSION_MAJOR,VERSION_MINOR,0,0
+  PRODUCTVERSION	VERSION_MAJOR,VERSION_MINOR,0,0
+  FILEFLAGSMASK		VS_FFI_FILEFLAGSMASK
+
+#ifdef DEBUG
+  FILEFLAGS		 VS_FF_DEBUG
+#endif
+
+  FILEOS		VOS__WINDOWS32
+  FILETYPE		VFT_APP
+  FILESUBTYPE		0x0L
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    // 0x0409 == U.S. English; 0x04E4 => Windows Multilingual
+    BLOCK "040904E4"
+    BEGIN
+	VALUE "CompanyName",		"\0"
+	VALUE "FileDescription",	"remctl\0"
+	VALUE "FileVersion",		VERSION_MAJOR_STR ", " VERSION_MINOR_STR ", 0, 0\0"
+	VALUE "InternalName",		"REMCTL\0"
+	VALUE "LegalCopyright",		"Copyright 2002-2008 Board of Trustees, Leland Stanford Jr. University.\0"
+	VALUE "LegalTrademarks",	"\0"
+	VALUE "OriginalFilename",	"REMCTL.EXE\0"
+	VALUE "ProductName",		"remctl\0"
+	VALUE "ProductVersion",		VERSION_MAJOR_STR ", " VERSION_MINOR_STR ", 0, 0\0"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+	VALUE "Translation", 0x409, 0x4E4
+  END
+END

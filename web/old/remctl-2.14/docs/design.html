@@ -1,0 +1,192 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=Content-Type content="text/html; charset=windows-1252">
+<META content="MSHTML 6.00.2800.1106" name=GENERATOR></HEAD>
+<BODY>
+<H1>Old Remctl Design Document</H1>
+
+<P>This is the original design document for version 1.0 of remctl.  It
+is now fairly thoroughly obsolete and is included only for historical
+information and reference.</P>
+
+<H2>Design Document for Remctl</H2>
+
+<P>Anton Ushakov, November 2002.</P>
+
+<P>Conceptually remctl is an RPC service for remote execution of
+commands. However unlike many system-utility RPC services, is employs
+Kerberos authentication, fine-grained authorization, and command requests
+are mapped to predefined system executables that perform concrete services
+- the requested command is never executed directly by a shell. The a
+"type", and a "service" within that type are specified as part of the
+request and are mapped to an executable program on the server. Additional
+arguments are passed to that predefined command as parameters. Only one
+command is allowed per a transaction, with one response. </P>
+
+<P>Remctld is a deamon implemented in C and compilable on Linux, AIX and
+Solaris. The client-side program, remctl, is implemented in C and Java -
+for system independence. Authentication uses Kerberos V through the use of
+GSS-API, which is a language independent standard that's more general,
+easier to code and debug then direct Kerberos V API. Client's identity is
+taken from the Kerberos V ticket cache that should be availble in the
+client's environment. Server's identity is taken from the host principal
+of the machine that remctld is run on, using the default keytab file,
+unless an environemnt variable is set to point to a different one. The
+identity of the server can be changed to a principal other that the host
+principal using command like options, and the client also has command like
+options to specify a different server principal.</P>
+
+<P>The Client and Server sections below detail the communication
+protocol and packet formats. All communication packets are encrypted
+using </P>
+
+<H2>Client</H2>
+
+<H3>Authentication</H3>
+
+  <P>Client connects and authenticates using tokens from gssapi
+  calls. Format of all tokens is the same, including request and response
+  tokens.</P>
+
+<pre>
+    flags                 1 byte
+    length of data        4 bytes
+    data payload          &lt;length of data&gt;
+</pre>
+
+  <P>The authentication communication sequence is initiated by an empty
+  token sent by the Client. Thereafter the tokens are passed to and
+  received from gssapi calls and are sent over the network in the format
+  specified above. The authentication sequence continues until gssapi sets
+  a status variable signifying "authentication context established".
+
+  <P>Flags in the above token format are for signifying the stage in
+  communication, such as "establishing authentication context", "end of
+  tokens", "request token", "response token", or "error token".
+
+<H3>Request</H3>
+
+  <P>Client accepts these command line arguments: <BR>
+  <EM>type service arg1 .. argN</EM><BR>
+  Client gets the arguments in the standard argv format: array of strings.
+
+  <P>Client passes these arguments packed into a data payload section of a
+  token. Payload format is the argc following by pairs of a lendth of an
+  argument and the argument itself:</P>
+
+<pre>
+    number of arguments    4 bytes
+    length of argument     4 bytes                | This is part is repeated 
+    argument               &lt;length of argument&gt;   | &lt;number of arguments&gt; times 
+</pre>
+
+  <P>After the payload request token is sent, a MIC checksum token is
+  expected from the server. The payload data is of type "MIC" and is
+  passed directly to the gssapi for verification. It is a checksum
+  computed on the server after decrypting the request payload token. It is
+  not a proof of message authenticity or integrity, as that is inherent in
+  the Kerberos V mechanism, it is a confirmation of wire encryption used
+  for the transmission. Technically it is not necessary, but is used for
+  extra confirmation here.
+
+<H3>Response</H3>
+
+  <P>Client waits for a response which is expected in the same token
+  format. The flags for a response can be "response" and "error".
+
+  <P>The payload format in the response message is:</P>
+
+<pre>
+    return code                 4 bytes
+    length of return message    4 bytes
+    return message              &lt;length of return message&gt;
+</pre>
+
+  <P>After decrypting the response token, the MIC checksum token is sent
+  back to the Server, ending the transaction. </P>
+
+<H2>Server</H2>
+
+  <P>The server is written to work with <EM>tcpserver</EM> or
+  <EM>inetd</EM>, which provide simultanous connection handling.  As a
+  side-effect the conf file gets re-read on every request since a new
+  process of remctld is spawned on every connection.
+
+<H3>Authentication</H3>
+  
+  <P>The gssapi context establishment takes place the same way as
+  described the Client section above.</P>
+
+<H3>Authorization</H3>
+  
+  <P>Upon startup Server reads, parses and stores the conf file. Its
+  format per line is:
+
+  <P><I>type service command {aclfile}+</I></P>
+
+  <TABLE cellSpacing=0 cellPadding=5 background="" border=1 valign="top">
+    <TBODY>
+    <TR>
+      <TD vAlign=top background="">type</TD>
+      <TD>
+        <P>Specifies the "domain" of commands, like ss (service server -
+        the srvtab generation system) or cgi (for approval and creation of
+        cgi accounts).</P>
+      </TD>
+    </TR>
+    <TR>
+      <TD vAlign=top background="">service</TD>
+      <TD>
+        <P>A particular service within the type. If the entire type is
+        specified with one line, the keyword ALL can be used instead of a
+        service name.</P>
+      </TD>
+    </TR>
+    <TR>
+      <TD vAlign=top background="">command</TD>
+      <TD>Path and filename of a program to execute as part of the 
+      request.</TD>
+    </TR>
+    <TR>
+      <TD vAlign=top background="">aclfile</TD>
+      <TD>
+        <P>A file containing a list of identities, one per line, of those
+        authorized to request this service. One or more aclfiles may be
+        provided. The keyword ANYUSER may be used to signify a service
+        that is not access restricted.</P>
+      </TD>
+    </TR>
+    </TBODY>
+  </TABLE>
+
+  <P>Both the conf file and aclfiles allow empty lines and comments that
+  start with a '#' character.
+
+<H3>Request</H3>
+
+  <P>Packet format is described in the Client section. A MIC checksum is
+  sent back to the Client after decrypting the request token.
+
+  <P>Once the request's <EM>type</EM> and <EM>service</EM> arguments are
+  mapped to an executable, and the authorization of the client is
+  established, remctld forks and does an execv call to run the executable
+  in question. Pipes are set up to collect STDOUT and STDERR as well as
+  the return code. This information is then packed up and sent back to the
+  client.
+
+<H3>Response</H3>
+
+  <P>Packet format is described in the Client section. The token flag
+  signifies a positive or erroneous response. A MIC checksum is expected
+  from the Client after the response token is decrypted by the
+  Client. This ends the transaction.</P>
+
+<H2>Shared Code</H2>
+
+  <P>A utility library is used by the C implementations of both Client and
+  Server. This provides the common functionality of sending a message with
+  payload and receiving one, as well as sending and receiving a raw token
+  (used in context establishment).</P>
+
+</BODY>
+</HTML>

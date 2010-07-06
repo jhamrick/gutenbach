@@ -1,0 +1,56 @@
+=for stopwords
+remctl const iovec NUL-terminated argv Allbery
+
+=head1 NAME
+
+remctl_command, remctl_commandv - Send a command to a remctl server
+
+=head1 SYNOPSIS
+
+#include <remctl.h>
+
+int B<remctl_command>(struct remctl *I<r>, const char **I<command>);
+
+#include <sys/uio.h>
+
+int B<remctl_commandv>(struct remctl *I<r>, const struct iovec *I<iov>,
+                    size_t I<count>);
+
+=head1 DESCRIPTION
+
+remctl_command() and remctl_commandv() send a command to a remote remctl
+server.  The remctl client object I<r>, created with remctl_new(), should
+have previously been passed to remctl_open() to open a connection to the
+server.
+
+remctl_command() takes the command as a NULL-terminated array of
+NUL-terminated strings (the same layout as an argv array).  This function
+is most convenient when passing simple text commands.
+
+remctl_commandv() takes the command as an array of iovec structs of length
+I<count>.  This function is most convenient when passing arbitrary data to
+the command, since the iovec struct takes a pointer and a length for each
+chunk of data.  See writev(2) for the layout of the iovec struct.
+
+After calling one of these functions, call remctl_output() to get the
+results of the command.
+
+=head1 RETURN VALUE
+
+remctl_command() and remctl_commandv() return true on success and false on
+failure.  On failure, the caller should call remctl_error() to retrieve
+the error message.
+
+=head1 SEE ALSO
+
+remctl_new(3), remctl_open(3), remctl_output(3), remctl_error(3)
+
+The current version of the remctl library and complete details of the
+remctl protocol are available from its web page at
+L<http://www.eyrie.org/~eagle/software/remctl/>.
+
+=head1 AUTHOR
+
+Russ Allbery <rra@stanford.edu>
+
+=cut

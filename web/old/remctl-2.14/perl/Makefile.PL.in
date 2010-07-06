@@ -1,0 +1,56 @@
+# Makefile.PL for libremctl Perl bindings.  -*- perl -*-
+#
+# Written by Russ Allbery
+# Copyright 2007 Board of Trustees, Leland Stanford Jr. University
+#
+# See LICENSE for licensing terms.
+
+# It's practically impossible to change the library link order with the Perl
+# build system.  It's also pratically impossible to correctly link a Perl
+# extension against a library that's built out of the same source tree without
+# introducing an rpath to the source tree, a potential security hole.
+#
+# If I don't tell MakeMaker about the full path to the just-built library, it
+# will helpfully delete the -lremctl reference and then create a broken
+# module, while saying that this is probably harmless.  If I do include it, I
+# have to fight with it to not add an rpath to the built module.  I did the
+# latter.  I don't know how portable this will be, but it's the only thing I
+# can come up with that actually works.
+
+use Config;
+use ExtUtils::MakeMaker;
+
+# We have to tell MakeMaker to find libremctl here.
+$PATH = '@abs_top_builddir@/client/.libs';
+
+# Hack the local path into lddlflags so that it will be first.  Otherwise, we
+# may accidentally build against an already installed libremctl instead of the
+# one that we just built.
+my $lddlflags = $Config{lddlflags};
+my $additions = "-L$PATH @LDFLAGS@";
+$lddlflags =~ s%(^| )-L% $additions -L%;
+
+# Override extliblist so that it never puts anything relative to the build
+# directory into LD_RUN_PATH.  Otherwise, ExtUtils::Liblist will hard-code the
+# build directory into the rpath of the module .so because it's trying to be
+# *way* too helpful.
+package MY;
+sub const_loadlibs {
+    my $loadlibs = shift->SUPER::const_loadlibs (@_);
+    $loadlibs =~ s%^(LD_RUN_PATH =.*[\s:])$main::PATH(:|\n)%$1$2%m;
+    return $loadlibs;
+}
+package main;
+
+# Okay, we can finally generate the Makefile.
+use ExtUtils::MakeMaker;
+WriteMakefile (
+    NAME              => 'Net::Remctl',
+    VERSION_FROM      => 'Remctl.pm',
+    ($] >= 5.005 ?
+      (ABSTRACT_FROM  => 'Remctl.pm',
+       AUTHOR         => 'Russ Allbery (rra@stanford.edu)') : ()),
+    INC               => '-I@top_srcdir@/client',
+    LDDLFLAGS         => $lddlflags,
+    LIBS              => "$additions -lremctl @LIBS@",
+);

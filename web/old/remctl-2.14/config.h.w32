@@ -1,0 +1,66 @@
+/* -*- c -*-
+ *
+ * This is a static, stripped-down version of config.h.in for Windows
+ * platforms.  It's hand-tweaked to define the right symbols so that
+ * remctl will build properly on Windows.  (This may include lying about
+ * certain features that don't matter on a Windows build.)
+ */
+
+/* Define to 1 if you have the declaration of `inet_ntoa', and to 0 if you
+   don't. */
+#define HAVE_DECL_INET_NTOA 1
+
+/* Define to 1 if you have the declaration of `snprintf', and to 0 if you
+   don't. */
+#define HAVE_DECL_SNPRINTF 1
+
+/* Define to 1 if you have the declaration of `vsnprintf', and to 0 if you
+   don't. */
+#define HAVE_DECL_VSNPRINTF 1
+
+/* Define to 1 if you have the `getaddrinfo' function. */
+/* Defined to empty in krb5 include files */
+#undef HAVE_GETADDRINFO
+#define HAVE_GETADDRINFO 1
+
+/* Define to 1 if you have the `getnameinfo' function. */
+/* Defined to empty in krb5 include files */
+#undef HAVE_GETNAMEINFO
+#define HAVE_GETNAMEINFO 1
+
+/* Define if your system has a working inet_ntoa function. */
+#define HAVE_INET_NTOA 1
+
+/* Define to 1 if you have the `krb5_free_keytab_entry_contents' function. */
+#define HAVE_KRB5_FREE_KEYTAB_ENTRY_CONTENTS 1
+
+/* Define to 1 if the system has the type `krb5_realm'. */
+#define HAVE_KRB5_REALM
+
+/* Define to 1 if the system has the type `long long'. */
+#define HAVE_LONG_LONG
+
+/* Define to 1 if you have the `setenv' function. */
+#define HAVE_SETENV 1
+
+/* Define if your system has a working snprintf function. */
+#define HAVE_SNPRINTF 1
+
+/* Define to 1 if you have the <string.h> header file. */
+/* Defined in krb5 include files */
+#ifndef HAVE_STRING_H
+# define HAVE_STRING_H 1
+#endif
+
+/* Define to 1 if the system has the type `struct sockaddr_storage'. */
+#define HAVE_STRUCT_SOCKADDR_STORAGE 1
+
+/* Define to 1 if you have the ANSI C header files. */
+#define STDC_HEADERS 1
+
+/* Define to 1 if the GSS-API library uses RFC-compliant OIDs. */
+#define HAVE_GSS_RFC_OIDS 1
+
+/* Define to 1 if you have the declaration of `gss_mech_krb5', and to 0 if you
+   don't. */
+#define HAVE_DECL_GSS_MECH_KRB5 1

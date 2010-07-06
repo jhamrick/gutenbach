@@ -1,0 +1,254 @@
+The remctl package as a whole is:
+
+  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Board of
+  Trustees, Leland Stanford Jr. University.  All rights reserved.
+
+and released under the following license:
+
+  Permission to use, copy, modify, and distribute this software and its
+  documentation for any purpose and without fee is hereby granted,
+  provided that the above copyright notice appear in all copies and that
+  both that copyright notice and this permission notice appear in
+  supporting documentation, and that the name of Stanford University not
+  be used in advertising or publicity pertaining to distribution of the
+  software without specific, written prior permission.  Stanford
+  University makes no representations about the suitability of this
+  software for any purpose.  It is provided "as is" without express or
+  implied warranty.
+
+  THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+
+All individual files with no other license statement are released under
+this license.  Some files have additional copyright dates from earlier
+releases or may be owned by other copyright holders as noted in those
+files.  Some files are individually released under different licenses,
+all of which are compatible with the above general package license.
+
+Collected copyright notices for the entire package:
+
+  Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+      Board of Trustees, Leland Stanford Jr. University
+  Copyright 2008 Carnegie Mellon University
+  Copyright 2007 Marcus Watts
+  Copyright 2008 Andrew Mortensen <admorten@umich.edu>
+  Copyright 2008 Thomas L. Kula <kula@tproa.net>
+  Copyright 2004, 2005, 2006, 2007
+      by Internet Systems Consortium, Inc. ("ISC")
+  Copyright 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
+      2002, 2003 by The Internet Software Consortium and Rich Salz
+  Copyright 1997, 2000, 2001, 2002 Benjamin Sittler
+  Copyright 2000, 2001, 2004, 2006, 2007, 2008, 2009
+      Russ Allbery <rra@stanford.edu>
+  Copyright 1995 Patrick Powell
+  Copyright 1996, 1997 Brandon Long <blong@fiction.net>
+  Copyright 1998 Thomas Roessler <roessler@guug.de>
+  Copyright 1998 Michael Elkins <me@cs.hmc.edu>
+  Copyright 1998 Andrew Tridgell <tridge@samba.org>
+  Copyright 2000, 2005 Hrvoje Niksic <hniksic@xemacs.org>
+  Copyright 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
+      2002, 2003, 2004, 2005, 2006, 2007, 2008
+      Free Software Foundation, Inc.
+  Copyright 1994 X Consortium
+
+The files m4/inet-nota.m4, m4/socket.m4, portable/socket.h,
+tests/libtest.c, tests/libtest.h, tests/portable/getaddrinfo-t.c,
+tests/portable/getnameinfo-t.c, tests/portable/inet_aton-t.c,
+tests/portable/inet_ntoa-t.c, tests/portable/inet_ntop-t.c,
+tests/portable/setenv-t.c, tests/portable/snprintf-t.c,
+tests/portable/strlcat-t.c, tests/portable/strlcpy-t.c,
+tests/util/concat-t.c, tests/util/fakewrite.c, tests/util/messages-t.c,
+tests/util/network-t.c, tests/util/vector-t.c, tests/util/xmalloc.c,
+tests/util/xmalloc-t, tests/util/xwrite-t.c, util/fdflag.c,
+util/messages-die.c, util/messages.c, util/network.c, util/util.h,
+util/xmalloc.c, and util/xwrite.c are released under the following
+copyright and license:
+
+  Copyright 2009 Russ Allbery <rra@stanford.edu>
+  Copyright 2006, 2007, 2008, 2009
+      Board of Trustees, Leland Stanford Jr. University
+  Copyright (c) 2004, 2005, 2006, 2007
+      by Internet Systems Consortium, Inc. ("ISC")
+  Copyright (c) 1991, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
+      2002, 2003 by The Internet Software Consortium and Rich Salz
+
+  This code is derived from software contributed to the Internet Software
+  Consortium by Rich Salz.
+
+  Permission to use, copy, modify, and distribute this software for any
+  purpose with or without fee is hereby granted, provided that the above
+  copyright notice and this permission notice appear in all copies.
+
+  THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+  REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  MERCHANTABILITY AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY
+  SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+  WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+  ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+  OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+The files portable/asprintf.c, portable/daemon.c, portable/dummy.c,
+portable/getaddrinfo.c, portable/getaddrinfo.h, portable/getnameinfo.c,
+portable/getnameinfo.h, portable/inet_aton.c, portable/inet_ntoa.c,
+portable/inet_ntop.c, portable/macros.h, portable/setenv.c,
+portable/stdbool.h, portable/strlcat.c, portable/strlcpy.c,
+portable/system.h, portable/uio.h, portable/winsock.c, util/concat.c, and
+util/vector.c have been placed in the public domain by their author.
+
+The files portable/getopt.c and portable/getopt.h are released under the
+following copyright and license:
+
+  Copyright 1997, 2000, 2001, 2002 Benjamin Sittler
+  Copyright 2008 Russ Allbery <rra@stanford.edu>
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the
+  "Software"), to deal in the Software without restriction, including
+  without limitation the rights to use, copy, modify, merge, publish,
+  distribute, sublicense, and/or sell copies of the Software, and to
+  permit persons to whom the Software is furnished to do so, subject to
+  the following conditions:
+
+  The above copyright notice and this permission notice shall be included
+  in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+  CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+The file portable/snprintf.c is released under the following license:
+
+  This code is based on code written by Patrick Powell (papowell@astart.com)
+  It may be used for any purpose as long as this notice remains intact
+  on all source code distributions
+
+The file tests/runtests.c is released under the following copyright and
+license:
+
+  Copyright 2000, 2001, 2004, 2006, 2007, 2008, 2009
+      Russ Allbery <rra@stanford.edu>
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the
+  "Software"), to deal in the Software without restriction, including
+  without limitation the rights to use, copy, modify, merge, publish,
+  distribute, sublicense, and/or sell copies of the Software, and to
+  permit persons to whom the Software is furnished to do so, subject to
+  the following conditions:
+
+  The above copyright notice and this permission notice shall be included
+  in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+  CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+The files Makefile.in and aclocal.m4 are generated by GNU Automake and
+released under the following copyright and license:
+
+  Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+  2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+  This file is free software; the Free Software Foundation
+  gives unlimited permission to copy and/or distribute it,
+  with or without modifications, as long as this notice is preserved.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+  even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.
+
+The file configure is generated by GNU Autoconf and is released under the
+following copyright and license:
+
+  Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2001,
+  2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+  This configure script is free software; the Free Software Foundation
+  gives unlimited permission to copy, distribute and modify it.
+
+The files build-aux/compile, build-aux/depcomp, and build-aux/missing are
+taken from GNU Automake.  The files build-aux/config.guess and
+build-aux/config.sub are taken from the Debian autotools-dev package.  The
+file build-aux/ltmain.sh is taken from GNU Libtool.  All of these files
+are released under the following copyright and license:
+
+  Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1999, 2000, 2002,
+  2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+
+  This program is free software; you can redistribute it and/or modify it
+  under the terms of the GNU General Public License as published by the
+  Free Software Foundation; either version 2, or (at your option) any
+  later version.
+
+  This program is distributed in the hope that it will be useful, but
+  WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  General Public License for more details.
+
+  As a special exception to the GNU General Public License, if you
+  distribute this file as part of a program that contains a configuration
+  script generated by Autoconf, you may include it under the same
+  distribution terms that you use for the rest of that program.
+
+For the remctl distribution, the option described in the last paragraph
+has been accepted and these files are distributed under the same terms as
+the remctl package as a whole, as described at the top of this file.
+
+The file build-aux/install-sh is released under the following copyright
+and license:
+
+  Copyright (C) 1994 X Consortium
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the
+  "Software"), to deal in the Software without restriction, including
+  without limitation the rights to use, copy, modify, merge, publish,
+  distribute, sublicense, and/or sell copies of the Software, and to
+  permit persons to whom the Software is furnished to do so, subject to
+  the following conditions:
+
+  The above copyright notice and this permission notice shall be included
+  in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+  IN NO EVENT SHALL THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR
+  OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+  OTHER DEALINGS IN THE SOFTWARE.
+
+  Except as contained in this notice, the name of the X Consortium shall
+  not be used in advertising or otherwise to promote the sale, use or
+  other dealings in this Software without prior written authorization
+  from the X Consortium.
+
+  FSF changes to this file are in the public domain.
+
+The files python/_remctlmodule.c, python/remctl.py, and python/setup.py
+are covered by the following license, which is almost identical to the
+general remctl package license:
+
+  Copyright 2008, Thomas L. Kula. All rights reserved.
+
+  Permission to use, copy, modify, and distribute this software and its
+  documentation for any purpose and without fee is hereby granted,
+  provided that the above copyright notice appear in all copies and that
+  both that copyright notice and this permission notice appear in
+  supporting documentation, and that the name of Thomas L. Kula not be
+  used in advertising or publicity pertaining to distribution of the
+  software without specific, written prior permission. Thomas L. Kula
+  makes no representations about the suitability of this software for any
+  purpose.  It is provided "as is" without express or implied warranty.
+
+  THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.

@@ -1,0 +1,99 @@
+=for stopwords
+remctl API Allbery
+
+=head1 NAME
+
+remctl_output - Retrieve the results of a remctl command
+
+=head1 SYNOPSIS
+
+#include <remctl.h>
+
+struct remctl_output *B<remctl_output>(struct remctl *I<r>);
+
+=head1 DESCRIPTION
+
+remctl_output() retrieves the next output token from the remote remctl
+server.  I<r> is a remctl client object created with remctl_new(), which
+should have previously been used as the argument to remctl_open() and then
+either remctl_command() or remctl_commandv().
+
+The returned remctl_output struct has the following members:
+
+    struct remctl_output {
+        enum remctl_output_type type;
+        char *data;
+        size_t length;
+        int stream;                 /* 1 == stdout, 2 == stderr */
+        int status;                 /* Exit status of remote command. */
+        int error;                  /* Remote error code. */
+    };
+
+where the type field will have one of the following values:
+
+    REMCTL_OUT_OUTPUT
+    REMCTL_OUT_STATUS
+    REMCTL_OUT_ERROR
+    REMCTL_OUT_DONE
+
+A command rejected by the remctl server will return a single output token
+of type REMCTL_OUT_ERROR.  A successful command will return zero or more
+REMCTL_OUT_OUTPUT tokens representing the output of the command followed
+by a REMCTL_OUT_STATUS token giving the exit status of the command.
+Therefore, for each command issued, the caller should call
+remctl_command() or remctl_commandv() and then call remctl_output()
+repeatedly to retrieve each output token until remctl_output() returns a
+token of type REMCTL_OUT_ERROR or REMCTL_OUT_STATUS.
+
+A REMCTL_OUT_OUTPUT token will have data in the data field, whose length
+is given by the length field.  The output stream will be given by the
+stream field, with a value of 1 indicating standard output and a value of
+2 indicating standard error.  All other stream values are reserved for
+future use.
+
+A REMCTL_OUT_STATUS token will hold the exit status of the remote command
+in the status field.  Following the standard Unix convention, a 0 status
+should normally be considered success and any non-zero status should
+normally be considered failure, although a given command may have its own
+exit status conventions.
+
+A REMCTL_OUT_ERROR token will have the error message from the server in
+the data field (with length stored in length) and the protocol error code
+in the error field.  The latter is the most reliable indicator of the
+error; the message stored in the error field is free-form text, may or may
+not be localized, and should not be used for programmatic comparisons.
+For the possible error code values and their meanings, see the remctl
+protocol specification.
+
+If remctl_output() is called when there is no pending output from the
+remote server (after a REMCTL_OUT_ERROR or REMCTL_OUT_STATUS token has
+already been returned, for example), a token of type REMCTL_OUT_DONE will
+be returned.  REMCTL_OUT_DONE tokens do not use any of the other fields of
+the remctl_output struct.
+
+The returned remctl_output struct must not be freed by the caller.  It
+will be invalidated on any subsequent call to any other remctl API
+function other than remctl_error() on the same remctl client object; the
+caller should therefore copy out of the remctl_output struct any data it
+wishes to preserve before making any subsequent remctl API calls.
+
+=head1 RETURN VALUE
+
+remctl_output() returns a pointer to a remctl_output struct on success and
+NULL on failure.  On failure, the caller should call remctl_error() to
+retrieve the error message.
+
+=head1 SEE ALSO
+
+remctl_new(3), remctl_open(3), remctl_command(3), remctl_commandv(3),
+remctl_error(3)
+
+The current version of the remctl library and complete details of the
+remctl protocol are available from its web page at
+L<http://www.eyrie.org/~eagle/software/remctl/>.
+
+=head1 AUTHOR
+
+Russ Allbery <rra@stanford.edu>
+
+=cut
