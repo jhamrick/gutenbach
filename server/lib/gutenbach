@@ -120,6 +120,7 @@ sub clear_status {
 
 $SIG{HUP} = \&clear_status;
 $SIG{TERM} = \&clear_status;
+$SIG{INT} = \&clear_status;
 
 # Read the metadata information from the file.
 my ($filepath) = $arguments{"file"};

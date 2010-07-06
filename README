@@ -86,13 +86,10 @@ TODO:
   to use zephyr, etc., they can install an additional gutenbach-zephyr
   package or something
 
-- add regex support to the client scripts, so you can do something
-  like `gbr sipbmp3 *.mp3` and have it send separate jobs to the queue
-
 - add client scripts for the remctl package, something maybe like
   `gbvol [set|get] number`.  Or maybe just leave it with using remctl.
 
 - fix the web interface
 
-- fix the youtube feature.  Additionally, make it possible to play
-  movies!
+- Make it possible to play movies; i.e. add video support (the audio
+  support is already there, obviously)
