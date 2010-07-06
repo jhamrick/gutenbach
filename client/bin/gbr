@@ -5,6 +5,10 @@
 use strict;
 use warnings;
 
+use Net::CUPS;
+use Net::CUPS::Destination;
+use Image::ExifTool qw(ImageInfo);
+
 my $usage = "Usage: gbr QUEUE FILES\n";
 
 my $q = $ARGV[0];
@@ -30,21 +34,37 @@ if (-r $configpath) {
     eval <$fh>;
 }
 
-$ENV{CUPS_SERVER}="$host";
+my $cups = Net::CUPS->new();
+$cups->setServer("$host");
+my $printer = $cups->getDestination("$queue");
+my ($jobid, $title);
 
 foreach my $file(@files) {
     if ($file =~ m|http://www\.youtube\.com/watch\?v=|) {
-	open(LP, "|-", "lp", "-d$queue") or die "Couldn't execute lp command";
-	print LP "$file";
-	close LP;
+	open FILE, ">", "/tmp/gutenbach-youtube\n" or die "Couldn't create temporary file";
+	print FILE $file;
+	$title = $file;
+	$file = "/tmp/gutenbach-youtube";
+	$printer->addOption("copies", 42);
     }
     else {
-	my $pid = open(LP, "-|");
-	if (not $pid) {
-	    my @args = ("lp", "-d$queue", "$file");
-	    exec(@args) or die "Couldn't execute lp command";
+	my $fileinfo = ImageInfo($file);
+	my $magic = $fileinfo->{FileType};
+
+	if ($magic) {
+	    $title = $fileinfo->{'Title'}." - ".$fileinfo->{'Artist'}." - ".$fileinfo->{'Album'};
+	}
+	else {
+	    $title = $file;
 	}
     }
 
-    print "Sent job '$file'\n";
+    $jobid = $printer->printFile($file, $title);
+    
+    if ($jobid) {
+	print "Sent job '$title' (id $jobid)\n";
+    }
+    else {
+	print "Error sending job '$title'\n";
+    }
 }

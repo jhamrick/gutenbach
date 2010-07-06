@@ -37,7 +37,7 @@ $cups->setServer("$host");
 my $printer = $cups->getDestination("$queue");
 
 print "Queue listing for queue '$queue' on '$host'\n\n";
-print "Job ID\t\tOwner\t\tFile\n";
+print "Job ID\t\tOwner\t\tTitle\n";
 print "-----------------------------------------------------------------\n";
 
 my @jobs = $printer->getJobs(0, 0);

@@ -33,21 +33,20 @@ if (-r $configpath) {
     eval <$fh>;
 }
 
-my @args;
+my $cups = Net::CUPS->new();
+$cups->setServer("$host");
+my $printer = $cups->getDestination("$queue");
+my @jobs = $printer->getJobs(0, 0);
 
 if ($id eq "all") {
-    @args = ("cancel", "-a", "$queue");
+    foreach $id(@jobs) {
+	$printer->cancelJob($id);
+    }
 }
 elsif ($id eq "current") {
-    my $cups = Net::CUPS->new();
-    $cups->setServer("$host");
-    my $printer = $cups->getDestination("$queue");
-    my @jobs = $printer->getJobs(0, 0);
-    my $id = $jobs[0];
-    @args = ("cancel", "$id", "$queue");
+    $id = $jobs[0];
+    $printer->cancelJob($id);
 }
 else {
-    @args = ("cancel", "$id", "$queue");
+    $printer->cancelJob($id);
 }
-$ENV{CUPS_SERVER}="$host";
-exec (@args) or die "Couldn't execute cancel command";
