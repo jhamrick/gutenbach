@@ -8,7 +8,7 @@ Standards-Version: 3.8.4
 Package: gutenbach-server
 Architecture: all
 Pre-Depends: debconf
-Depends: ${shlibs:Depends}, ${misc:Depends}, mplayer, libimage-exiftool-perl, cups, debathena-cupsys-config, sysv-rc, adduser, debathena-zephyr-config, alsa-base
+Depends: ${shlibs:Depends}, ${misc:Depends}, mplayer, libimage-exiftool-perl, cups, sysv-rc, adduser, debathena-zephyr-config, alsa-base
 Recommends: libzephyr4-krb5
 Conflicts: pulseaudio
 Provides: pulseaudio
@@ -19,7 +19,7 @@ Description: Server for playing music files from a remote machine
 Package: gutenbach-client
 Architecture: all
 Pre-Depends: debconf
-Depends: ${shlibs:Depends}, ${misc:Depends}, cups, libnet-cups-perl
+Depends: ${shlibs:Depends}, ${misc:Depends}, cups, libnet-cups-perl, libimage-exiftool-perl
 Description: Client-side helper scripts for interacting with
  the Gutenbach music player.
 

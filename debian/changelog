@@ -1,3 +1,16 @@
+gutenbach (2.10) unstable; urgency=low
+
+  * Add a useful reminder message to client scripts, "Did you forget to add
+    it [the queue] with gutenbach-client-config?"
+  * Add 'last' keyword for gbr
+  * Use perl bindings for gbr and gbrm in addition to gbq.
+  * Update README
+  * Add support for pathname expansion/multiple files in gbr
+  * Added the "current" option to gbrm, which just removes the current job
+    from the queue
+
+ -- Jessica Hamrick <jhamrick@mit.edu>  Tue, 06 Jul 2010 00:11:23 -0400
+
 gutenbach (2.09) unstable; urgency=low
 
   * Fixed support for playing YouTube videos
