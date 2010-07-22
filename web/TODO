@@ -1,0 +1,15 @@
+1) make this look pretty (CSS, better layout, etc.)
+2) add AJAX to automatically refresh the website when the queue
+   changes
+3) add a volume slider (use remctl, see http://sipb.mit.edu/sipbmp3
+4) package the script and the lighttpd config file, and have it
+   automatically run
+5) make the queue interactive:  ability to pause, reorder songs,
+   remove songs, etc.
+6) ability to upload/queue songs?  maybe only with certs -- need to
+   figure out the best way to have an ACL -- probably bad to let
+   anybody upload songs.  The same probably goes for deleting and
+   reordering songs too, though.
+
+See http://sipbmp3.mit.edu/sipbmp3 for inspiration in general
+

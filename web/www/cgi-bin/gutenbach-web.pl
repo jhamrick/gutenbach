@@ -1,3 +1,5 @@
+#!/bin/perl
+
 use Net::CUPS;
 use Net::CUPS::Destination;
 use Image::ExifTool qw(ImageInfo);
@@ -7,8 +9,8 @@ use strict;
 use warnings;
 
 my $cups = Net::CUPS->new();
-
-my $printer = $cups->getDestination("buildsmp3");
+$cups->setServer("lbsg.mit.edu");
+my $printer = $cups->getDestination("pikamp3");
 #print header();
 print start_html();
 my @jobs = $printer->getJobs( 0, 0 );
@@ -16,7 +18,7 @@ my $job_ref;
 my $jobid;
 my $attr;
 print  <<EOF;
-<TABLE SUMMARY="Job List"> 
+<TABLE SUMMARY="Job List" cellpadding="5px"> 
 <THEAD> 
 <TR><TH> USER</TH><TH>TITLE</TH><TH>ARTIST</TH><TH>ALBUM</TH></TR> 
 </THEAD>
