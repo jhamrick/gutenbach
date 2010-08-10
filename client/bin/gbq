@@ -36,6 +36,10 @@ my $cups = Net::CUPS->new();
 $cups->setServer("$host");
 my $printer = $cups->getDestination("$queue");
 
+unless( $printer){
+    print "Cannot access queue $q...do you have network connectivity and permission to view the queue?\n";
+    exit 1;
+}
 print "Queue listing for queue '$queue' on '$host'\n\n";
 print "Job ID\t\tOwner\t\tTitle\n";
 print "-----------------------------------------------------------------\n";
