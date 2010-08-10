@@ -1,3 +1,13 @@
+gutenbach (2.11) unstable; urgency=low
+
+  * Fixed gbq bug in client scripts where uninitialized values resulting
+    from having an 'Artist' but no 'Title' tag
+  * Added more helpful error messages to gb{q,r,rm} when they can't
+    contact the queue, "Cannot access queue pikamp3...do you have network
+    connectivity and permission to view the queue?"
+
+ -- Kyle Brogle <broglek@bu.edu>  Tue, 10 Aug 2010 19:18:38 -0400
+
 gutenbach (2.10) unstable; urgency=low
 
   * Add a useful reminder message to client scripts, "Did you forget to add
