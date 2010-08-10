@@ -37,6 +37,10 @@ if (-r $configpath) {
 my $cups = Net::CUPS->new();
 $cups->setServer("$host");
 my $printer = $cups->getDestination("$queue");
+unless( $printer){
+    print "Cannot access queue $q...do you have network connectivity and permission to view the queue?\n";
+    exit 1;
+}
 my ($jobid, $title);
 
 foreach my $file(@files) {
@@ -51,7 +55,7 @@ foreach my $file(@files) {
 	my $fileinfo = ImageInfo($file);
 	my $magic = $fileinfo->{FileType};
 
-	if ($magic) {
+	if ($magic && exists($fileinfo->{Title}) && exists($fileinfo->{Artist}) && exists($fileinfo->{Album})) {
 	    $title = $fileinfo->{'Title'}." - ".$fileinfo->{'Artist'}." - ".$fileinfo->{'Album'};
 	}
 	else {

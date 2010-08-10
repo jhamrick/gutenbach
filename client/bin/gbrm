@@ -36,6 +36,10 @@ if (-r $configpath) {
 my $cups = Net::CUPS->new();
 $cups->setServer("$host");
 my $printer = $cups->getDestination("$queue");
+unless( $printer){
+    print "Cannot access queue $q...do you have network connectivity and permission to view the queue?\n";
+    exit 1;
+}
 my @jobs = $printer->getJobs(0, 0);
 
 if ($id eq "all") {
