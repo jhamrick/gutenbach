@@ -117,7 +117,7 @@ sub clear_status {
   close(ZEPH);
 
   open(STATUS, ">", "/var/run/gutenbach/status");
-  print(STATUS, "");
+  print(STATUS "");
   close(STATUS);
   die;
 }
@@ -339,7 +339,7 @@ sub play_mplayer_audio {
       print ZEPHYR "Playback completed successfully.\n";
       close(ZEPHYR);
       open(STATUS, ">", "/var/run/gutenbach/status");
-      print(STATUS, "");
+      print(STATUS "");
       close(STATUS);
     }
     close(MP3STATUS) || print ZEPHYR "mplayer exited $?\n";
