@@ -115,6 +115,10 @@ sub clear_status {
   open(ZEPH, "|-", @zwrite_command);
   print(ZEPH "Playback aborted.\n");
   close(ZEPH);
+
+  open(STATUS, ">", "/var/run/gutenbach/status");
+  print(STATUS, "");
+  close(STATUS);
   die;
 }
 
@@ -129,19 +133,24 @@ my ($magic) = $fileinfo->{FileType};
 my ($tempdir);
 my ($newpath);
 
+open(STATUS, ">", "/var/run/gutenbach/status");
+
 if ($magic) {
   # $magic means that Image::ExifTool was able to identify the type of file
   printf(ZEPHYR "%s file %s\n", $magic, $arguments{"job-title"});
+  printf(STATUS "%s file %s\n", $magic, $arguments{"job-title"});
   $status .= sprintf(" Filetype: %s.", $magic);
   $status .= sprintf(" Filename: %s.", $arguments{"job-title"});
 
   if (exists $fileinfo->{'Title'}) {
     printf(ZEPHYR "\@b{%s}\n", $fileinfo->{'Title'}) if exists $fileinfo->{'Title'};
+    #printf(STATUS "%s\n", $fileinfo->{'Title'}) if exists $fileinfo->{'Title'};
     $status .= sprintf(" Title: %s.", $fileinfo->{'Title'});
   }
   foreach my $key (qw/Artist Album AlbumArtist/) {
     if (exists $fileinfo->{$key}) {
       printf(ZEPHYR "%s\n", $fileinfo->{$key}) if exists $fileinfo->{$key};
+      printf(STATUS "%s\n", $fileinfo->{$key}) if exists $fileinfo->{$key};
       $status .= sprintf(" %s: %s\n", $key, $fileinfo->{$key});
     }
   }
@@ -199,6 +208,7 @@ elsif (-T $filepath) { # If the file appears to be a text file, treat it as a pl
 }
 
 close(ZEPHYR);
+close(STATUS);
 print CUPS "NOTICE: $status\n";
 play_mplayer_audio($filepath, \%arguments);
 
@@ -328,6 +338,9 @@ sub play_mplayer_audio {
       open(ZEPHYR, "|-", @zwrite_command) or die "Couldn't launch zwrite: $!";
       print ZEPHYR "Playback completed successfully.\n";
       close(ZEPHYR);
+      open(STATUS, ">", "/var/run/gutenbach/status");
+      print(STATUS, "");
+      close(STATUS);
     }
     close(MP3STATUS) || print ZEPHYR "mplayer exited $?\n";
   }
