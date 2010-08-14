@@ -54,42 +54,7 @@ NOTES:
       CUPS_SERVER=servername lp -dqueuename foo.mp3
       CUPS_SERVER=servername cancel [ID|-a] queuename
 
-TODO: 
+BUGS:
 
-- include mixer and channel in debconf, or even better, move it to
-  gutenbach-remctl and implement debconf in that package
-
-- this should really not conflict with pulse (the biggest problem at
-  the moment is that pulse will spew a bunch of errors like "Home
-  directory /var/spool/cups/tmp not ours." I can't figure out how to
-  get rid of them, but they're really annoying.  As long as pulse is
-  in system mode, things seem to work otherwise.)
-
-- CUPS issues
-
-    * the CUPS daemon processes do not inherit groups from the lp user
-      (so, for example, even if we add 'lp' to 'audio', the process
-      will not be running in group 'audio').  For the time being, I've
-      set the CUPS daemon to always run under group 'audio', but there
-      should really be a better solution.
-
-    * when the Purge-Jobs command is sent, the jobs are removed, but
-      the current mplayer instance continues playing.  This
-      unfortunately leads to jobs being played over each other when
-      the CUPS server restarts
-
-- Making it easier to use across multiple platforms, regardless of
-  debathena/normal linux/etc?
-
-- Gutenbach should not depend on Debathena -- ideally,
-  gutenbach-server should be debathena free, and then if people want
-  to use zephyr, etc., they can install an additional gutenbach-zephyr
-  package or something
-
-- add client scripts for the remctl package, something maybe like
-  `gbvol [set|get] number`.  Or maybe just leave it with using remctl.
-
-- fix the web interface
-
-- Make it possible to play movies; i.e. add video support (the audio
-  support is already there, obviously)
+Please file bug reports in our Trac instance, located at
+http://gutenbach.mit.edu/trac
