@@ -2,6 +2,7 @@ Source: gutenbach
 Section: sound
 Priority: extra
 Maintainer: Jessica Hamrick <jhamrick@mit.edu>
+Uploaders: Kyle Brogle <broglek@bu.edu>, Quentin Smith <quentin@mit.edu>, Yuri Lin <rye@mit.edu>
 Build-Depends: cdbs, debhelper (>= 5)
 Standards-Version: 3.8.4
 

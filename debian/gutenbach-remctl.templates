@@ -1,0 +1,11 @@
+Template: gutenbach-remctl/mixer
+Type: string
+_Description: The mixer that gutenbach uses:
+ Gutenbach remctl needs the name of the mixer in order
+ to control the volume of the music server. [Default is "PCM"]
+
+Template: gutenbach-remctl/channel
+Type: string
+_Description: The mixer channel that gutenbach uses:
+ Gutenbach remctl needs a channel on the mixer in order
+ to control the volume of the music server. [Default is "Left Front"]

@@ -1,14 +1,14 @@
-# Gutenbach Translation File.
-#
-# This file is distributed under the same license as the GUTENBACH package.
+# GUTENBACH TRANSLATION FILE.
+# Copyright 2010
+# This file is distributed under the same license as the gutenbach-server package.
 # Jessica B. Hamrick <jhamrick@mit.edu>, 2010.
 #
-#
+#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: 2.12\n"
 "Report-Msgid-Bugs-To: gutenbach@mit.edu\n"
-"POT-Creation-Date: 2010-06-14 18:36-0600\n"
+"POT-Creation-Date: 2010-08-14 16:11-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -61,4 +61,32 @@ msgid ""
 "When gutenbach sends a zephyr, it will display the hostname. If your "
 "hostname is particularly long, you may want to set this to an abbreviation "
 "or something else shorter."
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../gutenbach-remctl.templates:1001
+msgid "The mixer that gutenbach uses:"
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../gutenbach-remctl.templates:1001
+msgid ""
+"Gutenbach remctl needs the name of the mixer in order to control the volume "
+"of the music server. [Default is \"PCM\"]"
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../gutenbach-remctl.templates:2001
+msgid "The mixer channel that gutenbach uses:"
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../gutenbach-remctl.templates:2001
+msgid ""
+"Gutenbach remctl needs a channel on the mixer in order to control the volume "
+"of the music server. [Default is \"Left Front\"]"
 msgstr ""

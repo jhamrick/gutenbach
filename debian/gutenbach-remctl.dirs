@@ -1,3 +1,4 @@
 usr/lib/gutenbach
 usr/lib/gutenbach/remctl
+usr/lib/gutenbach/remctl/config
 etc/remctl/conf.d

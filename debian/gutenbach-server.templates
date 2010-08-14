@@ -4,8 +4,8 @@ _Description: Your gutenbach printer name:
  gutenbach creates a printer to which you can print music
  files.  gutenbach needs to know what you want to call the 
  printer, and then after installation, you will be able
- to do:
- lpr -Pprintername@hostname your-music-file-.mp3 
+ to use scripts in the gutenbach-client package or lpr
+ to interact with the server. 
 
 Template: gutenbach-server/zephyrclass
 Type: string
