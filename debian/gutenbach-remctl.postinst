@@ -19,6 +19,16 @@ set -e
 
 case "$1" in
     configure|reconfigure)
+
+	if [ ! -d /usr/lib/gutenbach/remctl/config ]; then
+	    mkdir /usr/lib/gutenbach/remctl/config
+	fi
+	
+	db_get gutenbach-remctl/mixer
+	echo "$RET" > /usr/lib/gutenbach/remctl/config/mixer
+	db_get gutenbach-remctl/channel
+	echo "$RET" > /usr/lib/gutenbach/remctl/config/channel
+
 	chmod +x /usr/lib/gutenbach/remctl/cd-cddb
 	chmod +x /usr/lib/gutenbach/remctl/cd-cddb-get
 	chmod +x /usr/lib/gutenbach/remctl/cd-play
