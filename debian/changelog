@@ -1,3 +1,11 @@
+gutenbach (2.12) unstable; urgency=low
+
+  * Remove 'TODO' items from README, replacing with a link to the trac
+  * Fixed gutenbach backend such that status updates for gutenbach-remctl
+  * [Trac #14] gbrm now accepts regex and multiple filename arguments 
+
+ -- Kyle Brogle <broglek@bu.edu>  Sat, 14 Aug 2010 15:22:26 -0400
+
 gutenbach (2.11) unstable; urgency=low
 
   * Fixed gbq bug in client scripts where uninitialized values resulting
