@@ -11,16 +11,7 @@
 
 case "$1" in
     start)
-	if [ -e /var/run/gutenbach/remctld.pid ]; then
-	    pid=$(cat /var/run/gutenbach/remctld.pid)
-	    if [ -n "$pid" ]; then
-		kill -0 "$pid"
-		if [ "$?" == 0 ]; then
-		    echo "Ending remctld..." >&2
-		    kill "$pid" || true
-		fi
-	    fi
-	fi
+	
 
 	pid=$(sudo lsof -i :4373 | grep remctld | sed s/remctld\ // | sed s/\ .*//)
 	if [ -n "$pid" ]; then
@@ -36,16 +27,7 @@ case "$1" in
 	;;
 
     stop)
-	if [ -e /var/run/gutenbach/remctld.pid ]; then
-	    pid=$(cat /var/run/gutenbach/remctld.pid)
-	    if [ -n "$pid" ]; then
-		kill -0 "$pid"
-		if [ "$?" == 0 ]; then
-		    echo "Ending remctld..." >&2
-		    kill "$pid" || true
-		fi
-	    fi
-	fi
+	
 
 	pid=$(sudo lsof -i :4373 | grep remctld | sed s/remctld\ // | sed s/\ .*//)
 	if [ -n "$pid" ]; then
@@ -58,16 +40,6 @@ case "$1" in
 	;;
 
     restart)
-	if [ -e /var/run/gutenbach/remctld.pid ]; then
-	    pid=$(cat /var/run/gutenbach/remctld.pid)
-	    if [ -n "$pid" ]; then
-		kill -0 "$pid"
-		if [ "$?" == 0 ]; then
-		    echo "Ending remctld..." >&2
-		    kill "$pid" || true
-		fi
-	    fi
-	fi
 
 	pid=$(sudo lsof -i :4373 | grep remctld | sed s/remctld\ // | sed s/\ .*//)
 	if [ -n "$pid" ]; then

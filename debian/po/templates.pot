@@ -1,14 +1,14 @@
-# GUTENBACH TRANSLATION FILE.
-# Copyright 2010
-# This file is distributed under the same license as the gutenbach-server package.
-# Jessica B. Hamrick <jhamrick@mit.edu>, 2010.
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: 2.12\n"
-"Report-Msgid-Bugs-To: gutenbach@mit.edu\n"
-"POT-Creation-Date: 2010-08-14 16:11-0400\n"
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: gutenbach@packages.debian.org\n"
+"POT-Creation-Date: 2010-08-14 17:40-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -28,8 +28,8 @@ msgstr ""
 msgid ""
 "gutenbach creates a printer to which you can print music files.  gutenbach "
 "needs to know what you want to call the  printer, and then after "
-"installation, you will be able to do: lpr -Pprintername@hostname your-music-"
-"file-.mp3"
+"installation, you will be able to use scripts in the gutenbach-client "
+"package or lpr to interact with the server."
 msgstr ""
 
 #. Type: string

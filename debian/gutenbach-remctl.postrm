@@ -29,8 +29,8 @@ case "$1" in
 
 	    if [ -e /etc/remctl/conf.d ]; then
 		echo "Removing /etc/remctl/conf.d ..." >&2
-		rm /etc/remctl/conf.d
-		mkdir /etc/remctl/conf.d
+		rm -r  /etc/remctl/conf.d
+		mkdir  /etc/remctl/conf.d
 	    fi
      	fi
     ;;
