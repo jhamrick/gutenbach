@@ -11,9 +11,9 @@ use Net::CUPS::Destination;
 my $usage = "Usage: gbq QUEUE ID\n";
 
 my $q = $ARGV[0];
-my $id = $ARGV[1];
+my @ids = @ARGV[1 .. $#ARGV];
 
-if (!$q or !$id) {
+if (!$q or !@ids) {
     print $usage;
     exit 1
 }
@@ -41,7 +41,7 @@ unless( $printer){
     exit 1;
 }
 my @jobs = $printer->getJobs(0, 0);
-
+foreach my $id(@ids){
 if ($id eq "all") {
     foreach $id(@jobs) {
 	cancel_job($id, $printer);
@@ -56,7 +56,12 @@ elsif ($id eq "last") {
     cancel_job($id, $printer);
 }
 else {
-    cancel_job($id, $printer);
+    foreach my $item(@jobs) {
+	if($item =~ /$id/){
+	    cancel_job($item, $printer);
+	}
+    }
+}
 }
 
 sub cancel_job {
@@ -66,4 +71,5 @@ sub cancel_job {
     $printer->cancelJob($id);
 
     print "Canceled job '$title' (id $id)\n";
+ 
 }
