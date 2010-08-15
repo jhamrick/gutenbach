@@ -7,16 +7,22 @@ use warnings;
 
 use Net::CUPS;
 use Net::CUPS::Destination;
+use Getopt::Long;
 
-my $usage = "Usage: gbq QUEUE ID\n";
+my $usage = "Usage: gbq [-q QUEUE] ID\n";
+my $q = "";
+GetOptions ('q|queue=s' => \$q);
 
-my $q = $ARGV[0];
-my @ids = @ARGV[1 .. $#ARGV];
+my @ids = @ARGV[0 .. $#ARGV];
 
-if (!$q or !@ids) {
+if (!$q){
+    $q = "DEFAULT";
+}
+if (!@ids) {
     print $usage;
     exit 1
 }
+
 
 my $configpath = "$ENV{'HOME'}/.gutenbach/$q";
 if (! -e $configpath) {

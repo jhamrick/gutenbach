@@ -3,13 +3,15 @@
 gbq \- displays a remote Gutenbach queue
 .SH SYNOPSIS
 .B gbq 
-\fIQUEUE\fR
+[-q \fIQUEUE\fR]
 .SH DESCRIPTION
 Uses the perl Net::CUPS library to access a remote queue and display
 the current jobs, along with ID numbers, owners, and filenames.  The
 Gutenbach queue must have previously been added with
 .B gutenbach-client-config
-so that gbq knows which host to use.
+so that gbq knows which host to use.  If no queue is specified,
+.B gbq
+will try to use the default queue, if one is configured.
 .SH SEE ALSO
 gbr(1), gbrm(1), gutenbach-client-config(1)
 .SH AUTHOR

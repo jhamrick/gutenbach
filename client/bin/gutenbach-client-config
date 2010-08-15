@@ -18,8 +18,10 @@ my $list = 0;
 my $add = "";
 my $delete = "";
 my $host = "";
+my $default = "";
 
 GetOptions ('l|list' => \$list,
+	    's|set-default=s' => \$default,
             'a|add=s' => \$add,
             'd|delete=s' => \$delete,
 	    'h|host=s' => \$host);
@@ -29,9 +31,31 @@ my $configpath = "$ENV{'HOME'}/.gutenbach";
 if (! -e $configpath) {
     mkdir "$configpath";
 }
+#set given queue to default
+if($default and !$add and !$delete and !$list) {
+    unless(-e "$configpath/$default") {
+	print "Error: queue '$default' doesn't exist yet...you should add it first.\n";
+	exit 1;
+    }
+    if( -e "$configpath/DEFAULT"){
+	unlink("$configpath/DEFAULT") or die "Couldn't remove config file '$configpath/DEFAULT'";
+    }
+    my $symlink_exists = eval { symlink("",""); 1 };
+    if ($symlink_exists){
+	symlink("$configpath/$default","$configpath/DEFAULT");
+	print "Changed default queue to $default.\n";
+    }
+    else
+    {
+	print "Error creating symlink to $configpath/$default";
+	exit 1;
+    }
+}
+    
+	
 
 # list the existing queues
-if ($list and !$add and !$delete) {
+elsif ($list and !$add and !$delete and !$default) {
     my @queues = glob("$configpath/*") or die "Couldn't find configuration files at '$configpath'";
 
     print "Queue\t\tHost\n";

@@ -7,14 +7,15 @@ use warnings;
 
 use Net::CUPS;
 use Net::CUPS::Destination;
+use Getopt::Long;
 
-my $usage = "Usage: gbq QUEUE\n";
+my $usage = "Usage: gbq [-q QUEUE]\n";
 
-my $q = $ARGV[0];
+my $q = "";
+GetOptions ('q|queue=s' => \$q);
 
 if (!$q) {
-    print $usage;
-    exit 1
+    $q = "DEFAULT";
 }
 
 my $configpath = "$ENV{'HOME'}/.gutenbach/$q";
