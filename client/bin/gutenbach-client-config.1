@@ -3,7 +3,7 @@
 gutenbach-client-config \- displays a remote Gutenbach queue
 .SH SYNOPSIS
 .B gutenbach-client-config 
-[-l|--list|-a|--add|-d|--delete] [\fIQUEUE\fR] [--host \fIHOST\fR]
+[-l|--list|-a|--add|-d|--delete|-s|--set-default] [\fIQUEUE\fR] [--host \fIHOST\fR]
 .SH DESCRIPTION
 Provides options to add, remove, or list remote Gutenbach queues.  The
 list of queues is stored in the
@@ -33,6 +33,9 @@ Delete a remote queue.  Must be used in conjunction with
 .TP
 \fB\-h\fR, \fB\-\-host\fR HOST
 Hostname for the queue
+.TP
+\fB\-s\fR, \fB\-\-set\-default\fR QUEUE
+Set the default queue
 .SH SEE ALSO
 gbr(1), gbrm(1), gbq(1)
 .SH AUTHOR

@@ -7,14 +7,20 @@ use warnings;
 
 use Net::CUPS;
 use Net::CUPS::Destination;
+use Getopt::Long;
 use Image::ExifTool qw(ImageInfo);
 
 my $usage = "Usage: gbr QUEUE FILES\n";
 
-my $q = $ARGV[0];
-my @files = @ARGV[1 .. $#ARGV];
+my $q = "";
+GetOptions ('q|queue=s' => \$q);
 
-if (!$q or !@files) {
+my @files = @ARGV[0 .. $#ARGV];
+
+if (!$q){
+    $q = "DEFAULT";
+}
+if (!@files) {
     print $usage;
     exit 1
 }
