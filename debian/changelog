@@ -1,3 +1,14 @@
+gutenbach (2.14) unstable; urgency=low
+
+  * Implemented default queue in client scripts.
+  * Queue argument now optional for gb{r,rm,q}, and also takes form of -q
+    QUEUE now.
+  * gutenbach-client-config -s|--set-default QUEUE will set default queue
+  * Updated manpages accordingly
+  
+
+ -- Kyle Brogle <broglek@bu.edu>  Sat, 14 Aug 2010 21:38:35 -0400
+
 gutenbach (2.13) unstable; urgency=low
 
   * Added debconf support to gutenbach-remctl for mixer and channel selection
