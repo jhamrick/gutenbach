@@ -42,9 +42,8 @@ unless( $printer){
     exit 1;
 }
 print "Queue listing for queue '$queue' on '$host'\n\n";
-print "Job ID\t\tOwner\t\tTitle\n";
-print "-----------------------------------------------------------------\n";
-
+printf ("%-8s%-15s%s\n","Job","Owner","Title");
+print "-"x70 . "\n";
 my @jobs = $printer->getJobs(0, 0);
 my ($job_ref, $jobid);
 
@@ -55,5 +54,5 @@ foreach $jobid(@jobs)
 	my $user = $job_ref->{'user'};
 	my $title = $job_ref->{'title'};
 
-	print "$id\t\t$user\t\t$title\n";
+	printf ("%-8s%-15s%s\n","$id",substr("$user",0,15),substr("$title",0,47));
 }
