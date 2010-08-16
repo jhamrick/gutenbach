@@ -1,3 +1,10 @@
+gutenbach (2.15) unstable; urgency=low
+
+  * Changed gbq to have fixed width columns, to get rid of the
+    inconsistencies associated with tabbed columns.
+
+ -- Kyle Brogle <broglek@bu.edu>  Mon, 16 Aug 2010 13:00:27 -0400
+
 gutenbach (2.14) unstable; urgency=low
 
   * Implemented default queue in client scripts.
