@@ -173,26 +173,14 @@ elsif ($arguments{copies} == 42) {
   if ($filepath =~ m|http://www\.youtube\.com/watch\?v=|) {
     # YouTube URLs are resolved by the youtube-dl command.
     # Launch youtube-dl
-    $pid = open(YTDL, "-|");
-    if ($pid) {
-	print ZEPHYR "YouTube video $filepath.\nCurrently downloading, please wait...";
-	close ZEPHYR;
-	while (<YTDL>) {
-	    open(ZEPHYR, "|-", @zwrite_command);
-	    print ZEPHYR $_;
-	    close ZEPHYR;
-	}
-	open(ZEPHYR, "|-", @zwrite_command);
-	print ZEPHYR "Done downloading.";
-	close ZEPHYR;
-    }
-    else {
-	my @args = ("youtube-dl", "-q", "-o", "/tmp/youtube.flv", $filepath);
-	exec(@args) or die "Couldn't exec youtube-dl";
-    }
+    $pid = open(YTDL, "-|", "youtube-dl","-b", "-g", $filepath) or die "Unable to invoke youtube-dl";
+	print ZEPHYR "YouTube video $filepath\n$title";
+	$status .= " YouTube video $filepath. $title.";
+	# youtube-dl prints the URL of the flash video, which we pass to mplayer as a filename.
+	$filepath = <YTDL>;
+	chomp $filepath;
 
-    $filepath = "/tmp/youtube.flv";
-    # Print the title to zephyr and the status string.
+
   } else { # Doesn't appear to be a YouTube URL.
     print STDERR "Resolved external reference to $filepath\n";
     printf(ZEPHYR "%s\n", $filepath);

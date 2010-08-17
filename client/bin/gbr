@@ -51,7 +51,7 @@ my ($jobid, $title);
 
 foreach my $file(@files) {
     if ($file =~ m|http://www\.youtube\.com/watch\?v=|) {
-	open FILE, ">", "/tmp/gutenbach-youtube\n" or die "Couldn't create temporary file";
+	open FILE, ">", "/tmp/gutenbach-youtube" or die "Couldn't create temporary file";
 	print FILE $file;
 	$title = $file;
 	$file = "/tmp/gutenbach-youtube";
