@@ -4,7 +4,6 @@ PATH="$(dirname $0):$PATH"
 mixer=$(/usr/lib/gutenbach/gutenbach-get-config mixer)
 channel=$(/usr/lib/gutenbach/gutenbach-get-config channel)
 
-amixer set $mixer "$2" | grep "$channel" \
- | perl -lne 'print $1 if (/: Playback ([0-9]+)/)'
+amixer set $mixer "$2" | grep "^  $channel" | perl -lpe "s/  $channel: Playback //g;s/\[off\]/muted/g;s/\[on\]//g"
 
 volume-zephyr
