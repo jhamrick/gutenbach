@@ -1,3 +1,6 @@
 #!/bin/sh
 PATH="$(dirname $0):$PATH"
-volume-set . $(( $(volume-get .) - 1 ))
+
+python "$(dirname $0)/volume-helper.py" -
+
+#volume-set . $(( $(volume-get .) - 1 ))

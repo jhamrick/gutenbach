@@ -1,9 +1,12 @@
 #!/bin/sh
 PATH="$(dirname $0):$PATH"
 
+# $1 is string "set" and is unused (passed in via remctl)
+# $2 is the actual volume
+
 mixer=$(/usr/lib/gutenbach/gutenbach-get-config mixer)
 channel=$(/usr/lib/gutenbach/gutenbach-get-config channel)
 
-amixer set $mixer "$2" | grep "^  $channel" | perl -lpe "s/  $channel: Playback //g;s/\[off\]/muted/g;s/\[on\]//g"
+amixer set $mixer -- "$2" | grep "^  $channel" | perl -lpe "s/  $channel: Playback //g;s/\[off\]/muted/g;s/\[on\]//g"
 
 volume-zephyr
