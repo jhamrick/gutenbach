@@ -30,17 +30,19 @@ def setVolume(percent):
 		frac = i/10
 		tempV = int(v + (newV-v)*frac)
 		command = ['amixer', 'set', 'PCM', str(tempV)]
+		print tempV
+		sys.stdout.flush()
 		call(command, stdout=PIPE)
 		time.sleep(0.3)
 
 v = getVolume()
 map = {
-        '+': int(math.ceil( v*1.2 + .001 )),
-        '-': int(math.floor( v/1.2 + .001 ))
+        '+': int(math.ceil( v*1.13 + .001 )),
+        '-': int(math.floor( v/1.13 + .001 ))
 }
 
 newVolume = map[arg]
-print 'Smoothly modifying over 3 seconds...'
+print 'Smoothly modifying over 3 seconds... (from %i)' % v
 sys.stdout.flush()
 setVolume(newVolume)
 print 'Volume adjust finished.'
