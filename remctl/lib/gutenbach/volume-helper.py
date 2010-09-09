@@ -30,7 +30,7 @@ def setVolume(percent):
 		frac = i/10
 		tempV = int(v + (newV-v)*frac)
 		command = ['amixer', 'set', 'PCM', str(tempV)]
-		print tempV
+		#print tempV
 		sys.stdout.flush()
 		call(command, stdout=PIPE)
 		time.sleep(0.3)
@@ -42,8 +42,17 @@ map = {
 }
 
 newVolume = map[arg]
-print 'Smoothly modifying over 3 seconds... (from %i)' % v
+
+# Alert user
+print 'Smoothly modifying over next 3 seconds, by ~3dB (from %i to %i)...' % (v, newVolume)
 sys.stdout.flush()
+
+# Adjust volume
 setVolume(newVolume)
+
+# Alert user
 print 'Volume adjust finished.'
+
+# Send zephyr
 call([j(currentDir,'volume-zephyr')])
+
