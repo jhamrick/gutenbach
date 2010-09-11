@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<installer-script minSpecVersion="1.000000" authoringTool="com.apple.PackageMaker" authoringToolVersion="3.0.4" authoringToolBuild="179">
+    <title>Gutenbach</title>
+    <options customize="allow" allow-external-scripts="no" rootVolumeOnly="false"/>
+    <choices-outline>
+        <line choice="choice4"/>
+        <line choice="choice9"/>
+    </choices-outline>
+    <choice id="choice4" title="bin">
+        <pkg-ref id="com.sipb.gutenbach.bin-1.pkg"/>
+    </choice>
+    <choice id="choice9" title="bin">
+        <pkg-ref id="com.sipb.gutenbach.bin.pkg"/>
+    </choice>
+    <pkg-ref id="com.sipb.gutenbach.bin-1.pkg" installKBytes="32" version="1.0" auth="Root">file:./Contents/Packages/bin.pkg</pkg-ref>
+    <pkg-ref id="com.sipb.gutenbach.bin.pkg" installKBytes="48" version="1.0" auth="Root">file:./Contents/Packages/bin-1.pkg</pkg-ref>
+</installer-script>
