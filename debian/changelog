@@ -1,3 +1,9 @@
+gutenbach (2.16) unstable; urgency=low
+
+  * [Trac #22] Enable cups-lpd in gutenbach-server
+
+ -- Jessica Hamrick <jhamrick@mit.edu>  Sat, 11 Sep 2010 19:56:10 -0400
+
 gutenbach (2.15) unstable; urgency=low
 
   * Changed gbq to have fixed width columns, to get rid of the
