@@ -39,11 +39,15 @@ case "$1" in
 	/usr/lib/gutenbach/inst/cups-add-printer
 	/usr/lib/gutenbach/inst/cups-set-perms
 
-
 	inaudio=$(groups lp | grep audio || true)
 	if [ -z "$inaudio" ]; then
 	    adduser lp audio
 	fi
+
+	# enable cups-lpd
+	update-inetd --add "printer stream tcp nowait lp /usr/lib/cups/daemon/cups-lpd cups-lpd -o document-format=application/octet-stream"
+	echo "Restarting openbsd-inet..."
+	service openbsd-inetd restart
 
 	db_stop
     ;;

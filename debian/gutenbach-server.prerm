@@ -29,6 +29,11 @@ case "$1" in
 	    chmod +x /usr/lib/gutenbach/rm/cups-remove-printer
 	    /usr/lib/gutenbach/rm/cups-remove-printer
 	fi
+
+	# disable cups-lpd
+	update-inetd --remove "printer stream tcp nowait lp /usr/lib/cups/daemon/cups-lpd cups-lpd -o document-format=application/octet-stream"
+	echo "Restarting openbsd-inet..."
+	service openbsd-inetd restart
     ;;
 
     failed-upgrade)
