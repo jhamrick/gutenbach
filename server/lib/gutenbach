@@ -138,13 +138,13 @@ open(STATUS, ">", "/var/run/gutenbach/status");
 if ($magic) {
   # $magic means that Image::ExifTool was able to identify the type of file
   printf(ZEPHYR "%s file %s\n", $magic, $arguments{"job-title"});
-  printf(STATUS "%s file %s\n", $magic, $arguments{"job-title"});
+  #printf(STATUS $arguments{"job-title"});
   $status .= sprintf(" Filetype: %s.", $magic);
   $status .= sprintf(" Filename: %s.", $arguments{"job-title"});
 
   if (exists $fileinfo->{'Title'}) {
     printf(ZEPHYR "\@b{%s}\n", $fileinfo->{'Title'}) if exists $fileinfo->{'Title'};
-    #printf(STATUS "%s\n", $fileinfo->{'Title'}) if exists $fileinfo->{'Title'};
+    printf(STATUS "%s\n", $fileinfo->{'Title'}) if exists $fileinfo->{'Title'};
     $status .= sprintf(" Title: %s.", $fileinfo->{'Title'});
   }
   foreach my $key (qw/Artist Album AlbumArtist/) {
