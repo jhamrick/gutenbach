@@ -132,6 +132,7 @@ my ($fileinfo) = ImageInfo($filepath);
 my ($magic) = $fileinfo->{FileType};
 my ($tempdir);
 my ($newpath);
+my ($title);
 
 open(STATUS, ">", "/var/run/gutenbach/status");
 
@@ -141,8 +142,8 @@ if ($magic) {
   #printf(STATUS $arguments{"job-title"});
   $status .= sprintf(" Filetype: %s.", $magic);
   $status .= sprintf(" Filename: %s.", $arguments{"job-title"});
-
   if (exists $fileinfo->{'Title'}) {
+      $title = $fileinfo->{'Title'};
     printf(ZEPHYR "\@b{%s}\n", $fileinfo->{'Title'}) if exists $fileinfo->{'Title'};
     printf(STATUS "%s\n", $fileinfo->{'Title'}) if exists $fileinfo->{'Title'};
     $status .= sprintf(" Title: %s.", $fileinfo->{'Title'});
