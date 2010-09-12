@@ -1,3 +1,18 @@
+gutenbach (2.17) unstable; urgency=low
+
+  * YouTube URLs now stream instead of downloading to the server
+  * Changed remctl scripts to output volume as a percentage and in dB
+  * Added remctl helper file called volume-helper.py, which smoothly
+    moves volume up/down over 3sec (large step)
+  * Made volume-up and volume-down call volume-helper.py
+  * Adjust volume in smaller steps of roubly +/- 3dB (may vary between
+    hardware)
+  * Clean up the output of the status file that is used by the "status
+    get" remctl command
+  * Make sure the $title variable is defined when the job has no exif data
+
+ -- Jessica Hamrick <jhamrick@mit.edu>  Sat, 11 Sep 2010 21:32:38 -0400
+
 gutenbach (2.16) unstable; urgency=low
 
   * [Trac #22] Enable cups-lpd in gutenbach-server
