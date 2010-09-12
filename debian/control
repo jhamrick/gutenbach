@@ -9,7 +9,7 @@ Standards-Version: 3.8.4
 Package: gutenbach-server
 Architecture: all
 Pre-Depends: debconf
-Depends: ${shlibs:Depends}, ${misc:Depends}, mplayer, libimage-exiftool-perl, cups, sysv-rc, adduser, debathena-zephyr-config, alsa-base
+Depends: ${shlibs:Depends}, ${misc:Depends}, mplayer, libimage-exiftool-perl, cups, sysv-rc, adduser, debathena-zephyr-config, alsa-base, update-inetd
 Recommends: libzephyr4-krb5
 Conflicts: pulseaudio
 Provides: pulseaudio
@@ -35,7 +35,7 @@ Description: Displays metadat about the current songs in the
 Package: gutenbach-remctl
 Architecture: all
 Pre-Depends: debconf
-Depends: ${shlibs:Depends}, ${misc:Depends}, gutenbach-server (>= 2.0), alsa-utils, cd-discid, remctl-server
+Depends: ${shlibs:Depends}, ${misc:Depends}, gutenbach-server (>= 2.0), alsa-utils, cd-discid, remctl-server, python
 Recommends: libzephyr4-krb5
 Description: Allows a remote user to control the volume, view
  the current status of the queue, or play tracks from a cd.
