@@ -9,7 +9,7 @@ Standards-Version: 3.8.4
 Package: gutenbach-server
 Architecture: all
 Pre-Depends: debconf
-Depends: ${shlibs:Depends}, ${misc:Depends}, mplayer, libimage-exiftool-perl, cups, sysv-rc, adduser, debathena-zephyr-config, alsa-base, update-inetd
+Depends: ${shlibs:Depends}, ${misc:Depends},openbsd-inetd, mplayer, libimage-exiftool-perl, cups, sysv-rc, adduser, debathena-zephyr-config, alsa-base, update-inetd
 Recommends: libzephyr4-krb5
 Conflicts: pulseaudio
 Provides: pulseaudio
