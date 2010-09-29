@@ -1,3 +1,11 @@
+gutenbach (2.19) unstable; urgency=low
+
+  * Added necessary dependancy to libnet-cups-perl for gutenbach-queue.  
+  * Added dependancy for openbsd-inetd, so that package purge and removal
+    don't break now.
+  
+ -- Jessica Hamrick <jhamrick@mit.edu>  Wed, 29 Sep 2010 19:19:09 -0400
+
 gutenbach (2.18) unstable; urgency=low
 
   * gutenbach-server should depend on update-inetd
