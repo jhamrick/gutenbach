@@ -6,13 +6,15 @@ use strict;
 use warnings;
 use Getopt::Long;
 
-my $usage = 
-    "Usage: gutenbach-client-config [-l|--list|-a|--add|-d|--delete] [QUEUE] [--host=HOST]\n" .
-    "\n" .
-    "\t-l, --list\t\tList available queues\n" .
-    "\t-a, --add QUEUE\t\tAdd a queue (must be used with -h)\n" .
-    "\t-d, --delete QUEUE\tDelete a queue)\n" .
-    "\t-h, --host HOST\t\tHostname for the queue\n";
+my $usage = <<USAGE;
+Usage: gutenbach-client-config [-l|--list|-a|--add|-d|--delete] [QUEUE] [--host=HOST]
+
+	-l, --list		List available queues
+	-a, --add QUEUE		Add a queue (must be used with -h)
+	-d, --delete QUEUE	Delete a queue
+        -s, --set-default QUEUE Set the default queue
+	-h, --host HOST		Hostname for the queue
+USAGE
 
 my $list = 0;
 my $add = "";
