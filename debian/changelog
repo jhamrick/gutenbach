@@ -1,3 +1,16 @@
+gutenbach (2.20) unstable; urgency=low
+
+  * Add comments to the client scripts.
+  * Add '-h|--help' flags to all the client scripts
+  * Add a '-d|--dryrun' option to gbr, to just list what would be done
+    instead of doing it
+  * Add a randomization option to gbr (Trac #30)
+  * Add recursive file playing to gbr (Trac #29)
+  * Added a -n flag to gbr, to specify the number of files to play
+  * Updated manpages and other documentation
+
+ -- Jessica Hamrick <jhamrick@mit.edu>  Sat, 02 Oct 2010 22:48:15 -0400
+
 gutenbach (2.19) unstable; urgency=low
 
   * Added necessary dependancy to libnet-cups-perl for gutenbach-queue.  
