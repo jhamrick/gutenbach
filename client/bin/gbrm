@@ -10,15 +10,33 @@ use Net::CUPS;
 use Net::CUPS::Destination;
 use Getopt::Long;
 
-my $usage = "Usage: gbq [-q QUEUE] ID\n";
+# usage
+my $usage = <<USAGE;
+Usage: gbq [options] [-q QUEUE] ID
+
+        -q, --queue             Specify a queue other than the default
+        -h, --help              Print this message
+USAGE
+
+# initialize the variables for the options
 my $q = "";
-GetOptions ('q|queue=s' => \$q);
+my $help = 0;
+
+# parse the options
+GetOptions ('q|queue=s' => \$q,
+            'h|help', => \$help);
+
+# if the -h flag was passed, then print the usage and exit
+if ($help) {
+    print $usage;
+    exit 0;
+}
 
 my @ids = @ARGV[0 .. $#ARGV];
 
 # if the -q option is not specified, then assume we're using the
 # default queue
-if (!$q){
+if (!$q) {
     $q = "DEFAULT";
 }
 

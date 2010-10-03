@@ -11,10 +11,30 @@ use Net::CUPS::Destination;
 use Getopt::Long;
 use Image::ExifTool qw(ImageInfo);
 
-my $usage = "Usage: gbr QUEUE FILES\n";
+# the usage for this script
+my $usage = <<USAGE;
+Usage: gbr [options] [-q QUEUE] FILES
 
+        -q, --queue             Specify a queue other than the default
+	-d, --dryrun		Just list what would be done
+        -h, --help              Print this message
+USAGE
+
+# initialize the variables for the options
 my $q = "";
-GetOptions ('q|queue=s' => \$q);
+my $dryrun = 0;
+my $help = 0;
+
+# parse the options
+GetOptions ('q|queue=s' => \$q,
+            'd|dryrun' => \$dryrun,
+            'h|help' => \$help);
+
+# if the -h flag was passed, then print the usage and exit
+if ($help) {
+    print $usage;
+    exit 0;
+}
 
 my @files = @ARGV[0 .. $#ARGV];
 
@@ -60,7 +80,7 @@ my $printer = $cups->getDestination("$queue");
 
 # if $printer is not defined, then throw an error
 unless( $printer){
-    print "Cannot access queue $q...do you have network connectivity and permission to view the queue?\n";
+    print "Cannot access queue $q... do you have network connectivity and permission to view the queue?\n";
     exit 1;
 }
 
@@ -99,17 +119,24 @@ foreach my $file(@files) {
 	}
     }
 
-    # send the print job, given the file and the job title
-    $jobid = $printer->printFile($file, $title);
-    
-    # if the printFile command returned a job id, then print that out
-    # for the user to see
-    if ($jobid) {
-	print "Sent job '$title' (id $jobid)\n";
-    }
+    # unless it's a dry run, send the print job, given the file and
+    # the job title
+    unless ($dryrun) {
+	$jobid = $printer->printFile($file, $title);
 
-    # otherwise, let them know that an error occurred
-    else {
-	print "Error sending job '$title'\n";
-    }
+	# if the printFile command returned a job id, then print that out
+	# for the user to see
+	if ($jobid) {
+	    print "Sent job '$title' (id $jobid)\n";
+	}
+
+	# otherwise, let them know that an error occurred
+	else {
+	    print "Error sending job '$title'\n";
+	}
+
+    # otherwise, just print what we would do
+    } else {
+	print "Would send file '$file' with title '$title'\n";
+    }    
 }

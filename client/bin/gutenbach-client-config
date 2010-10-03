@@ -9,13 +9,14 @@ use Getopt::Long;
 
 # the usage for the program
 my $usage = <<USAGE;
-Usage: gutenbach-client-config [-l|--list|-a|--add|-d|--delete] [QUEUE] [--host=HOST]
+Usage: gutenbach-client-config [options]
 
 	-l, --list		List available queues
 	-a, --add QUEUE		Add a queue (must be used with -h)
 	-d, --delete QUEUE	Delete a queue
         -s, --set-default QUEUE Set the default queue
-	-h, --host HOST		Hostname for the queue
+	-h, --host HOST		Hostname for the queue (must be used with -a)
+        -H, --help              Print this message
 USAGE
 
 # initialize the variables that will hold the arguments
@@ -24,13 +25,21 @@ my $add = "";
 my $delete = "";
 my $host = "";
 my $default = "";
+my $help = 0;
 
 # get the options from the command line
 GetOptions ('l|list' => \$list,
 	    's|set-default=s' => \$default,
             'a|add=s' => \$add,
             'd|delete=s' => \$delete,
-	    'h|host=s' => \$host);
+	    'h|host=s' => \$host,
+            'H|help' => \$help);
+
+# if the -H flag was passed, then print the usage and exit
+if ($help) {
+    print $usage;
+    exit 0;
+}
 
 # set the path where the configuration files live
 my $configpath = "$ENV{'HOME'}/.gutenbach";
