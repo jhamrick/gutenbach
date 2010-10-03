@@ -11,6 +11,7 @@ use Net::CUPS::Destination;
 use Getopt::Long;
 use Image::ExifTool qw(ImageInfo);
 use List::Util 'shuffle';
+use File::Find;
 
 # the usage for this script
 my $usage = <<USAGE;
@@ -18,7 +19,8 @@ Usage: gbr [options] [-q QUEUE] FILES
 
         -q, --queue             Specify a queue other than the default
 	-d, --dryrun		Just list what would be done
-        -r, --shuffle           Randomize the order that the songs are queued in
+        -s, --shuffle           Randomize the order that the songs are queued in
+        -r, --recursive         Recursively find files if a directory is passed in
         -h, --help              Print this message
 USAGE
 
@@ -27,12 +29,14 @@ my $q = "";
 my $dryrun = 0;
 my $help = 0;
 my $shuffle = 0;
+my $recursive = 0;
 
 # parse the options
 GetOptions ('q|queue=s' => \$q,
             'd|dryrun' => \$dryrun,
             'h|help' => \$help,
-            's|shuffle' => \$shuffle);
+            's|shuffle' => \$shuffle,
+            'r|recursive' => \$recursive);
 
 # if the -h flag was passed, then print the usage and exit
 if ($help) {
@@ -42,6 +46,32 @@ if ($help) {
 
 # get the files to print from the arguments
 my @files = @ARGV[0 .. $#ARGV];
+my @allfiles;
+
+# if the recursive flag was passed, then recursively find files
+if ($recursive) {
+
+    # helper function to add a file to the end of the list, but only
+    # if it is a file (and not a directory)
+    sub append {
+        my $name = $File::Find::name;
+	if (-f $name) {
+	    push(@allfiles, $name);
+	}
+    }
+    
+    # recursively find all the files and add them to @allfiles
+    find(\&append, @files);
+
+    # if we're not shuffling the list, then sort the files.  If we are
+    # shuffling the list, then don't bother sorting (since we're going
+    # to shuffle it anyway)
+    unless ($shuffle) { 
+	@files = sort(@allfiles);
+    } else {
+	@files = @allfiles;
+    }
+}
 
 # if the shuffle flag was passed, then shuffle the order of the files
 if ($shuffle) {
