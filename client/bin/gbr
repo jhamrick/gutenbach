@@ -21,6 +21,8 @@ Usage: gbr [options] [-q QUEUE] FILES
 	-d, --dryrun		Just list what would be done
         -s, --shuffle           Randomize the order that the songs are queued in
         -r, --recursive         Recursively find files if a directory is passed in
+        -n, --number NUMBER     Only print NUMBER files, if more than NUMBER are given 
+                                (this will print the first NUMBER files if -s is not given)
         -h, --help              Print this message
 USAGE
 
@@ -30,13 +32,15 @@ my $dryrun = 0;
 my $help = 0;
 my $shuffle = 0;
 my $recursive = 0;
+my $number = 0;
 
 # parse the options
 GetOptions ('q|queue=s' => \$q,
             'd|dryrun' => \$dryrun,
             'h|help' => \$help,
             's|shuffle' => \$shuffle,
-            'r|recursive' => \$recursive);
+            'r|recursive' => \$recursive,
+            'n|number=i' => \$number);
 
 # if the -h flag was passed, then print the usage and exit
 if ($help) {
@@ -76,6 +80,12 @@ if ($recursive) {
 # if the shuffle flag was passed, then shuffle the order of the files
 if ($shuffle) {
     @files = shuffle(@files);
+}
+
+# if the number flag was specified, then only play the specified
+# number of files
+if ($number > 0 and $number < $#files) {
+    @files = @files[0 .. $number-1]
 }
 
 # if the -q option is not specified, then assume we're using the
