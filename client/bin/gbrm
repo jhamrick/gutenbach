@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 
-# Written by Jessica Hamrick (C) 2010
+# This script was largely written by Jessica Hamrick (jhamrick), with
+# help from Kyle Brogle (broglek)
 
 use strict;
 use warnings;
@@ -15,23 +16,31 @@ GetOptions ('q|queue=s' => \$q);
 
 my @ids = @ARGV[0 .. $#ARGV];
 
+# if the -q option is not specified, then assume we're using the
+# default queue
 if (!$q){
     $q = "DEFAULT";
 }
+
+# if there are no ids specified to remove, then print the usage
 if (!@ids) {
     print $usage;
     exit 1
 }
 
-
+# set configuration path, and complain if it doesn't exist
 my $configpath = "$ENV{'HOME'}/.gutenbach/$q";
 if (! -e $configpath) {
     print "Queue '$q' does not exist!  Did you forget to add it with 'gutenbach-client-config'?\n";
     exit 1;
 }
 
+# initialize the host and queue variables: host holds the address for
+# the machine on which the remote queue runs, and queue holds the name
+# of the printer
 my ($host, $queue);
 
+# load the configuration file (this will set $host and $queue)
 if (-r $configpath) {
     local $/;
     my $fh;
@@ -39,43 +48,66 @@ if (-r $configpath) {
     eval <$fh>;
 }
 
+# initialize a new CUPS session
 my $cups = Net::CUPS->new();
+# set the server to the one specified in the config file
 $cups->setServer("$host");
+# set the printer name to the one specified in the config file
 my $printer = $cups->getDestination("$queue");
+
+# if $printer is not defined, then throw an error
 unless( $printer){
     print "Cannot access queue $q...do you have network connectivity and permission to view the queue?\n";
     exit 1;
 }
+
+# get the list of jobs from the printer
 my @jobs = $printer->getJobs(0, 0);
+
+# for each id that we want to remove
 foreach my $id(@ids){
-if ($id eq "all") {
-    foreach $id(@jobs) {
+
+    # if the id is 'all', then we remove all jobs
+    if ($id eq "all") {
+	foreach $id(@jobs) {
+	    cancel_job($id, $printer);
+	}
+    }
+
+    # if the id is 'current', then we remove just the currently
+    # playing job
+    elsif ($id eq "current") {
+	$id = $jobs[0];
 	cancel_job($id, $printer);
     }
-}
-elsif ($id eq "current") {
-    $id = $jobs[0];
-    cancel_job($id, $printer);
-}
-elsif ($id eq "last") {
-    $id = $jobs[-1];
-    cancel_job($id, $printer);
-}
-else {
-    foreach my $item(@jobs) {
-	if($item =~ /$id/){
-	    cancel_job($item, $printer);
+
+    # if the id is 'last', then we remove just the last job
+    elsif ($id eq "last") {
+	$id = $jobs[-1];
+	cancel_job($id, $printer);
+    }
+
+    # otherwise, remove the job based on its actual (numeric) id
+    else {
+	foreach my $item(@jobs) {
+	    if($item =~ /$id/){
+		cancel_job($item, $printer);
+	    }
 	}
     }
 }
-}
 
+# helper function to remove a job
 sub cancel_job {
+    # get the id and printer from the arguments
     my ($id, $printer) = @_;
+    # get the reference to the job
     my $job_ref = $printer->getJob($id);
+    # find the job title (so we can print it out for the user)
     my $title = $job_ref->{'title'};
+    # cancel the job
     $printer->cancelJob($id);
 
+    # print out that we canceled the job
     print "Canceled job '$title' (id $id)\n";
- 
 }

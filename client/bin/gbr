@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 
-# Written by Jessica Hamrick (C) 2010
+# This script was largely written by Jessica Hamrick (jhamrick), with
+# help from Kyle Brogle (broglek)
 
 use strict;
 use warnings;
@@ -17,22 +18,32 @@ GetOptions ('q|queue=s' => \$q);
 
 my @files = @ARGV[0 .. $#ARGV];
 
+# if the -q option is not specified, then assume we're using the
+# default queue
 if (!$q){
     $q = "DEFAULT";
 }
+
+# if there are no files specified to print, then show the usage,
+# because the user is Doing It Wrong
 if (!@files) {
     print $usage;
     exit 1
 }
 
+# set configuration path, and complain if it doesn't exist
 my $configpath = "$ENV{'HOME'}/.gutenbach/$q";
 if (! -e $configpath) {
     print "Queue '$q' does not exist!  Did you forget to add it with 'gutenbach-client-config'?\n";
     exit 1;
 }
 
+# initialize the host and queue variables: host holds the address for
+# the machine on which the remote queue runs, and queue holds the name
+# of the printer
 my ($host, $queue);
 
+# load the configuration file (this will set $host and $queue)
 if (-r $configpath) {
     local $/;
     my $fh;
@@ -40,16 +51,30 @@ if (-r $configpath) {
     eval <$fh>;
 }
 
+# initialize a new CUPS session
 my $cups = Net::CUPS->new();
+# set the server to the one specified in the config file
 $cups->setServer("$host");
+# set the printer name to the one specified in the config file
 my $printer = $cups->getDestination("$queue");
+
+# if $printer is not defined, then throw an error
 unless( $printer){
     print "Cannot access queue $q...do you have network connectivity and permission to view the queue?\n";
     exit 1;
 }
+
+# initialize the job id and title variables for use below
 my ($jobid, $title);
 
+# for each file that the user wants to print
 foreach my $file(@files) {
+
+    # check to see if the file is a youtube video.  If it is, then
+    # write the URL to a temporary file, and set the number of copies
+    # on the print job to 42 (this is the dirty hack we have in place
+    # to indicate that the job is a youtube file instead of a normal
+    # file)
     if ($file =~ m|http://www\.youtube\.com/watch\?v=|) {
 	open FILE, ">", "/tmp/gutenbach-youtube" or die "Couldn't create temporary file";
 	print FILE $file;
@@ -57,6 +82,11 @@ foreach my $file(@files) {
 	$file = "/tmp/gutenbach-youtube";
 	$printer->addOption("copies", 42);
     }
+
+    # otherwise, we assume it's a normal file.  Try to use exiftool's
+    # ImageInfo to find out the tag information about the file (i.e.,
+    # title, artist, and album).  If you can, then rename the job to
+    # reflect those tags.  Otherwise, keep the normal title.
     else {
 	my $fileinfo = ImageInfo($file);
 	my $magic = $fileinfo->{FileType};
@@ -69,11 +99,16 @@ foreach my $file(@files) {
 	}
     }
 
+    # send the print job, given the file and the job title
     $jobid = $printer->printFile($file, $title);
     
+    # if the printFile command returned a job id, then print that out
+    # for the user to see
     if ($jobid) {
 	print "Sent job '$title' (id $jobid)\n";
     }
+
+    # otherwise, let them know that an error occurred
     else {
 	print "Error sending job '$title'\n";
     }
