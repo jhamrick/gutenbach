@@ -26,7 +26,7 @@ def setVolume(percent):
 	"""
 	v = getVolume()
 	newV = percent
-	for i in range(10):
+	for i in range(10+1):
 		frac = i/10
 		tempV = int(v + (newV-v)*frac)
 		command = ['amixer', 'set', 'PCM', str(tempV)]

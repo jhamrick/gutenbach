@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 
-# Written by Jessica Hamrick (C) 2010
+# This script was largely written by Jessica Hamrick (jhamrick), with
+# help from Kyle Brogle (broglek)
 
 use strict;
 use warnings;
@@ -9,23 +10,47 @@ use Net::CUPS;
 use Net::CUPS::Destination;
 use Getopt::Long;
 
-my $usage = "Usage: gbq [-q QUEUE]\n";
+# usage
+my $usage = <<USAGE;
+Usage: gbq [options] [-q QUEUE]
 
+        -q, --queue             Specify a queue other than the default
+        -h, --help              Print this message
+USAGE
+
+# initialize the variables for the options
 my $q = "";
-GetOptions ('q|queue=s' => \$q);
+my $help = 0;
 
+# parse the options
+GetOptions ('q|queue=s' => \$q,
+            'h|help' => \$help);
+
+# if the -h flag was passed, then print the usage and exit
+if ($help) {
+    print $usage;
+    exit 0;
+}
+
+# if the -q option is not specified, then assume we're using the
+# default queue
 if (!$q) {
     $q = "DEFAULT";
 }
 
+# set configuration path, and complain if it doesn't exist
 my $configpath = "$ENV{'HOME'}/.gutenbach/$q";
 if (! -e $configpath) {
     print "Queue '$q' does not exist!  Did you forget to add it with 'gutenbach-client-config'?\n";
     exit 1;
 }
 
+# initialize the host and queue variables: host holds the address for
+# the machine on which the remote queue runs, and queue holds the name
+# of the printer
 my ($host, $queue);
 
+# load the configuration file (this will set $host and $queue)
 if (-r $configpath) {
     local $/;
     my $fh;
@@ -33,26 +58,44 @@ if (-r $configpath) {
     eval <$fh>;
 }
 
+# initialize a new CUPS session
 my $cups = Net::CUPS->new();
+# set the server to the one specified in the config file
 $cups->setServer("$host");
+# set the printer name to the one specified in the config file
 my $printer = $cups->getDestination("$queue");
 
+# if $printer is not defined, then throw an error
 unless( $printer){
     print "Cannot access queue $q...do you have network connectivity and permission to view the queue?\n";
     exit 1;
 }
+
+# print pretty headings and stuff
 print "Queue listing for queue '$queue' on '$host'\n\n";
 printf ("%-8s%-15s%s\n","Job","Owner","Title");
 print "-"x70 . "\n";
+
+# get the list of jobs from the printer
 my @jobs = $printer->getJobs(0, 0);
+
+# initialize the job reference and job id variables
 my ($job_ref, $jobid);
 
+# for each job in the list of jobs:
 foreach $jobid(@jobs) 
 {       
-	$job_ref = $printer->getJob($jobid);
-	my $id = $job_ref->{'id'};
-	my $user = $job_ref->{'user'};
-	my $title = $job_ref->{'title'};
+    # get the reference to the job (so we can get various related
+    # variables)
+    $job_ref = $printer->getJob($jobid);
 
-	printf ("%-8s%-15s%s\n","$id",substr("$user",0,15),substr("$title",0,47));
+    # get the id of the job
+    my $id = $job_ref->{'id'};
+    # get the user who printed the job
+    my $user = $job_ref->{'user'};
+    # get the title of the job
+    my $title = $job_ref->{'title'};
+    
+    # print the job information to the screen
+    printf ("%-8s%-15s%s\n","$id",substr("$user",0,15),substr("$title",0,47));
 }
