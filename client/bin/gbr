@@ -10,6 +10,7 @@ use Net::CUPS;
 use Net::CUPS::Destination;
 use Getopt::Long;
 use Image::ExifTool qw(ImageInfo);
+use List::Util 'shuffle';
 
 # the usage for this script
 my $usage = <<USAGE;
@@ -17,6 +18,7 @@ Usage: gbr [options] [-q QUEUE] FILES
 
         -q, --queue             Specify a queue other than the default
 	-d, --dryrun		Just list what would be done
+        -r, --random            Randomize the order that the songs are queued in
         -h, --help              Print this message
 USAGE
 
@@ -24,11 +26,13 @@ USAGE
 my $q = "";
 my $dryrun = 0;
 my $help = 0;
+my $random = 0;
 
 # parse the options
 GetOptions ('q|queue=s' => \$q,
             'd|dryrun' => \$dryrun,
-            'h|help' => \$help);
+            'h|help' => \$help,
+            'r|random' => \$random);
 
 # if the -h flag was passed, then print the usage and exit
 if ($help) {
@@ -36,7 +40,13 @@ if ($help) {
     exit 0;
 }
 
+# get the files to print from the arguments
 my @files = @ARGV[0 .. $#ARGV];
+
+# if the random flag was passed, then randomize the order of the files
+if ($random) {
+    @files = shuffle(@files);
+}
 
 # if the -q option is not specified, then assume we're using the
 # default queue
