@@ -16,7 +16,7 @@ Usage: gutenbach-client-config [options]
 	-d, --delete QUEUE	Delete a queue
         -s, --set-default QUEUE Set the default queue
 	-h, --host HOST		Hostname for the queue (must be used with -a)
-        -H, --help              Print this message
+        -e, --help              Print this message
 USAGE
 
 # initialize the variables that will hold the arguments
@@ -33,7 +33,7 @@ GetOptions ('l|list' => \$list,
             'a|add=s' => \$add,
             'd|delete=s' => \$delete,
 	    'h|host=s' => \$host,
-            'H|help' => \$help);
+            'e|help' => \$help);
 
 # if the -H flag was passed, then print the usage and exit
 if ($help) {
