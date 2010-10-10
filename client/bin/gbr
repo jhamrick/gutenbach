@@ -58,14 +58,13 @@ if ($recursive) {
     # helper function to add a file to the end of the list, but only
     # if it is a file (and not a directory)
     sub append {
-        my $name = $File::Find::name;
-	if (-f $name) {
-	    push(@allfiles, $name);
+	if (-f $_) {
+	    push(@allfiles, $_);
 	}
     }
     
-    # recursively find all the files and add them to @allfiles
-    find(\&append, @files);
+    # recursively find all the files and add them to @allfiles     
+    find({ wanted => \&append, no_chdir => 1}, @files);
 
     # if we're not shuffling the list, then sort the files.  If we are
     # shuffling the list, then don't bother sorting (since we're going
