@@ -46,5 +46,5 @@ tell application "iTunes"
 	end repeat
 end tell
 
-set command to "(for t in " & ts & "; do lpr -o raw -Pgutenbach \"$t\"; done) >/dev/null 2>&1 </dev/null &"
+set command to "(for t in " & ts & "; do gbr \"$t\"; done) >/dev/null 2>&1 </dev/null &"
 do shell script command
