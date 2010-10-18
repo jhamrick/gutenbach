@@ -1,4 +1,4 @@
-.TH gbrm 1 "27 June 2010"
+.TH gbrm 1 "02 October 2010"
 .SH NAME
 gbrm \- removes jobs from a Gutenbach queue
 .SH SYNOPSIS
@@ -6,21 +6,21 @@ gbrm \- removes jobs from a Gutenbach queue
 [-q \fIQUEUE\fR] [all|current|\fIID\fR]
 .SH DESCRIPTION
 Removes a single job from a Gutenbach queue, given the job id, which
-can be obtained with the 
-.B gbq
-command.  If 
-.B all
-is used in place of an id, then all jobs are removed from the queue.  If
-.B current 
-is used in place of an id, then the current (top) job is removed from
-the queue.  If
-.B last
-is used in place of an id, then the last job is removed from the
-queue.  The queue must have previously been added with
-.B gutenbach-client-config
-so that gbrm knows which host to use.  If no queue is specified,
-.B gbr
-will try to use the default queue, if one is configured.
+can be obtained with the \fBgbq\fR command.  If no queue is specified
+with the \fB\-q\fR option, then the default queue will be used (which
+should be specified with \fBgutenbach-client-config\fR).  If \fBall\fR
+is used in place of an id, then all jobs are removed from the queue.
+If \fBcurrent\fR is used in place of an id, then the current (top) job
+is removed from the queue.  If \fBlast\fR is used in place of an id,
+then the last job is removed from the queue.  The queue must have
+previously been added with gutenbach-client-config so that gbrm knows
+which host to use.
+.TP
+\fB\-q\fR, \fB\-\-queue\fR
+Specify a queue other than the default
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print the help message
 .SH SEE ALSO
 gbr(1), gbq(1), gutenbach-client-config(1)
 .SH AUTHOR

@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 
-# Written by Jessica Hamrick (C) 2010
+# This script was largely written by Jessica Hamrick (jhamrick), with
+# help from Kyle Brogle (broglek)
 
 use strict;
 use warnings;
@@ -9,30 +10,109 @@ use Net::CUPS;
 use Net::CUPS::Destination;
 use Getopt::Long;
 use Image::ExifTool qw(ImageInfo);
+use List::Util 'shuffle';
+use File::Find;
 
-my $usage = "Usage: gbr QUEUE FILES\n";
+# the usage for this script
+my $usage = <<USAGE;
+Usage: gbr [options] [-q QUEUE] FILES
 
+        -q, --queue             Specify a queue other than the default
+	-d, --dryrun		Just list what would be done
+        -s, --shuffle           Randomize the order that the songs are queued in
+        -r, --recursive         Recursively find files if a directory is passed in
+        -n, --number NUMBER     Only print NUMBER files, if more than NUMBER are given 
+                                (this will print the first NUMBER files if -s is not given)
+        -h, --help              Print this message
+USAGE
+
+# initialize the variables for the options
 my $q = "";
-GetOptions ('q|queue=s' => \$q);
+my $dryrun = 0;
+my $help = 0;
+my $shuffle = 0;
+my $recursive = 0;
+my $number = 0;
 
+# parse the options
+GetOptions ('q|queue=s' => \$q,
+            'd|dryrun' => \$dryrun,
+            'h|help' => \$help,
+            's|shuffle' => \$shuffle,
+            'r|recursive' => \$recursive,
+            'n|number=i' => \$number);
+
+# if the -h flag was passed, then print the usage and exit
+if ($help) {
+    print $usage;
+    exit 0;
+}
+
+# get the files to print from the arguments
 my @files = @ARGV[0 .. $#ARGV];
+my @allfiles;
 
+# if the recursive flag was passed, then recursively find files
+if ($recursive) {
+
+    # helper function to add a file to the end of the list, but only
+    # if it is a file (and not a directory)
+    sub append {
+	if (-f $_) {
+	    push(@allfiles, $_);
+	}
+    }
+    
+    # recursively find all the files and add them to @allfiles     
+    find({ wanted => \&append, no_chdir => 1}, @files);
+
+    # if we're not shuffling the list, then sort the files.  If we are
+    # shuffling the list, then don't bother sorting (since we're going
+    # to shuffle it anyway)
+    unless ($shuffle) { 
+	@files = sort(@allfiles);
+    } else {
+	@files = @allfiles;
+    }
+}
+
+# if the shuffle flag was passed, then shuffle the order of the files
+if ($shuffle) {
+    @files = shuffle(@files);
+}
+
+# if the number flag was specified, then only play the specified
+# number of files
+if ($number > 0 and $number < $#files) {
+    @files = @files[0 .. $number-1]
+}
+
+# if the -q option is not specified, then assume we're using the
+# default queue
 if (!$q){
     $q = "DEFAULT";
 }
+
+# if there are no files specified to print, then show the usage,
+# because the user is Doing It Wrong
 if (!@files) {
     print $usage;
     exit 1
 }
 
+# set configuration path, and complain if it doesn't exist
 my $configpath = "$ENV{'HOME'}/.gutenbach/$q";
 if (! -e $configpath) {
     print "Queue '$q' does not exist!  Did you forget to add it with 'gutenbach-client-config'?\n";
     exit 1;
 }
 
+# initialize the host and queue variables: host holds the address for
+# the machine on which the remote queue runs, and queue holds the name
+# of the printer
 my ($host, $queue);
 
+# load the configuration file (this will set $host and $queue)
 if (-r $configpath) {
     local $/;
     my $fh;
@@ -40,16 +120,30 @@ if (-r $configpath) {
     eval <$fh>;
 }
 
+# initialize a new CUPS session
 my $cups = Net::CUPS->new();
+# set the server to the one specified in the config file
 $cups->setServer("$host");
+# set the printer name to the one specified in the config file
 my $printer = $cups->getDestination("$queue");
+
+# if $printer is not defined, then throw an error
 unless( $printer){
-    print "Cannot access queue $q...do you have network connectivity and permission to view the queue?\n";
+    print "Cannot access queue $q... do you have network connectivity and permission to view the queue?\n";
     exit 1;
 }
+
+# initialize the job id and title variables for use below
 my ($jobid, $title);
 
+# for each file that the user wants to print
 foreach my $file(@files) {
+
+    # check to see if the file is a youtube video.  If it is, then
+    # write the URL to a temporary file, and set the number of copies
+    # on the print job to 42 (this is the dirty hack we have in place
+    # to indicate that the job is a youtube file instead of a normal
+    # file)
     if ($file =~ m|http://www\.youtube\.com/watch\?v=|) {
 	open FILE, ">", "/tmp/gutenbach-youtube" or die "Couldn't create temporary file";
 	print FILE $file;
@@ -57,6 +151,11 @@ foreach my $file(@files) {
 	$file = "/tmp/gutenbach-youtube";
 	$printer->addOption("copies", 42);
     }
+
+    # otherwise, we assume it's a normal file.  Try to use exiftool's
+    # ImageInfo to find out the tag information about the file (i.e.,
+    # title, artist, and album).  If you can, then rename the job to
+    # reflect those tags.  Otherwise, keep the normal title.
     else {
 	my $fileinfo = ImageInfo($file);
 	my $magic = $fileinfo->{FileType};
@@ -69,12 +168,24 @@ foreach my $file(@files) {
 	}
     }
 
-    $jobid = $printer->printFile($file, $title);
-    
-    if ($jobid) {
-	print "Sent job '$title' (id $jobid)\n";
-    }
-    else {
-	print "Error sending job '$title'\n";
-    }
+    # unless it's a dry run, send the print job, given the file and
+    # the job title
+    unless ($dryrun) {
+	$jobid = $printer->printFile($file, $title);
+
+	# if the printFile command returned a job id, then print that out
+	# for the user to see
+	if ($jobid) {
+	    print "Sent job '$title' (id $jobid)\n";
+	}
+
+	# otherwise, let them know that an error occurred
+	else {
+	    print "Error sending job '$title'\n";
+	}
+
+    # otherwise, just print what we would do
+    } else {
+	print "Would send file '$file' with title '$title'\n";
+    }    
 }

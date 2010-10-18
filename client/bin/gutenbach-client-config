@@ -1,63 +1,93 @@
 #!/usr/bin/perl
 
-# Written by Jessica Hamrick, (C) 2010
+# This script was largely written by Jessica Hamrick (jhamrick), with
+# help from Kyle Brogle (broglek)
 
 use strict;
 use warnings;
 use Getopt::Long;
 
-my $usage = 
-    "Usage: gutenbach-client-config [-l|--list|-a|--add|-d|--delete] [QUEUE] [--host=HOST]\n" .
-    "\n" .
-    "\t-l, --list\t\tList available queues\n" .
-    "\t-a, --add QUEUE\t\tAdd a queue (must be used with -h)\n" .
-    "\t-d, --delete QUEUE\tDelete a queue)\n" .
-    "\t-h, --host HOST\t\tHostname for the queue\n";
+# the usage for the program
+my $usage = <<USAGE;
+Usage: gutenbach-client-config [options]
 
+	-l, --list		List available queues
+	-a, --add QUEUE		Add a queue (must be used with -h)
+	-d, --delete QUEUE	Delete a queue
+        -s, --set-default QUEUE Set the default queue
+	-h, --host HOST		Hostname for the queue (must be used with -a)
+        -e, --help              Print this message
+USAGE
+
+# initialize the variables that will hold the arguments
 my $list = 0;
 my $add = "";
 my $delete = "";
 my $host = "";
 my $default = "";
+my $help = 0;
 
+# get the options from the command line
 GetOptions ('l|list' => \$list,
 	    's|set-default=s' => \$default,
             'a|add=s' => \$add,
             'd|delete=s' => \$delete,
-	    'h|host=s' => \$host);
+	    'h|host=s' => \$host,
+            'e|help' => \$help);
 
+# if the -H flag was passed, then print the usage and exit
+if ($help) {
+    print $usage;
+    exit 0;
+}
+
+# set the path where the configuration files live
 my $configpath = "$ENV{'HOME'}/.gutenbach";
 
+# if the configuration path doens't exist, then make it
 if (! -e $configpath) {
     mkdir "$configpath";
 }
-#set given queue to default
+
+# if the 'default' option was specified, then set given queue to
+# default
 if($default and !$add and !$delete and !$list) {
+    # if the specified queue doesn't exist, then throw an error
     unless(-e "$configpath/$default") {
 	print "Error: queue '$default' doesn't exist yet...you should add it first.\n";
 	exit 1;
     }
+    
+    # if there already exists a default, then remove it so we can
+    # replace it with the new default
     if( -e "$configpath/DEFAULT"){
 	unlink("$configpath/DEFAULT") or die "Couldn't remove config file '$configpath/DEFAULT'";
     }
+
+    # check to make sure we can create symlinks
     my $symlink_exists = eval { symlink("",""); 1 };
+
+    # if so, then create the symlink and report it
     if ($symlink_exists){
 	symlink("$configpath/$default","$configpath/DEFAULT");
 	print "Changed default queue to $default.\n";
     }
+
+    # otherwise, throw an error
     else
     {
 	print "Error creating symlink to $configpath/$default";
 	exit 1;
     }
 }
-    
-	
 
-# list the existing queues
+# if the 'list' option was specified, then list the existing queues
 elsif ($list and !$add and !$delete and !$default) {
+    # get the config files in the configuration path -- these are the queues
     my @queues = glob("$configpath/*") or die "Couldn't find configuration files at '$configpath'";
 
+    # for each of the queues, load the configuration file and print
+    # the queue name and the host it's on
     print "Queue\t\tHost\n";
     foreach my $q (@queues) {
 	my ($host, $queue);
@@ -73,17 +103,22 @@ elsif ($list and !$add and !$delete and !$default) {
     }
 }
 
-# add a new queue
+# if the 'add' option was specified, then add a new queue
 elsif (!$list and $add and !$delete) {
+
+    # make sure there was a host specified as well (otherwise, we
+    # won't know where to print to)
     if (!$host) {
 	print $usage;
 	exit 1;
     }
 
+    # if the queue already exists, then print a warning
     if (-e "$configpath/$add") {
 	print "Warning: queue '$add' already exists\n";
     }
 
+    # create the configuration file
     open CONFIG, "> $configpath/$add" or die "Couldn't open config file '$configpath/$add'";
     print CONFIG "\$host = \"$host\";\n";
     print CONFIG "\$queue = \"$add\";\n";
@@ -92,16 +127,20 @@ elsif (!$list and $add and !$delete) {
     print "Added queue '$add' on host '$host'\n"
 }
 
-# delete an existing queue
+# if the 'delete' option was specified, then delete an existing queue
 elsif (!$list and !$add and $delete) {
+
+    # if the queue doesn't exist, then print an error and exit
     if (! -e "$configpath/$delete") {
-	print "Error: queue '$delete' already exists\n";
+	print "Error: queue '$delete' does not exist\n";
 	exit 1;
     }
 
+    # otherwise, remove the configuration file
     unlink("$configpath/$delete") or die "Couldn't remove config file '$configpath/$delete'";
 }
 
+# otherwise, it's an unrecognized option, so print the usage and exit
 else {
     print $usage;
     exit 1;
