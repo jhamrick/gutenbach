@@ -1,28 +1,46 @@
 #!/usr/bin/env python
 
-# Adapted from the Quickprint IPP server code
+# Adapted from the Quickprint IPP server code (http://quickprint.mit.edu)
+# Modifications and additions written by Jessica Hamrick (jhamrick@mit.edu)
+
+# Notes and Todo:
+#   - make sure package creates gutenbach folder in /var/log
+#   - ok, so ipplib actually seems to be an unsupported library.
+#     Maybe want to write this in perl instead since there is
+#     Net::IPP::IPPRequest
 
 import os, sys
-
-try:
-    if not os.path.isdir('/tmp/gutenbach'):
-        os.mkdir('/tmp/gutenbach')
-except e, Exception:
-    pass
-
-import cgi #, cgitb; cgitb.enable(logdir='/tmp/gutenbach')
+import cgi, cgitb
+import logging
 import MySQLdb
-from ipplib import IPPRequest
 import ipplib
 
+from ipplib import IPPRequest
 from tempfile import mkstemp
 from shutil import move
+from logging import debug, info, warning, error, critical
+
+# set up logging
+LOGFILE = "/var/log/gutenbach/ipp.log"
+logging.basicConfig(filename=LOGFILE, level=logging.DEBUG)
+cgitb.enable(logdir='/var/log/gutenbach/cgi.log')
+
+# make sure a temporary folder exists
+TEMPDIR = '/tmp/gutenbach/ipp'
+try:
+    if not os.path.exists(TEMPDIR):
+        info("Creating temporay directory '%s'" % TEMPDIR)
+        os.makedirs(TEMPDIR)
+except e, Exception:
+    error("Could not create temporary directory '%s'" % TEMPDIR)
+
 
 authfail = False
 try:
     printer_uri = 'http://%s%s' % (os.environ['SERVER_NAME'], os.environ['REQUEST_URI'])
 except:
     pass
+
 try:
     argv = cgi.parse(os.environ['QUERY_STRING'])
     webauth = argv['BASIC']
@@ -72,7 +90,7 @@ class IPPServer(object):
             lambda x: x[0] in ('attributes-charset', 'attributes-natural-language', 'printer-uri'),
             request._operation_attributes[0])
 
-        # f = file('/tmp/gutenbach/printer2.log','a')
+        # f = file('/tmp/gutenbach/ipp/printer2.log','a')
         # f.write("\n" + "*"*80 + "\n")
         # f.write(str(request))
         if handler is not None:
@@ -88,7 +106,7 @@ class IPPServer(object):
 
     def _operation_2(self, request, response):
         """print-job response"""
-        (fno, fname) = mkstemp(dir='/tmp/gutenbach')
+        (fno, fname) = mkstemp(dir='/tmp/gutenbach/ipp')
         os.write(fno, request.data)
         os.close(fno)
         opattr = filter(lambda x: x[0] in ('job-name'),
