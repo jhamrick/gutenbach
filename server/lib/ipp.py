@@ -1,13 +1,10 @@
 #!/usr/bin/env python
 
-# Adapted from the Quickprint IPP server code (http://quickprint.mit.edu)
+# Adapted from the Quickprint IPP server code (http://quikprint.mit.edu)
 # Modifications and additions written by Jessica Hamrick (jhamrick@mit.edu)
 
 # Notes and Todo:
 #   - make sure package creates gutenbach folder in /var/log
-#   - ok, so ipplib actually seems to be an unsupported library.
-#     Maybe want to write this in perl instead since there is
-#     Net::IPP::IPPRequest
 
 import os, sys
 import cgi, cgitb
@@ -34,54 +31,22 @@ try:
 except e, Exception:
     error("Could not create temporary directory '%s'" % TEMPDIR)
 
-
-authfail = False
-try:
-    printer_uri = 'http://%s%s' % (os.environ['SERVER_NAME'], os.environ['REQUEST_URI'])
-except:
-    pass
-
-try:
-    argv = cgi.parse(os.environ['QUERY_STRING'])
-    webauth = argv['BASIC']
-    if type(webauth) is list:
-        webauth = webauth[0]
-    webauth = webauth.split(' ')[1]
-    if not len(webauth):
-        authfail = True
-    else:
-        (authu, authp) = webauth.decode('base64').split(':')
-        db=MySQLdb.connect(read_default_file="/mit/gutenbach/.my.cnf")
-        c = db.cursor()
-        c.execute("SELECT 1 FROM auth WHERE auser=%s AND apass=%s LIMIT 1", (authu,authp,))
-        if c.fetchone() is None:
-            authfail = True
-except Exception, e:
-    authfail = True
-
-if authfail:
-    print "Status: 401 Authorization Required"
-    print "WWW-Authenticate: Basic realm=\"Gutenbach\""
-    print "Content-type: application/ipp\n"
-    sys.exit(0)
-else:
-    AUTH = authu.lower()
-
+# print the content type for our request
 print "Content-type: application/ipp\n"
 
 class IPPServer(object):
+    
+    # nothing to do in the init
     def __init__(self):
         pass
+
+    # this function processes an IPP request and sends a response
     def process(self, request_in, response_out):
-        data_in = request_in.read()
-        if not len(data_in):
-            return
-        request = IPPRequest(data=data_in)
-        request.parse()
+
 
         response = IPPRequest(version=request.version,
-                            operation_id=request.operation_id,
-                            request_id=request.request_id)
+                              operation_id=request.operation_id,
+                              request_id=request.request_id)
         #file('/mit/gutenbach/tmp/requests/'+str(request.operation_id)).write()
         handler = getattr(self, "_operation_%d" % request.operation_id, None)
 
