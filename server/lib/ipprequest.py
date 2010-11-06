@@ -1,46 +1,52 @@
 #!/usr/bin/python
 
-import sys
+import sys, struct
 
-# various tags
-zero_name_length                  = 0x00
-operation_attributes_tag          = 0x01
-job_attributes_tag                = 0x02
-end_of_attributes_tag             = 0x03
-printer_attributes_tag            = 0x04
-unsupported_attributes_tag        = 0x05
+class IPPTags():
+    """
+    Contains constants for the various IPP tags, as defined by RFC
+    2565.
+    """
+    
+    # various tags
+    ZERO_NAME_LENGTH                  = 0X00
+    OPERATION_ATTRIBUTES_TAG          = 0X01
+    JOB_ATTRIBUTES_TAG                = 0X02
+    END_OF_ATTRIBUTES_TAG             = 0X03
+    PRINTER_ATTRIBUTES_TAG            = 0X04
+    UNSUPPORTED_ATTRIBUTES_TAG        = 0X05
+    
+    # "out of band" value tags
+    UNSUPPORTED                       = 0X10
+    DEFAULT                           = 0X11
+    UNKNOWN                           = 0X12
+    NO_VALUE                          = 0X13
+    
+    # integer value tags
+    GENERIC_INTEGER                   = 0X20
+    INTEGER                           = 0X21
+    BOOLEAN                           = 0X22
+    ENUM                              = 0X23
 
-# "out of band" value tags
-oob_unsupported_value_tag         = 0x10
-oob_default_value_tag             = 0x11
-oob_unknown_value_tag             = 0x12
-oob_no_value_tag                  = 0x13
+    # octetstring value tags
+    UNSPECIFIED_OCTETSTRING           = 0X30
+    DATETIME                          = 0X31
+    RESOLUTION                        = 0X32
+    RANGEOFINTEGER                    = 0X33
+    COLLECTION                        = 0X34
+    TEXTWITHLANGUAGE                  = 0X35
+    NAMEWITHLANGUAGE                  = 0X36
 
-# integer value tags
-generic_integer_value_tag         = 0x20
-integer_value_tag                 = 0x21
-boolean_value_tag                 = 0x22
-enum_value_tag                    = 0x23
-                  
-# octetString value tags
-unspecified_octetString_value_tag = 0x30
-dateTime_value_tag                = 0x31
-resolution_value_tag              = 0x32
-rangeOfInteger_value_tag          = 0x33
-collection_value_tag              = 0x34
-textWithLanguage_value_tag        = 0x35
-nameWithLanguage_value_tag        = 0x36
-
-# character-string value tags
-generic_char_string_value_tag     = 0x40
-textWithoutLanguage_value_tag     = 0x41
-nameWithoutLanguage_value_tag     = 0x42
-keyword_value_tag                 = 0x44
-uri_value_tag                     = 0x45
-uriScheme_value_tag               = 0x46
-charset_value_tag                 = 0x47
-naturalLanguage_value_tag         = 0x48
-mimeMediaType_value_tag           = 0x49                                    
+    # character-string value tags
+    GENERIC_CHAR_STRING               = 0X40
+    TEXTWITHOUTLANGUAGE               = 0X41
+    NAMEWITHOUTLANGUAGE               = 0X42
+    KEYWORD                           = 0X44
+    URI                               = 0X45
+    URISCHEME                         = 0X46
+    CHARSET                           = 0X47
+    NATURALLANGUAGE                   = 0X48
+    MIMEMEDIATYPE                     = 0X49                                    
 
 class IPPValue():
     """
@@ -68,12 +74,16 @@ class IPPValue():
         # make sure value isn't empty
         assert value is not None
 
-        self.value_tag = value_tag
-        self.name = name
-        self.value = value
+        self.value_tag = hex(value_tag)
+        self.name = str(name)
+        self.value = str(value)
 
 class IPPAttribute():
      """
+     In addition to what the RFC reports, an attribute has an
+     'attribute tag', which specifies what type of attribute it is.
+     It is 1 bytes long, and comes before the list of values.
+
      From RFC 2565:
 
      Each attribute consists of:
@@ -122,7 +132,7 @@ class IPPAttribute():
          # make sure each value is an IPPValue
          for value in values: assert isinstance(value, IPPValue)
         
-         self.attribute_tag = attribute_tag
+         self.attribute_tag = hex(attribute_tag)
          self.values = values
 
 class IPPRequest():
@@ -161,16 +171,17 @@ class IPPRequest():
 
         Keyword arguments for passing in the segments of the request:
         
-            version -- two bytes, identifying the version number of
-                       the request
+            version -- a tuple of two signed chars, identifying the
+                       major version and minor version numbers of the
+                       request
                             
-            operation_id -- two bytes, identifying the id of the
+            operation_id -- a signed short, identifying the id of the
                             requested operation
 
-            request_id -- four bytes, identifying the id of the
+            request_id -- a signed int, identifying the id of the
                           request itself.
 
-            attributes -- a list of IPPAttributes.  May be empty.
+            attributes -- (optional) a list of IPPAttributes
 
             data -- (optional) variable length, containing the actual
                     data of the request
@@ -184,8 +195,13 @@ class IPPRequest():
         if request is None:
             # make sure the version number isn't empty
             assert version is not None
-            # make sure the version number is two bytes long
-            assert sys.getsizeof(version) == 2
+            # make sure verison is a tuple of length 2
+            assert isinstance(version, tuple)
+            assert len(version) == 2
+            # make sure the major version number is one byte long
+            assert sys.getsizeof(version[0]) == 1
+            # make sure the minor version number is one byte long
+            assert sys.getsizeof(version[1]) == 1
             # make sure the operation id isn't empty
             assert operation_id is not None
             # make sure the operation id is two bytes long
@@ -198,42 +214,42 @@ class IPPRequest():
         # if the request isn't None, then we'll read directly from
         # that file handle
         if request is not None:
-            # read the version-number (two bytes)
-            self.version        = request.read(2)
+            # read the version-number (two signed chars)
+            self.version        = struct.unpack('bb', request.read(2))
 
             # read the operation-id (or status-code, but that's only
-            # for a response) (two bytes)
-            self.operation_id   = request.read(2)
+            # for a response) (signed short)
+            self.operation_id   = struct.unpack('h', request.read(2))
 
-            # read the request-id (4 bytes)
-            self.request_id     = request.read(4)
+            # read the request-id (signed int)
+            self.request_id     = struct.unpack('i', request.read(4))
 
             # now we have to read in the attributes.  Each attribute
             # has a tag (1 byte) and a sequence of values (n bytes)
             self.attributes     = []
 
             # read in the next byte
-            next_byte = request.read(1)
+            next_byte = struct.unpack('b', request.read(1))
 
             # as long as the next byte isn't signaling the end of the
             # attributes, keep looping and parsing attributes
-            while next_byte != end_of_attributes_tag:
+            while next_byte != IPPTags.END_OF_ATTRIBUTES_TAG:
                 
                 # if the next byte is an attribute tag, then we're at
                 # the start of a new attribute
                 if next_byte <= 0x0F:
 
                     attribute_tag = next_byte
-                    # read in the value tag (one byte)
-                    value_tag     = request.read(1)
-                    # read in the length of the name (two bytes)
-                    name_length   = request.read(2)
-                    # read the name (name_length bytes)
-                    name          = request.read(name_length)
-                    # read in the length of the value (two bytes)
-                    value_length  = request.read(2)
-                    # read in the value (value_length bytes)
-                    value         = request.read(value_length)
+                    # read in the value tag (signed char)
+                    value_tag     = struct.unpack('b', request.read(1))
+                    # read in the length of the name (signed short)
+                    name_length   = struct.unpack('h', request.read(2))
+                    # read the name (a string of name_length bytes)
+                    name          = struct.unpack('s', request.read(name_length))
+                    # read in the length of the value (signed short)
+                    value_length  = struct.unpack('h', request.read(2))
+                    # read in the value (string of value_length bytes)
+                    value         = struct.unpack('b'*value_length, request.read(value_length))
 
                     # create a new IPPAttribute from the data we just
                     # read in, and add it to our attributes list
@@ -248,30 +264,31 @@ class IPPRequest():
                     value_tag     = next_byte
                     # read in the length of the name (two bytes) --
                     # this should be 0x0
-                    name_length   = request.read(2)
+                    name_length   = struct.unpack('h', request.read(2))
                     assert name_length == zero_name_length
                     # name should be empty
-                    name          = None
+                    name          = ''
                     # read in the length of the value (two bytes)
-                    value_length  = request.read(2)
+                    value_length  = struct.unpack('h', request.read(2))
                     # read in the value (value_length bytes)
-                    value         = request.read(value_length)
+                    value         = struct.unpack('b'*value_length, request.read(value_length))
 
                     # add another value to the last attribute
                     self.attributes[-1].values.append(IPPValue(value_tag, name, value))
 
                 # read another byte
-                next_byte = request.read(1)
+                next_byte = struct.unpack('b', request.read(1))
 
             # once we hit the end-of-attributes tag, the only thing
             # left is the data, so go ahead and read all of it
-            self.data = request.read()
+            buff = request.read()
+            self.data = struct.unpack('b'*len(buff), sys.getsizeof(buff))
 
         # otherwise, just set the class variables to the keyword
         # arguments passed in
         else:
-            self.version = version
-            self.operation_id = operation_id
-            self.request_id = request_id
+            self.version = int(version)
+            self.operation_id = int(operation_id)
+            self.request_id = int(request_id)
             self.attributes = attributes
             self.data = data

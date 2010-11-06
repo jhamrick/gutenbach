@@ -12,7 +12,7 @@ import logging
 import MySQLdb
 import ipplib
 
-from ipplib import IPPRequest
+from ipprequest import IPPRequest
 from tempfile import mkstemp
 from shutil import move
 from logging import debug, info, warning, error, critical
@@ -38,16 +38,32 @@ class IPPServer(object):
     
     # nothing to do in the init
     def __init__(self):
+        """
+        This function doesn't actually do anything.
+        """
         pass
 
     # this function processes an IPP request and sends a response
     def process(self, request_in, response_out):
+        """
+        Processes an IPP request and sends a response.
 
+        Arguments:
 
+            request_in -- a file handle to read in the request
+
+            request_out -- a file handle to print the response
+        """
+        
+        # parse the request from request_in
+        request = IPPRequest(request=request_in)
+
+        # create the response, copying the version, operation-id, and
+        # request-id from the request
         response = IPPRequest(version=request.version,
                               operation_id=request.operation_id,
                               request_id=request.request_id)
-        #file('/mit/gutenbach/tmp/requests/'+str(request.operation_id)).write()
+        
         handler = getattr(self, "_operation_%d" % request.operation_id, None)
 
         response._operation_attributes = [[]]
