@@ -85,8 +85,8 @@ class IPPValue():
         # make sure value isn't empty
         assert value is not None
 
-        self.value_tag = hex(value_tag)
-        self.value = str(value)
+        self.value_tag = value_tag
+        self.value = value
 
 class IPPAttribute():
     """
@@ -127,9 +127,9 @@ class IPPAttribute():
         
         Arguments:
 
-        name -- the name of the attribute
+            name -- the name of the attribute
 
-        values -- a list of IPPValues.  May not be empty.
+            values -- a list of IPPValues.  May not be empty.
         """
 
         # make sure name isn't empty
@@ -140,7 +140,7 @@ class IPPAttribute():
         # make sure each value is an IPPValue
         for value in values: assert isinstance(value, IPPValue)
          
-        self.name = str(name)
+        self.name = name
         self.values = values
 
     def toBinaryData(self):
@@ -151,25 +151,86 @@ class IPPAttribute():
         # get the binary data for all the values
         values = []
         for v, i in zip(self.values, xrange(len(self.values))):
+            name_length = len(self.name)
+            if i > 0: name_length = 0
+            value_length = len(v.value)
+
+            logger.debug("dumping name_length : %i" % name_length)
+            logger.debug("dumping name : %s" % self.name)
+            logger.debug("dumping value_length : %i" % value_length)
+            logger.debug("dumping value : %s" % v.value)
+
+            # the value tag in binary
+            value_tag_bin = struct.pack('>b', v.value_tag)
+
+            # the name length in binary
+            name_length_bin = struct.pack('>h', name_length)
+
+            # the name in binary
+            name_bin = self.name
+
+            # the value length in binary
+            value_length_bin = struct.pack('>h', value_length)
+
+            # the value in binary
+            value_bin = v.value
+
             if i == 0:
-                name_length = sys.getsizeof(self.name)
-                value_length = sys.getsizeof(v.value)
-                values.append(struct.pack('>bh%ssh%ss' % (name_length, value_length),
-                                          v.value_tag,
-                                          name_length,
-                                          self.name,
-                                          value_length,
-                                          v.value))
+                values.append(''.join([value_tag_bin,
+                                       name_length_bin,
+                                       name_bin,
+                                       value_length_bin,
+                                       value_bin]))
             else:
-                value_length = sys.getsizeof(v.value)
-                values.append(struct.pack('>bhh%ss' % (value_length),
-                                          v.value_tag,
-                                          name_length,
-                                          value_length,
-                                          v.value))
+                values.append(''.join([value_tag_bin,
+                                       name_length_bin,
+                                       value_length_bin,
+                                       value_bin]))
                 
         # concatenate everything together and return it
         return ''.join(values)
+
+class IPPAttributeGroup():
+    """
+    An IPPAttributeGroup consists of an attribute-group-tag, followed
+    by a sequence of IPPAttributes.
+    """
+
+    def __init__(self, attribute_group_tag, attributes=[]):
+        """
+        Initialize an IPPAttributeGroup.
+
+        Arguments:
+
+            attribute_group_tag -- a signed char, holds the tag of the
+                                   attribute group
+
+            attributes -- (optional) a list of attributes
+        """
+
+        # make sure attribute_group_tag isn't empty
+        assert attribute_group_tag is not None
+
+        # make sure attributes is a list or tuple of IPPAttributes
+        assert isinstance(attributes, (list, tuple))
+        for a in attributes: assert isinstance(a, IPPAttribute)
+
+        self.attribute_group_tag = attribute_group_tag
+        self.attributes = attributes
+
+    def toBinaryData(self):
+        """
+        Convert the IPPAttributeGroup to binary.
+        """
+
+        # conver the attribute_group_tag to binary
+        tag = struct.pack('>b', self.attribute_group_tag)
+
+        # convert each of the attributes to binary
+        attributes = [a.toBinaryData() for a in self.attributes]
+
+        # concatenate everything and return
+        return tag + ''.join(attributes)
 
 class IPPRequest():
     """
@@ -198,7 +259,8 @@ class IPPRequest():
     # either give the version, operation_id, request_id,
     # attribute_sequence, and data, or a file handler (request) which
     # can be read from to get the request
-    def __init__(self, version=None, operation_id=None, request_id=None, attributes=[], data=None, request=None):
+    def __init__(self, version=None, operation_id=None, request_id=None,
+                 attribute_groups=[], data=None, request=None):
         """
         Create an IPPRequest.  Takes either the segments of the
         request separately, or a file handle for the request to parse.
@@ -217,7 +279,7 @@ class IPPRequest():
             request_id -- a signed int, identifying the id of the
                           request itself.
 
-            attributes -- (optional) a list of IPPAttributes
+            attribute_groups -- a list of IPPAttributes, at least length 1
 
             data -- (optional) variable length, containing the actual
                     data of the request
@@ -238,6 +300,9 @@ class IPPRequest():
             assert operation_id is not None
             # make sure the request id isn't empty
             assert request_id is not None
+            # make sure attribute_groups is a list of IPPAttributes
+            assert len(attribute_groups) > 0
+            for a in attribute_groups: assert isinstance(a, IPPAttribute)
             
         # if the request isn't None, then we'll read directly from
         # that file handle
@@ -257,7 +322,7 @@ class IPPRequest():
 
             # now we have to read in the attributes.  Each attribute
             # has a tag (1 byte) and a sequence of values (n bytes)
-            self.attributes     = []
+            self.attribute_groups = []
 
             # read in the next byte
             next_byte = struct.unpack('>b', request.read(1))[0]
@@ -269,6 +334,8 @@ class IPPRequest():
                 
                 attribute_group_tag = next_byte
                 logger.debug("attribute-tag : %i" % attribute_group_tag)
+
+                attributes = []
 
                 next_byte = struct.unpack('>b', request.read(1))[0]
                 logger.debug("next byte : 0x%X" % next_byte)
@@ -298,8 +365,8 @@ class IPPRequest():
 
                         # create a new IPPAttribute from the data we just
                         # read in, and add it to our attributes list
-                        self.attributes.append(IPPAttribute(name,
-                                                            [IPPValue(value_tag, value)]))
+                        attributes.append(IPPAttribute(name,
+                                                       [IPPValue(value_tag, value)]))
 
                     else:
                         # read in the length of the value (signed short)
@@ -311,10 +378,12 @@ class IPPRequest():
                         logger.debug("value : %s" % value)
 
                         # add another value to the last attribute
-                        self.attributes[-1].values.append(IPPValue(value_tag, value))
+                        attributes[-1].values.append(IPPValue(value_tag, value))
 
                     # read another byte
                     next_byte = struct.unpack('>b', request.read(1))[0]
+
+                self.attribute_groups.append(IPPAttributeGroup(attribute_group_tag, attributes))
 
             # once we hit the end-of-attributes tag, the only thing
             # left is the data, so go ahead and read all of it
@@ -324,10 +393,10 @@ class IPPRequest():
         # otherwise, just set the class variables to the keyword
         # arguments passed in
         else:
-            self.version = (int(version[0]), int(version[1]))
-            self.operation_id = int(operation_id)
-            self.request_id = int(request_id)
-            self.attributes = attributes
+            self.version = (version[0], version[1])
+            self.operation_id = operation_id
+            self.request_id = request_id
+            self.attribute_groups = attribute_groups
             self.data = data
 
     def toBinaryData(self):
@@ -342,8 +411,8 @@ class IPPRequest():
                                     self.operation_id,
                                     self.request_id)
 
-        # convert the attributes to binary
-        attributes = ''.join([a.toBinaryData() for a in self.attributes])
+        # convert the attribute groups to binary
+        attribute_groups = ''.join([a.toBinaryData() for a in self.attribute_groups])
 
         # conver the end-of-attributes-tag to binary
         end_of_attributes_tag = struct.pack('>b', IPPTags.END_OF_ATTRIBUTES_TAG)
@@ -355,4 +424,4 @@ class IPPRequest():
             data = ''
 
         # append everything together and return it
-        return preattributes + attributes + end_of_attributes_tag + data
+        return preattributes + attribute_groups + end_of_attributes_tag + data
