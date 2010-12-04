@@ -1,3 +1,9 @@
+gutenbach (2.22) unstable; urgency=low
+
+  * Ask File::Temp to make its temporary file in a system-dependent temporary directory.
+
+ -- Quentin Smith <quentin@mit.edu>  Sat, 04 Dec 2010 16:13:55 -0500
+
 gutenbach (2.21) unstable; urgency=low
 
   * Fixed bug with recursive option in gbr.
