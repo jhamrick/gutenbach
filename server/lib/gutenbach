@@ -82,7 +82,7 @@ my %arguments = (
 # mplayer really wants a file, let's write out to a temporary file
 # first.
 if (!$arguments{"file"}) {
-  my ($fh, $file) = tempfile("gutenbachXXXXX", UNLINK => 1); # Ask File::Temp for a safe temporary file
+  my ($fh, $file) = tempfile("gutenbachXXXXX", TMPDIR => 1, UNLINK => 1); # Ask File::Temp for a safe temporary file
   my $buf;
   while (read(STDIN, $buf, 1024*1024)) { # Read 1M at a time and put it in the temporary file
     print $fh $buf;
