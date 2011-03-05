@@ -419,7 +419,7 @@ class IPPRequest():
     # attribute_sequence, and data, or a file handler (request) which
     # can be read from to get the request
     def __init__(self, version=None, operation_id=None, request_id=None,
-                 attribute_groups=[], data=None, request=None):
+                 attribute_groups=[], data=None, request=None, length=sys.maxint):
         """
         Create an IPPRequest.  Takes either the segments of the
         request separately, or a file handle for the request to parse.
@@ -468,15 +468,18 @@ class IPPRequest():
         if request is not None:
             # read the version-number (two signed chars)
             self.version        = struct.unpack('>bb', request.read(2))
+            length -= 2
             logger.debug("version-number : (0x%X, 0x%X)" % self.version)
 
             # read the operation-id (or status-code, but that's only
             # for a response) (signed short)
             self.operation_id   = struct.unpack('>h', request.read(2))[0]
+            length -= 2
             logger.debug("operation-id : 0x%X" % self.operation_id)
 
             # read the request-id (signed int)
             self.request_id     = struct.unpack('>i', request.read(4))[0]
+            length -= 4
             logger.debug("request-id : 0x%X" % self.request_id)
 
             # now we have to read in the attributes.  Each attribute
@@ -485,6 +488,7 @@ class IPPRequest():
 
             # read in the next byte
             next_byte = struct.unpack('>b', request.read(1))[0]
+            length -=1
             logger.debug("next byte : 0x%X" % next_byte)
 
             # as long as the next byte isn't signaling the end of the
@@ -497,6 +501,7 @@ class IPPRequest():
                 attributes = []
 
                 next_byte = struct.unpack('>b', request.read(1))[0]
+                length -= 1
                 logger.debug("next byte : 0x%X" % next_byte)
 
                 while next_byte > 0x0F:
@@ -507,20 +512,24 @@ class IPPRequest():
                     
                     # read in the length of the name (signed short)
                     name_length   = struct.unpack('>h', request.read(2))[0]
+                    length -= 2
                     logger.debug("name-length : %i" % name_length)
                     
                     if name_length != IPPTags.ZERO_NAME_LENGTH:
                         # read the name (a string of name_length bytes)
                         name          = request.read(name_length)
+                        length -= name_length
                         logger.debug("name : %s" % name)
                     
                         # read in the length of the value (signed short)
                         value_length  = struct.unpack('>h', request.read(2))[0]
+                        length -= 2
                         logger.debug("value-length : %i" % value_length)
                     
                         # read in the value (string of value_length bytes)
                         value         = request.read(value_length)
-
+                        length -= value_length
+                        
                         ippvalue = IPPValue(value_tag, value)
                         logger.debug("value : %s" % ippvalue.value)
 
@@ -531,10 +540,12 @@ class IPPRequest():
                     else:
                         # read in the length of the value (signed short)
                         value_length  = struct.unpack('>h', request.read(2))[0]
+                        length -= 2
                         logger.debug("value-length : %i" % value_length)
                     
                         # read in the value (string of value_length bytes)
                         value         = request.read(value_length)
+                        length -= value_length
 
                         ippvalue = IPPValue(value_tag, value)
                         logger.debug("value : %s" % ippvalue.value)
@@ -544,12 +555,14 @@ class IPPRequest():
 
                     # read another byte
                     next_byte = struct.unpack('>b', request.read(1))[0]
+                    length -= 1
 
                 self.attribute_groups.append(IPPAttributeGroup(attribute_group_tag, attributes))
 
             # once we hit the end-of-attributes tag, the only thing
             # left is the data, so go ahead and read all of it
-            self.data = request.read()
+            assert length >= 0
+            self.data = request.read(length)
             logger.debug("data : %s" % self.data)
 
         # otherwise, just set the class variables to the keyword

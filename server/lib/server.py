@@ -16,7 +16,8 @@ class GutenbachIPPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.handle_ipp()
 
     def handle_ipp(self):
-        req = ipprequest.IPPRequest(request=self.rfile, length=self.headers.getheader('content-length', 0))
+        req = ipprequest.IPPRequest(request=self.rfile,
+                                    length=self.headers.getheader('content-length', 0))
 
         self.send_response(200, "o hai")
         self.send_header("Content-Type", "text/plain")
