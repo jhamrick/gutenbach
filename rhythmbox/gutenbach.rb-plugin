@@ -2,6 +2,8 @@
 Loader=python
 Module=gutenbach
 IAge=1
-Name=gutenbach
-Description="Print" tunes to the gutenbach server
-Authors=Nimrod Gileadi <nimrodg@mit.edu>
+Name=Gutenbach
+Description=Enable printing to a Gutenbach queue
+Authors=Kyle Brogle <broglek@bu.edu>
+Copyright=Copyright © 2010 Kyle Brogle
+Website=http://gutenbach.mit.edu
