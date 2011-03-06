@@ -40,10 +40,10 @@ class Operations():
     """
     IPP and CUPS IPP Operations, as defined in various RFCs:
 
-        0x0002 - 0x0012      RFC 2911
-        0x0013 - 0x0015      RFC 3380
-        0x0016 - 0x001b      RFC 3995
-        0x0022 - 0x0031      RFC 3998
+        0x0002 - 0x0012      RFC 2911 (Section 4.4.15)
+        0x0013 - 0x0015      RFC 3380 (Section 4)
+        0x0016 - 0x001b      RFC 3995 (Section 7.1)
+        0x0022 - 0x0031      RFC 3998 (Section 14.3)
         0x4000 - 0x4027      CUPS IPP Actions
     """
 
