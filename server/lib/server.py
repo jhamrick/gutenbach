@@ -33,56 +33,117 @@ class GutenbachIPPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(response.toBinaryData())
 
-    def get_jobs(self, request, response_kwargs):
-        """get-jobs response"""
+    # def get_jobs(self, request, response_kwargs):
+    #     """get-jobs response"""
 
-        job_attributes = [IPPAttribute('job-id',
-                                       [IPPValue(IPPTags.INTEGER,
-                                                 12345,
-                                                 unpack=False)]),
-                          IPPAttribute('job-name',
-                                       [IPPValue(IPPTags.NAME_WITHOUT_LANGUAGE,
-                                                 'foo',
-                                                 unpack=False)]),
-                          IPPAttribute('job-originating-user-name',
-                                       [IPPValue(IPPTags.NAME_WITHOUT_LANGUAGE,
-                                                 'jhamrick',
-                                                 unpack=False)]),
-                          IPPAttribute('job-k-octets',
-                                       [IPPValue(IPPTags.INTEGER,
-                                                 1,
-                                                 unpack=False)]),
-                          IPPAttribute('job-state',
-                                       [IPPValue(IPPTags.ENUM,
-                                                 const.IPP_JOB_HELD,
-                                                 unpack=False)]),
-                          IPPAttribute('job-printer-uri',
-                                       [IPPValue(IPPTags.URI,
-                                                 'http://localhost:8000/printers/foo',
-                                                 unpack=False)])]
+    #     job_attributes = [IPPAttribute('job-id',
+    #                                    [IPPValue(IPPTags.INTEGER,
+    #                                              12345,
+    #                                              unpack=False)]),
+    #                       IPPAttribute('job-name',
+    #                                    [IPPValue(IPPTags.NAME_WITHOUT_LANGUAGE,
+    #                                              'foo',
+    #                                              unpack=False)]),
+    #                       IPPAttribute('job-originating-user-name',
+    #                                    [IPPValue(IPPTags.NAME_WITHOUT_LANGUAGE,
+    #                                              'jhamrick',
+    #                                              unpack=False)]),
+    #                       IPPAttribute('job-k-octets',
+    #                                    [IPPValue(IPPTags.INTEGER,
+    #                                              1,
+    #                                              unpack=False)]),
+    #                       IPPAttribute('job-state',
+    #                                    [IPPValue(IPPTags.ENUM,
+    #                                              const.IPP_JOB_HELD,
+    #                                              unpack=False)]),
+    #                       IPPAttribute('job-printer-uri',
+    #                                    [IPPValue(IPPTags.URI,
+    #                                              'http://localhost:8000/printers/foo',
+    #                                              unpack=False)])]
 
 
-        #req_op_attributes = request.getAttributeGroup(IPPTags.OPERATION_ATTRIBUTES_TAG)
-        #print req_op_attributes
-        #printer_uri = req_op_attributes[0].getAttribute('printer-uri')
+    #     #req_op_attributes = request.getAttributeGroup(IPPTags.OPERATION_ATTRIBUTES_TAG)
+    #     #print req_op_attributes
+    #     #printer_uri = req_op_attributes[0].getAttribute('printer-uri')
 
-        op_attributes = [IPPAttribute('attributes-charset',
-                                      [IPPValue(IPPTags.CHARSET,
-                                                'utf-8',
-                                                unpack=False)]),
-                         IPPAttribute('attributes-natural-language',
-                                      [IPPValue(IPPTags.NATURAL_LANGUAGE,
-                                                'en-us',
-                                                unpack=False)])]
+    #     op_attributes = [IPPAttribute('attributes-charset',
+    #                                   [IPPValue(IPPTags.CHARSET,
+    #                                             'utf-8',
+    #                                             unpack=False)]),
+    #                      IPPAttribute('attributes-natural-language',
+    #                                   [IPPValue(IPPTags.NATURAL_LANGUAGE,
+    #                                             'en-us',
+    #                                             unpack=False)])]
         
-        job_attribute_group = IPPAttributeGroup(IPPTags.JOB_ATTRIBUTES_TAG,
-                                                job_attributes)
-        op_attributes_group = IPPAttributeGroup(IPPTags.OPERATION_ATTRIBUTES_TAG,
-                                                op_attributes)
-        response_kwargs['attribute_groups'] = [op_attributes_group,job_attribute_group]
-        response_kwargs['operation_id'] = const.IPP_OK
+    #     job_attribute_group = IPPAttributeGroup(IPPTags.JOB_ATTRIBUTES_TAG,
+    #                                             job_attributes)
+    #     op_attributes_group = IPPAttributeGroup(IPPTags.OPERATION_ATTRIBUTES_TAG,
+    #                                             op_attributes)
+    #     response_kwargs['attribute_groups'] = [op_attributes_group,job_attribute_group]
+    #     response_kwargs['operation_id'] = const.IPP_OK
 
-        return response_kwargs
+    #     return response_kwargs
+
+    ##### Printer Commands
+
+    def print_job(self, request):
+        pass
+
+    def validate_job(self, request):
+        pass
+
+    def get_printer_attributes(self, request):
+        pass
+
+    def get_jobs(self, request):
+        pass
+
+    def print_uri(self, request):
+        pass
+
+    def create_job(self, request):
+        pass
+
+    def cups_get_default(self, request):
+        pass
+
+    def cups_get_printers(self, request):
+        pass
+
+    def pause_printer(self, request):
+        pass
+
+    def resume_printer(self, request):
+        pass
+
+    def set_printer_attributes(self, request):
+        pass
+
+    ##### Job Commands
+
+    def cancel_job(self, request):
+        pass
+
+    def get_job_attributes(self, request):
+        pass
+
+    def send_document(self, request):
+        pass
+
+    def send_uri(self, request):
+        pass
+
+    def set_job_attributes(self, request):
+        pass
+
+    def cups_get_document(self, request):
+        pass
+
+    def restart_job(self, request):
+        pass
+
+    def promote_job(self, request):
+        pass
 
 if __name__ == '__main__':
     server_address = ('', 8000)
