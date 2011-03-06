@@ -69,11 +69,11 @@ class GutenbachPlugin(rb.Plugin):
 
         widget = None
 	try:
-		memf = open('savedqueue','r+')
+		memf = open(os.path.expanduser('~/.gnome2/gutenbach-rhythmbox'),'r+')
 	except IOError:
-		memf = file('savedqueue', 'wt')
+		memf = file(os.path.expanduser('~/.gnome2/gutenbach-rhythmbox'), 'wt')
 		memf.close()
-	memf = open('savedqueue','r+')
+	memf = open(os.path.expanduser('~/.gnome2/gutenbach-rhythmbox'),'r+')
 	memLine = memf.readline()
 	if memLine != "":
 		left = memLine
@@ -85,7 +85,7 @@ class GutenbachPlugin(rb.Plugin):
 	self.process(widget)
         widgets['gutenbach-dialog'].destroy()
     def process(self, widget):
-        memf = open('savedqueue','r+')
+        memf = open(os.path.expanduser('~/.gnome2/gutenbach-rhythmbox'),'r+')
 	printerMem = (self.wTree.get_widget("gutenbach-printer-entry").get_text())
 	hostMem = (self.wTree.get_widget("gutenbach-host-entry").get_text())
 	memf.write(printerMem)
