@@ -1,6 +1,9 @@
 #!/usr/bin/python
 
 import sys, struct, logging
+from ippattributegroup import IPPAttributeGroup
+from ippattribute import IPPAttribute
+from ippvalue import IPPValue
 
 # initialize logger
 logger = logging.getLogger("ippLogger")
@@ -107,7 +110,7 @@ class IPPRequest():
 
             # as long as the next byte isn't signaling the end of the
             # attributes, keep looping and parsing attributes
-            while next_byte != IPPTags.END_OF_ATTRIBUTES_TAG:
+            while next_byte != AttributeTags.END:
                 
                 attribute_group_tag = next_byte
                 logger.debug("attribute-tag : %i" % attribute_group_tag)
@@ -129,7 +132,7 @@ class IPPRequest():
                     length -= 2
                     logger.debug("name-length : %i" % name_length)
                     
-                    if name_length != IPPTags.ZERO_NAME_LENGTH:
+                    if name_length != AttributeTags.ZERO_NAME_LENGTH:
                         # read the name (a string of name_length bytes)
                         name          = request.read(name_length)
                         length -= name_length
@@ -208,7 +211,7 @@ class IPPRequest():
         attribute_groups = ''.join([a.toBinaryData() for a in self.attribute_groups])
 
         # conver the end-of-attributes-tag to binary
-        end_of_attributes_tag = struct.pack('>b', IPPTags.END_OF_ATTRIBUTES_TAG)
+        end_of_attributes_tag = struct.pack('>b', AttributeTags.END)
 
         # convert the data to binary
         if self.data is not None:

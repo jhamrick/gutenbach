@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import sys, struct, logging
+from ippvalue import IPPValue
 
 # initialize logger
 logger = logging.getLogger("ippLogger")

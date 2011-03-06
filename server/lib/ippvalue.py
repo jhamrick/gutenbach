@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import sys, struct, logging
+from ippconstants import *
 
 # initialize logger
 logger = logging.getLogger("ippLogger")
@@ -45,27 +46,27 @@ class IPPValue():
         if not unpack: return
 
         # out-of-band value tags
-        if self.value_tag == IPPTags.UNSUPPORTED or \
-               self.value_tag == IPPTags.DEFAULT or \
-               self.value_tag == IPPTags.UNKNOWN or \
-               self.value_tag == IPPTags.NO_VALUE:
+        if self.value_tag == OutOfBandTags.UNSUPPORTED or \
+               self.value_tag == OutOfBandTags.DEFAULT or \
+               self.value_tag == OutOfBandTags.UNKNOWN or \
+               self.value_tag == OutOfBandTags.NO_VALUE:
             self.value = ''
 
         # integer value tags
-        elif self.value_tag == IPPTags.GENERIC_INTEGER:
+        elif self.value_tag == IntegerTags.GENERIC:
             pass # not supported
-        elif self.value_tag == IPPTags.INTEGER:
+        elif self.value_tag == IntegerTags.INTEGER:
             self.value = struct.unpack('>i', value)[0]
-        elif self.value_tag == IPPTags.BOOLEAN:
+        elif self.value_tag == IntegerTags.BOOLEAN:
             self.value = struct.unpack('>?', value)[0]
-        elif self.value_tag == IPPTags.ENUM:
+        elif self.value_tag == IntegerTags.ENUM:
             self.value = struct.unpack('>i', value)[0]
 
         # octet string value tags
-        elif self.value_tag == IPPTags.UNSPECIFIED_OCTETSTRING:
+        elif self.value_tag == OctetStringTags.UNSPECIFIED_OCTETSTRING:
             pass
         
-        elif self.value_tag == IPPTags.DATETIME:
+        elif self.value_tag == OctetStringTags.DATETIME:
             # field  octets  contents                  range
             # -----  ------  --------                  -----
             #   1      1-2   year                      0..65536
@@ -82,7 +83,7 @@ class IPPValue():
 
             self.value = struct.unpack('>hbbbbbbcbb', value)[0]
             
-        elif self.value_tag == IPPTags.RESOLUTION:
+        elif self.value_tag == OctetStringTags.RESOLUTION:
             # OCTET-STRING consisting of nine octets of 2
             # SIGNED-INTEGERs followed by a SIGNED-BYTE. The first
             # SIGNED-INTEGER contains the value of cross feed
@@ -92,15 +93,15 @@ class IPPValue():
 
             self.value = struct.unpack('>iib', value)
             
-        elif self.value_tag == IPPTags.RANGE_OF_INTEGER:
+        elif self.value_tag == OctetStringTags.RANGE_OF_INTEGER:
             # Eight octets consisting of 2 SIGNED-INTEGERs.  The first
             # SIGNED-INTEGER contains the lower bound and the second
             # SIGNED-INTEGER contains the upper bound.
 
             self.value = struct.unpack('>ii', value)
 
-        elif self.value_tag == IPPTags.TEXT_WITH_LANGUAGE or \
-                 self.value_tag == IPPTags.NAME_WITH_LANGUAGE:
+        elif self.value_tag == OctetStringTags.TEXT_WITH_LANGUAGE or \
+                 self.value_tag == OctetStringTags.NAME_WITH_LANGUAGE:
             a = struct.unpack('>h', value[:2])[0]
             b = struct.unpack('>%ss' % a, value[2:a+2])[0]
             c = struct.unpack('>h', value[a+2:a+4])[0]
@@ -108,41 +109,41 @@ class IPPValue():
             self.value = (a, b, c, d)
 
         # character string value tags
-        elif self.value_tag == IPPTags.TEXT_WITHOUT_LANGUAGE or \
-                 self.value_tag == IPPTags.NAME_WITHOUT_LANGUAGE:
+        elif self.value_tag == CharacterStringTags.TEXT_WITHOUT_LANGUAGE or \
+                 self.value_tag == CharacterStringTags.NAME_WITHOUT_LANGUAGE:
             self.value = str(value)
-        elif self.value_tag == IPPTags.GENERIC_CHAR_STRING or \
-                 self.value_tag == IPPTags.KEYWORD or \
-                 self.value_tag == IPPTags.URI or \
-                 self.value_tag == IPPTags.URI_SCHEME or \
-                 self.value_tag == IPPTags.CHARSET or \
-                 self.value_tag == IPPTags.NATURAL_LANGUAGE or \
-                 self.value_tag == IPPTags.MIME_MEDIA_TYPE:
+        elif self.value_tag == CharacterStringTags.GENERIC or \
+                 self.value_tag == CharacterStringTags.KEYWORD or \
+                 self.value_tag == CharacterStringTags.URI or \
+                 self.value_tag == CharacterStringTags.URI_SCHEME or \
+                 self.value_tag == CharacterStringTags.CHARSET or \
+                 self.value_tag == CharacterStringTags.NATURAL_LANGUAGE or \
+                 self.value_tag == CharacterStringTags.MIME_MEDIA_TYPE:
             self.value = str(value)
 
     def valueToBinary(self):
 
         # out-of-band value tags
-        if self.value_tag == IPPTags.UNSUPPORTED or \
-               self.value_tag == IPPTags.DEFAULT or \
-               self.value_tag == IPPTags.UNKNOWN or \
-               self.value_tag == IPPTags.NO_VALUE:
+        if self.value_tag == OutOfBandTags.UNSUPPORTED or \
+               self.value_tag == OutOfBandTags.DEFAULT or \
+               self.value_tag == OutOfBandTags.UNKNOWN or \
+               self.value_tag == OutOfBandTags.NO_VALUE:
             return (0, '')
 
         # integer value tags
-        elif self.value_tag == IPPTags.GENERIC_INTEGER:
+        elif self.value_tag == IntegerTags.GENERIC:
             pass
-        elif self.value_tag == IPPTags.INTEGER:
+        elif self.value_tag == IntegerTags.INTEGER:
             return (4, struct.pack('>i', self.value))
-        elif self.value_tag == IPPTags.BOOLEAN:
+        elif self.value_tag == IntegerTags.BOOLEAN:
             return (1, struct.pack('>?', self.value))
-        elif self.value_tag == IPPTags.ENUM:
+        elif self.value_tag == IntegerTags.ENUM:
             return (4, struct.pack('>i', self.value))
 
         # octet string value tags
-        elif self.value_tag == IPPTags.UNSPECIFIED_OCTETSTRING:
+        elif self.value_tag == OctetStringTags.UNSPECIFIED_OCTETSTRING:
             pass
-        elif self.value_tag == IPPTags.DATETIME:
+        elif self.value_tag == OctetStringTags.DATETIME:
             # field  octets  contents                  range
             # -----  ------  --------                  -----
             #   1      1-2   year                      0..65536
@@ -159,7 +160,7 @@ class IPPValue():
             
             return (11, struct.pack('>hbbbbbbcbb', self.value))
             
-        elif self.value_tag == IPPTags.RESOLUTION:
+        elif self.value_tag == OctetStringTags.RESOLUTION:
             # OCTET-STRING consisting of nine octets of 2
             # SIGNED-INTEGERs followed by a SIGNED-BYTE. The first
             # SIGNED-INTEGER contains the value of cross feed
@@ -169,15 +170,15 @@ class IPPValue():
             
             return (9, struct.pack('>iib', self.value))
             
-        elif self.value_tag == IPPTags.RANGE_OF_INTEGER:
+        elif self.value_tag == OctetStringTags.RANGE_OF_INTEGER:
             # Eight octets consisting of 2 SIGNED-INTEGERs.  The first
             # SIGNED-INTEGER contains the lower bound and the second
             # SIGNED-INTEGER contains the upper bound.
             
             return (8, struct.pack('>ii', self.value))
 
-        elif self.value_tag == IPPTags.TEXT_WITH_LANGUAGE or \
-                 self.value_tag == IPPTags.NAME_WITH_LANGUAGE:
+        elif self.value_tag == OctetStringTags.TEXT_WITH_LANGUAGE or \
+                 self.value_tag == OctetStringTags.NAME_WITH_LANGUAGE:
             a_bin = struct.pack('>h', self.value[0])
             b_bin = struct.pack('>%ss' % self.value[0], self.value[1])
             c_bin = struct.pack('>h', self.value[2])
@@ -186,16 +187,16 @@ class IPPValue():
                     a_bin + b_bin + c_bin + d_bin)
 
         # character string value tags
-        elif self.value_tag == IPPTags.TEXT_WITHOUT_LANGUAGE or \
-                 self.value_tag == IPPTags.NAME_WITHOUT_LANGUAGE:
+        elif self.value_tag == CharacterStringTags.TEXT_WITHOUT_LANGUAGE or \
+                 self.value_tag == CharacterStringTags.NAME_WITHOUT_LANGUAGE:
             return (len(self.value), struct.pack('>%ss' % len(self.value), self.value))
-        elif self.value_tag == IPPTags.GENERIC_CHAR_STRING or \
-                 self.value_tag == IPPTags.KEYWORD or \
-                 self.value_tag == IPPTags.URI or \
-                 self.value_tag == IPPTags.URI_SCHEME or \
-                 self.value_tag == IPPTags.CHARSET or \
-                 self.value_tag == IPPTags.NATURAL_LANGUAGE or \
-                 self.value_tag == IPPTags.MIME_MEDIA_TYPE:
+        elif self.value_tag == CharacterStringTags.GENERIC or \
+                 self.value_tag == CharacterStringTags.KEYWORD or \
+                 self.value_tag == CharacterStringTags.URI or \
+                 self.value_tag == CharacterStringTags.URI_SCHEME or \
+                 self.value_tag == CharacterStringTags.CHARSET or \
+                 self.value_tag == CharacterStringTags.NATURAL_LANGUAGE or \
+                 self.value_tag == CharacterStringTags.MIME_MEDIA_TYPE:
             return (len(self.value), struct.pack('>%ss' % len(self.value), self.value))
 
         return len(self.value), self.value
