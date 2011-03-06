@@ -1,12 +1,12 @@
 #!/usr/bin/python
 
 import sys, struct, logging
-from ippvalue import IPPValue
+from ippvalue import Value
 
 # initialize logger
 logger = logging.getLogger("ippLogger")
 
-class IPPAttribute():
+class Attribute():
     """
     In addition to what the RFC reports, an attribute has an
     'attribute tag', which specifies what type of attribute it is.
@@ -41,13 +41,13 @@ class IPPAttribute():
 
     def __init__(self, name, values):
         """
-        Initialize an IPPAttribute.
+        Initialize an Attribute.
         
         Arguments:
 
             name -- the name of the attribute
 
-            values -- a list of IPPValues.  May not be empty.
+            values -- a list of Values.  May not be empty.
         """
 
         # make sure name isn't empty
@@ -55,8 +55,8 @@ class IPPAttribute():
          
         # make sure the list of values isn't empty
         assert len(values) > 0
-        # make sure each value is an IPPValue
-        for value in values: assert isinstance(value, IPPValue)
+        # make sure each value is a Value
+        for value in values: assert isinstance(value, Value)
          
         self.name = name
         self.values = values

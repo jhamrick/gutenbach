@@ -6,7 +6,7 @@ from ippconstants import *
 # initialize logger
 logger = logging.getLogger("ippLogger")
 
-class IPPValue():
+class Value():
     """
     An IPP value consists of a tag and a value, and optionally, a name.
 
@@ -26,7 +26,7 @@ class IPPValue():
 
     def __init__(self, value_tag, value, unpack=True):
         """
-        Initialize an IPPValue:
+        Initialize a Value:
 
         Arguments:
 

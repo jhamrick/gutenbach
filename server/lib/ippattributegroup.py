@@ -1,20 +1,20 @@
 #!/usr/bin/python
 
 import sys, struct, logging
-from ippattribute import IPPAttribute
+from ippattribute import Attribute
 
 # initialize logger
 logger = logging.getLogger("ippLogger")
 
-class IPPAttributeGroup():
+class AttributeGroup():
     """
-    An IPPAttributeGroup consists of an attribute-group-tag, followed
-    by a sequence of IPPAttributes.
+    An AttributeGroup consists of an attribute-group-tag, followed by
+    a sequence of Attributes.
     """
 
     def __init__(self, attribute_group_tag, attributes=[]):
         """
-        Initialize an IPPAttributeGroup.
+        Initialize an AttributeGroup.
 
         Arguments:
 
@@ -27,9 +27,9 @@ class IPPAttributeGroup():
         # make sure attribute_group_tag isn't empty
         assert attribute_group_tag is not None
 
-        # make sure attributes is a list or tuple of IPPAttributes
+        # make sure attributes is a list or tuple of Attributes
         assert isinstance(attributes, (list, tuple))
-        for a in attributes: assert isinstance(a, IPPAttribute)
+        for a in attributes: assert isinstance(a, Attribute)
 
         self.attribute_group_tag = attribute_group_tag
         self.attributes = attributes
@@ -39,7 +39,7 @@ class IPPAttributeGroup():
 
     def toBinaryData(self):
         """
-        Convert the IPPAttributeGroup to binary.
+        Convert the AttributeGroup to binary.
         """
 
         # conver the attribute_group_tag to binary

@@ -1,14 +1,14 @@
 #!/usr/bin/python
 
 import sys, struct, logging
-from ippattributegroup import IPPAttributeGroup
-from ippattribute import IPPAttribute
-from ippvalue import IPPValue
+from ippattributegroup import AttributeGroup
+from ippattribute import Attribute
+from ippvalue import Value
 
 # initialize logger
 logger = logging.getLogger("ippLogger")
 
-class IPPRequest():
+class Request():
     """
     From RFC 2565:
     
@@ -38,10 +38,9 @@ class IPPRequest():
     def __init__(self, version=None, operation_id=None, request_id=None,
                  attribute_groups=[], data=None, request=None, length=sys.maxint):
         """
-        Create an IPPRequest.  Takes either the segments of the
-        request separately, or a file handle for the request to parse.
-        If the file handle is passed in, all other arguments are
-        ignored.
+        Create a Request.  Takes either the segments of the request
+        separately, or a file handle for the request to parse.  If the
+        file handle is passed in, all other arguments are ignored.
 
         Keyword arguments for passing in the segments of the request:
         
@@ -55,7 +54,7 @@ class IPPRequest():
             request_id -- a signed int, identifying the id of the
                           request itself.
 
-            attribute_groups -- a list of IPPAttributes, at least length 1
+            attribute_groups -- a list of Attributes, at least length 1
 
             data -- (optional) variable length, containing the actual
                     data of the request
@@ -76,9 +75,9 @@ class IPPRequest():
             assert operation_id is not None
             # make sure the request id isn't empty
             assert request_id is not None
-            # make sure attribute_groups is a list of IPPAttributes
+            # make sure attribute_groups is a list of Attributes
             assert len(attribute_groups) > 0
-            for a in attribute_groups: assert isinstance(a, IPPAttributeGroup)
+            for a in attribute_groups: assert isinstance(a, AttributeGroup)
             
         # if the request isn't None, then we'll read directly from
         # that file handle
@@ -147,12 +146,12 @@ class IPPRequest():
                         value         = request.read(value_length)
                         length -= value_length
                         
-                        ippvalue = IPPValue(value_tag, value)
+                        ippvalue = Value(value_tag, value)
                         logger.debug("value : %s" % ippvalue.value)
 
-                        # create a new IPPAttribute from the data we just
+                        # create a new Attribute from the data we just
                         # read in, and add it to our attributes list
-                        attributes.append(IPPAttribute(name, [ippvalue]))
+                        attributes.append(Attribute(name, [ippvalue]))
 
                     else:
                         # read in the length of the value (signed short)
@@ -164,7 +163,7 @@ class IPPRequest():
                         value         = request.read(value_length)
                         length -= value_length
 
-                        ippvalue = IPPValue(value_tag, value)
+                        ippvalue = Value(value_tag, value)
                         logger.debug("value : %s" % ippvalue.value)
 
                         # add another value to the last attribute
@@ -174,7 +173,8 @@ class IPPRequest():
                     next_byte = struct.unpack('>b', request.read(1))[0]
                     length -= 1
 
-                self.attribute_groups.append(IPPAttributeGroup(attribute_group_tag, attributes))
+                self.attribute_groups.append(AttributeGroup(
+                    attribute_group_tag, attributes))
 
             # once we hit the end-of-attributes tag, the only thing
             # left is the data, so go ahead and read all of it
