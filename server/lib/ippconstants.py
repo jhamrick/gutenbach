@@ -6,6 +6,8 @@ class Misc():
     IPP_VERSION = "1.1"
     IPP_PORT = 8000
 
+    def __init__(self): pass
+
 class JobStates():
     """
     Job state codes, as defined by RFC 2911, Section 4.3.7
@@ -19,6 +21,8 @@ class JobStates():
     ABORTED    = 8
     COMPLETE   = 9
 
+    def __init__(self): pass
+
 class PrinterStates():
     """
     Printer state codes, as defined by RFC 2911, Section 4.4.11
@@ -27,6 +31,8 @@ class PrinterStates():
     IDLE       = 3
     PROCESSING = 4
     STOPPED    = 5
+
+    def __init__(self): pass
 
 class Operations():
     """
@@ -108,6 +114,8 @@ class Operations():
     #CUPS_GET_PPD          = 0x400f
     CUPS_GET_DOCUMENT      = 0x4027
 
+    def __init__(self): pass
+
 class SuccessCodes():
     """
     Success status codes as defined in RFC 2911, Section 13
@@ -120,6 +128,8 @@ class SuccessCodes():
     OK_IGNORED_NOTIFICATIONS     = 0x0004
     OK_TOO_MANY_EVENTS           = 0x0005
     OK_BUT_CANCEL_SUBSCRIPTION   = 0x0006
+
+    def __init__(self): pass
 
 class ClientErrorCodes():
     """
@@ -151,6 +161,8 @@ class ClientErrorCodes():
     IGNORED_ALL_NOTIFICATIONS    = 0x0416
     PRINT_SUPPORT_FILE_NOT_FOUND = 0x0417
 
+    def __init__(self): pass
+
 class ServerErrorCodes():
     """
     Server error codes as defined in RFC 2911, Section 13
@@ -167,6 +179,8 @@ class ServerErrorCodes():
     ERROR_JOB_CANCELLED         = 0x0508
     MULTIPLE_JOBS_NOT_SUPPORTED = 0x0509
     PRINTER_IS_DEACTIVATED      = 0x050a
+
+    def __init__(self): pass
 
 class CUPSPrinterType():
     """
@@ -209,6 +223,8 @@ class CUPSPrinterType():
 
     OPTIONS       = 0x00e6ff
 
+    def __init__(self): pass
+
 class AttributeTags():
     """
     Contains constants for the attribute IPP tags, as defined by RFC
@@ -224,6 +240,8 @@ class AttributeTags():
     SUBSCRIPTION       = 0x06
     EVENT_NOTIFICATION = 0x07
 
+    def __init__(self): pass
+
 class OutOfBandTags():
     """
     Contains constants for the out-of-band value IPP tags, as defined
@@ -238,6 +256,8 @@ class OutOfBandTags():
     DELETE_ATTRIBUTE = 0x16
     ADMIN_DEFINE     = 0x17
 
+    def __init__(self): pass
+
 class IntegerTags():
     """
     Contains constants for the integer value IPP tags, as defined by
@@ -248,6 +268,8 @@ class IntegerTags():
     INTEGER = 0x21
     BOOLEAN = 0x22
     ENUM    = 0x23
+
+    def __init__(self): pass
 
 class OctetStringTags():
     """
@@ -263,6 +285,8 @@ class OctetStringTags():
     TEXT_WITH_LANGUAGE      = 0x35
     NAME_WITH_LANGUAGE      = 0x36
     END_COLLECTION          = 0x37
+
+    def __init__(self): pass
 
 class CharacterStringTags():
     """
