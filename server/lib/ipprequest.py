@@ -68,7 +68,7 @@ class IPPValue():
      -----------------------------------------------    
     """
 
-    def __init__(self, value_tag, value):
+    def __init__(self, value_tag, value, unpack=True):
         """
         Initialize an IPPValue:
 
@@ -86,6 +86,8 @@ class IPPValue():
 
         self.value_tag = value_tag
         self.value = value
+
+        if not unpack: return
 
         # out-of-band value tags
         if self.value_tag == IPPTags.UNSUPPORTED or \
@@ -377,6 +379,9 @@ class IPPAttributeGroup():
         self.attribute_group_tag = attribute_group_tag
         self.attributes = attributes
 
+    def getAttribute(self, name):
+        return filter(lambda x: x.name == name, self.attributes)
+
     def toBinaryData(self):
         """
         Convert the IPPAttributeGroup to binary.
@@ -461,7 +466,7 @@ class IPPRequest():
             assert request_id is not None
             # make sure attribute_groups is a list of IPPAttributes
             assert len(attribute_groups) > 0
-            for a in attribute_groups: assert isinstance(a, IPPAttribute)
+            for a in attribute_groups: assert isinstance(a, IPPAttributeGroup)
             
         # if the request isn't None, then we'll read directly from
         # that file handle
@@ -573,6 +578,10 @@ class IPPRequest():
             self.request_id = request_id
             self.attribute_groups = attribute_groups
             self.data = data
+
+    def getAttributeGroup(self, tag):
+        return filter(lambda x: x.attribute_group_tag == tag,
+                      self.attribute_groups)
 
     def toBinaryData(self):
         """
