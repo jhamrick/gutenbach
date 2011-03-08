@@ -64,20 +64,21 @@ class Value():
         # initialize member variables
         self.value_tag    = None # one byte, the type of value
         self.value        = None # non-binary value of self.value
-        self.value_size   = None # size of self.value
+        self.tag_size     = 1    # length of the tag in bytes
+        self.value_size   = None # size of self.value in bytes
         self.binary_value = None # binary value of self.value
 
         if value_tag is not None and value is not None:
             if unpack:
                 self.value_tag = value_tag
                 self.binary_value = value
-                self.unpack()
-                self.pack()
+                self.value_size, self.value = self.unpack()
             else:
                 self.value_tag = value_tag
                 self.value = value
-                self.pack()
-                self.unpack()
+                self.value_size, self.binary_value = self.pack()
+
+            self.verify()
 
     def unpack(self):
         """
@@ -195,9 +196,6 @@ class Value():
             assert value == self.value, \
                    "unpacked value is not the same as self.value!"
 
-        self.value_size = value_size
-        self.value = value
-        
         return value_size, value
 
     def pack(self):
@@ -312,18 +310,6 @@ class Value():
             value_size = len(self.value)
             binary_value = self.value
 
-        if self.value_size is not None:
-            assert value_size == self.value_size, \
-                   "packed value size is not the same as " + \
-                   "self.value_size!"
-        if self.binary_value is not None:
-            assert binary_value == self.binary_value, \
-                   "packed binary value is not the same as " + \
-                   "self.binary_value!"
-
-        self.value_size = value_size
-        self.binary_value = binary_value
-
         return value_size, binary_value
 
     def verify(self):
@@ -345,8 +331,18 @@ class Value():
         assert self.value_tag is not None, \
                "value type is unknown!"
 
-        self.pack()
-        self.unpack()
+        value_size1, binary_value = self.pack()
+        value_size2, value = self.unpack()
+
+        assert value_size1 == value_size2, \
+               "packed value size is not the same as " + \
+               "unpacked value size!"
+        assert value_size == self.value_size, \
+               "packed value size is not the same as " + \
+               "self.value_size!"
+        assert binary_value == self.binary_value, \
+               "packed binary value is not the same as " + \
+               "self.binary_value!"
 
     def getValue(self):
         """
@@ -370,24 +366,32 @@ class Value():
         
         return self.value_tag
 
-    def getSize(self):
+    def getValueSize(self):
         """
         Get the size of the value in bytes.
         """
         
         return self.value_size
 
+    def getTagSize(self):
+        """
+        Get the size of the value tag in bytes.
+        """
+
+        return self.tag_size
+
     def setValue(self, value):
         """
         Set the non-binary value.
         """
-        
+
         self.value = value
 
     def setBinaryValue(self, binary_value):
         """
         Set the binary value.
         """
+
         self.binary_value = binary_value
 
     def setValueTag(self, value_tag):
@@ -398,12 +402,19 @@ class Value():
         
         self.value_tag = value_tag
 
-    def setSize(self, size):
+    def setValueSize(self, size):
         """
         Set the size of the value in bytes.
         """
         
         self.value_size = size
+
+    def getTotalSize(self):
+        """
+        Get the total size of the IPP value.
+        """
+
+        return self.value_size + self.tag_size
 
     def __str__(self):
         return self.value

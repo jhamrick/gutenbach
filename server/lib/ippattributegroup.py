@@ -12,32 +12,90 @@ class AttributeGroup():
     a sequence of Attributes.
     """
 
-    def __init__(self, attribute_group_tag, attributes=[]):
+    def __init__(self, attribute_group_tag=None, attributes=[]):
         """
-        Initialize an AttributeGroup.
+        Initialize an AttributeGroup.  An AttributeGroup can be
+        initialized in three ways:
+
+            AttributeGroup()
+            AttributeGroup(attribute_group_tag)
+            AttributeGroup(attribute_group_tag, attributes)
 
         Arguments:
 
             attribute_group_tag -- a signed char, holds the tag of the
                                    attribute group
 
-            attributes -- (optional) a list of attributes
+            attributes -- a list of attributes
         """
 
-        # make sure attribute_group_tag isn't empty
-        assert attribute_group_tag is not None
+        if attribute_group_tag is not None:
+            assert isinstance(attribute_group_tag, char), \
+                   "attribute_group_tag must be a character!"
+            
 
-        # make sure attributes is a list or tuple of Attributes
-        assert isinstance(attributes, (list, tuple))
-        for a in attributes: assert isinstance(a, Attribute)
+        if len(attributes) > 0:
+            for a in attributes:
+                assert isinstance(a, Attribute), \
+                       "attribute must be of type Attribute!"
 
         self.attribute_group_tag = attribute_group_tag
         self.attributes = attributes
 
     def getAttribute(self, name):
+        """
+        Returns a list of attributes which have name 'name'.
+        """
+        
         return filter(lambda x: x.name == name, self.attributes)
 
-    def toBinaryData(self):
+    def getTag(self):
+        """
+        Return the attribute group tag.
+        """
+
+        return self.attribute_group_tag
+
+    def getAttributes(self):
+        """
+        Return the list of attributes in this attribue group.
+        """
+
+        return self.attributes
+
+    def setAttributes(self, attributes):
+        """
+        Sets the attributes for the attribute group.
+        """
+
+        for a in attributes:
+            assert isinstance(a, Attribute), \
+                   "attribute must be of type Attribute!"
+
+        self.attributes = attributes
+
+    def addAttribute(self, attribute):
+        """
+        Adds an attribute to the list of attributes for the attribute
+        group.
+        """
+        
+        assert isinstance(attribute, Attribute), \
+               "attribute must be of type Attribute!"
+
+        self.attributes.append(attribute)
+
+    def setTag(self, tag):
+        """
+        Sets the attribute group tag.
+        """
+
+        assert isinstance(tag, char), \
+               "attribute tag must be a character!"
+
+        self.attribute_group_tag = tag
+
+    def pack(self):
         """
         Convert the AttributeGroup to binary.
         """
