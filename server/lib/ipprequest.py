@@ -146,7 +146,7 @@ class Request():
                         value         = request.read(value_length)
                         length -= value_length
                         
-                        ippvalue = Value(value_tag, value)
+                        ippvalue = Value.unpack(value_tag, value)
                         logger.debug("value : %s" % ippvalue.value)
 
                         # create a new Attribute from the data we just
@@ -163,7 +163,7 @@ class Request():
                         value         = request.read(value_length)
                         length -= value_length
 
-                        ippvalue = Value(value_tag, value)
+                        ippvalue = Value.unpack(value_tag, value)
                         logger.debug("value : %s" % ippvalue.value)
 
                         # add another value to the last attribute
@@ -195,7 +195,8 @@ class Request():
         return filter(lambda x: x.attribute_group_tag == tag,
                       self.attribute_groups)
 
-    def toBinaryData(self):
+    @property
+    def packed_value(self):
         """
         Packs the value data into binary data.
         """
@@ -208,7 +209,7 @@ class Request():
                                     self.request_id)
 
         # convert the attribute groups to binary
-        attribute_groups = ''.join([a.toBinaryData() for a in self.attribute_groups])
+        attribute_groups = ''.join([a.packed_value for a in self.attribute_groups])
 
         # conver the end-of-attributes-tag to binary
         end_of_attributes_tag = struct.pack('>b', AttributeTags.END)
