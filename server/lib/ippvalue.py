@@ -6,6 +6,11 @@ from ippconstants import *
 # initialize logger
 logger = logging.getLogger("ippLogger")
 
+def setter(prop):
+    def f(func):
+        return property(prop.fget, func, prop.fdel, prop.__doc__)
+    return f
+
 class Value(object):
     """
     An IPP value consists of a tag and a value.
@@ -264,8 +269,8 @@ class Value(object):
 
         return packed_value
 
-    @packed_value.setter
-    def set_packed_value(self, packed_value):
+    @setter(packed_value)
+    def packed_value(self, packed_value):
         """Replace a value using a new packed value
 
         Unpacks a new packed_value (of the same value_tag).
