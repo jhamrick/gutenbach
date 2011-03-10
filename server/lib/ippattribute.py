@@ -65,15 +65,8 @@ class Attribute(object):
             assert isinstance(value, Value), \
                    "Value must be of type Value"
 
-        self.name = None
-        self.values = None
-
-        if name is not None:
-            self.name = name
-        if name is not None and len(values) > 0:
-            self.values = values
-            self.binary = self.pack()
-            self.verify()
+        self.name = name
+        self.values = values
 
     @property
     def packed_value(self):
@@ -139,7 +132,7 @@ class Attribute(object):
         """
         Gets the total size of the attribute.
         """
-        return 2+len(self.name)+sum(v.total_size for v in self.values)
+        return len(self.packed_value)
 
     total_size = packed_value_size
 
@@ -155,3 +148,6 @@ class Attribute(object):
             name = self.name
         
         return "%s: %s" % (name, str(values))
+
+    def __repr__(self):
+        return '<IPPAttribute (%r, %r)>' % (self.name, self.values)
