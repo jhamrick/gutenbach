@@ -4,6 +4,7 @@ import sys, struct, logging
 from ippattributegroup import AttributeGroup
 from ippattribute import Attribute
 from ippvalue import Value
+from ippconstants import *
 
 # initialize logger
 logger = logging.getLogger("ippLogger")

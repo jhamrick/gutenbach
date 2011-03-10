@@ -33,12 +33,12 @@ class AttributeGroup(object):
         """
 
         if attribute_group_tag is not None:
-            assert isinstance(attribute_group_tag, char), \
+            assert isinstance(attribute_group_tag, int), \
                    "attribute_group_tag must be a character!"
             
 
         self.attribute_group_tag = attribute_group_tag
-        self.attributes[]
+        self.attributes = []
         self.extend(attributes)
 
     def __getitem__(self, name):

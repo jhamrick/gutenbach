@@ -98,7 +98,7 @@ class Value(object):
         elif value_tag == IntegerTags.INTEGER:
             value = struct.unpack('>i', packed_value)[0]
         elif value_tag == IntegerTags.BOOLEAN:
-            value = struct.unpack('>?', packed_value)[0]
+            value = struct.unpack('>b', packed_value)[0]
         elif value_tag == IntegerTags.ENUM:
             value = struct.unpack('>i', packed_value)[0]
 
@@ -195,7 +195,7 @@ class Value(object):
         elif self.value_tag == IntegerTags.INTEGER:
             packed_value = struct.pack('>i', self.value)
         elif self.value_tag == IntegerTags.BOOLEAN:
-            packed_value = struct.pack('>?', self.value)
+            packed_value = struct.pack('>b', self.value)
         elif self.value_tag == IntegerTags.ENUM:
             packed_value = struct.pack('>i', self.value)
 

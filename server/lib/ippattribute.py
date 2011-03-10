@@ -63,7 +63,7 @@ class Attribute(object):
                    "Attribute name must be a string!"
         for value in values:
             assert isinstance(value, Value), \
-                   "Value must be of type Value"
+                   "Value %r must be of type Value" % (value)
 
         self.name = name
         self.values = values
