@@ -225,14 +225,14 @@ class Value(object):
             # the value of feed direction resolution. The SIGNED-BYTE
             # contains the units
 
-            packed_value = truct.pack('>iib', self.value)
+            packed_value = truct.pack('>iib', *self.value)
             
         elif self.value_tag == OctetStringTags.RANGE_OF_INTEGER:
             # Eight octets consisting of 2 SIGNED-INTEGERs.  The first
             # SIGNED-INTEGER contains the lower bound and the second
             # SIGNED-INTEGER contains the upper bound.
 
-            packed_value = struct.pack('>ii', self.value)
+            packed_value = struct.pack('>ii', *self.value)
 
         elif self.value_tag == OctetStringTags.TEXT_WITH_LANGUAGE or \
                  self.value_tag == OctetStringTags.NAME_WITH_LANGUAGE:
