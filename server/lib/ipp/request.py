@@ -223,3 +223,6 @@ class Request():
 
         # append everything together and return it
         return preattributes + attribute_groups + end_of_attributes_tag + data
+
+    def __repr__(self):
+        return '<IPPRequest (version=%r, operation_id=%x, request_id=%r, attribute_groups=%r)>' % (self.version, self.operation_id, self.request_id, self.attribute_groups)

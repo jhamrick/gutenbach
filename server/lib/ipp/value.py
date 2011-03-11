@@ -299,4 +299,4 @@ class Value(object):
         return str(self.value)
 
     def __repr__(self):
-        return '<IPPValue (%r, %r)>' % (self.value_tag, self.value)
+        return '<IPPValue (%x, %r)>' % (self.value_tag, self.value)

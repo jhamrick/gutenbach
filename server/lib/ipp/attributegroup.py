@@ -102,3 +102,6 @@ class AttributeGroup(object):
 
         # concatenate everything and return
         return tag + ''.join(attributes)
+
+    def __repr__(self):
+        return '<IPPAttributeGroup (%r, %r)>' % (self.attribute_group_tag, self.attributes)
