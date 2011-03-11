@@ -103,7 +103,7 @@ class Operations():
     CUPS_GET_PRINTERS      = 0x4002
     #CUPS_ADD_PRINTER      = 0x4003
     #CUPS_DELETE_PRINTER   = 0x4004
-    #CUPS_GET_CLASSES      = 0x4005
+    CUPS_GET_CLASSES       = 0x4005
     #CUPS_ADD_CLASS        = 0x4006
     #CUPS_DELETE_CLASS     = 0x4007
     #CUPS_ACCEPT_JOBS      = 0x4008
