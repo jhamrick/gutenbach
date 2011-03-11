@@ -1,10 +1,10 @@
 #!/usr/bin/python
 
 import sys, struct, logging
-from ippconstants import *
+from .constants import OutOfBandTags, IntegerTags, OctetStringTags, CharacterStringTags
 
 # initialize logger
-logger = logging.getLogger("ippLogger")
+logger = logging.getLogger(__name__)
 
 def setter(prop):
     def f(func):

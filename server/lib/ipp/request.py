@@ -1,13 +1,13 @@
 #!/usr/bin/python
 
 import sys, struct, logging
-from ippattributegroup import AttributeGroup
-from ippattribute import Attribute
-from ippvalue import Value
-from ippconstants import *
+from .attributegroup import AttributeGroup
+from .attribute import Attribute
+from .value import Value
+from .constants import AttributeTags
 
 # initialize logger
-logger = logging.getLogger("ippLogger")
+logger = logging.getLogger(__name__)
 
 class Request():
     """

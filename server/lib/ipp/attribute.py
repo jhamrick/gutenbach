@@ -1,10 +1,10 @@
 #!/usr/bin/python
 
 import sys, struct, logging
-from ippvalue import Value
+from .value import Value
 
 # initialize logger
-logger = logging.getLogger("ippLogger")
+logger = logging.getLogger(__name__)
 
 class Attribute(object):
     """
@@ -39,7 +39,7 @@ class Attribute(object):
     -----------------------------------------------------------
     """
 
-    def __init__(self, name=None, values=[]):
+    def __init__(self, name=None, values=None):
         """
         Initialize an Attribute.  This function can be called in three
         different ways:
@@ -61,6 +61,8 @@ class Attribute(object):
         if name is not None:
             assert isinstance(name, str), \
                    "Attribute name must be a string!"
+        if values is None:
+            values = []
         for value in values:
             assert isinstance(value, Value), \
                    "Value %r must be of type Value" % (value)

@@ -1,10 +1,10 @@
 #!/usr/bin/python
 
 import sys, struct, logging
-from ippattribute import Attribute
+from .attribute import Attribute
 
 # initialize logger
-logger = logging.getLogger("ippLogger")
+logger = logging.getLogger(__name__)
 
 class AttributeGroup(object):
     """
