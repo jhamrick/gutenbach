@@ -184,6 +184,9 @@ class ServerErrorCodes():
 
     def __init__(self): pass
 
+class StatusCodes(SuccessCodes, ClientErrorCodes, ServerErrorCodes):
+    pass
+
 class CUPSPrinterType():
     """
     Printer types as defined by cups_ptype_e in the CUPS API
@@ -306,3 +309,6 @@ class CharacterStringTags():
     NATURAL_LANGUAGE      = 0x48
     MIME_MEDIA_TYPE       = 0x49                                    
     MEMBER_ATTR_NAME      = 0x4a
+
+class Tags(AttributeTags, OutOfBandTags, IntegerTags, OctetStringTags, CharacterStringTags):
+    pass

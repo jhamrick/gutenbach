@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
 import logging, BaseHTTPServer
-from ipprequest import *
-import ippconstants as const
+import ipp
+import ipp.constants as const
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -18,71 +18,71 @@ class GutenbachIPPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def handle_ipp(self):
         length = int(self.headers.getheader('content-length', 0))
-        request = IPPRequest(request=self.rfile,
-                             length=length)
+        request = ipp.Request(request=self.rfile,
+                              length=length)
 
         response_kwargs = {}
         response_kwargs['version'] = request.version
         response_kwargs['request_id'] = request.request_id
         response_kwargs = self.get_jobs(request, response_kwargs)
-        response = IPPRequest(**response_kwargs)
+        response = ipp.Request(**response_kwargs)
 
         self.send_response(200, "o hai")
         self.send_header("Content-Type", "application/ipp")
         self.send_header("Connection", "close")
         self.end_headers()
-        self.wfile.write(response.toBinaryData())
+        self.wfile.write(response.packed_value)
 
-    # def get_jobs(self, request, response_kwargs):
-    #     """get-jobs response"""
+    def get_jobs(self, request, response_kwargs):
+        """get-jobs response"""
 
-    #     job_attributes = [IPPAttribute('job-id',
-    #                                    [IPPValue(IPPTags.INTEGER,
-    #                                              12345,
-    #                                              unpack=False)]),
-    #                       IPPAttribute('job-name',
-    #                                    [IPPValue(IPPTags.NAME_WITHOUT_LANGUAGE,
-    #                                              'foo',
-    #                                              unpack=False)]),
-    #                       IPPAttribute('job-originating-user-name',
-    #                                    [IPPValue(IPPTags.NAME_WITHOUT_LANGUAGE,
-    #                                              'jhamrick',
-    #                                              unpack=False)]),
-    #                       IPPAttribute('job-k-octets',
-    #                                    [IPPValue(IPPTags.INTEGER,
-    #                                              1,
-    #                                              unpack=False)]),
-    #                       IPPAttribute('job-state',
-    #                                    [IPPValue(IPPTags.ENUM,
-    #                                              const.IPP_JOB_HELD,
-    #                                              unpack=False)]),
-    #                       IPPAttribute('job-printer-uri',
-    #                                    [IPPValue(IPPTags.URI,
-    #                                              'http://localhost:8000/printers/foo',
-    #                                              unpack=False)])]
+        job_attributes = [ipp.Attribute('job-id',
+                                       [ipp.Value(ipp.Tags.INTEGER,
+                                                 12345,
+                                                 )]),
+                          ipp.Attribute('job-name',
+                                       [ipp.Value(ipp.Tags.NAME_WITHOUT_LANGUAGE,
+                                                 'foo',
+                                                 )]),
+                          ipp.Attribute('job-originating-user-name',
+                                       [ipp.Value(ipp.Tags.NAME_WITHOUT_LANGUAGE,
+                                                 'jhamrick',
+                                                 )]),
+                          ipp.Attribute('job-k-octets',
+                                       [ipp.Value(ipp.Tags.INTEGER,
+                                                 1,
+                                                 )]),
+                          ipp.Attribute('job-state',
+                                       [ipp.Value(ipp.Tags.ENUM,
+                                                 const.JobStates.HELD,
+                                                 )]),
+                          ipp.Attribute('job-printer-uri',
+                                       [ipp.Value(ipp.Tags.URI,
+                                                 'http://localhost:8000/printers/foo',
+                                                 )])]
 
 
-    #     #req_op_attributes = request.getAttributeGroup(IPPTags.OPERATION_ATTRIBUTES_TAG)
-    #     #print req_op_attributes
-    #     #printer_uri = req_op_attributes[0].getAttribute('printer-uri')
+        #req_op_attributes = request.getAttributeGroup(ipp.Tags.OPERATION_ATTRIBUTES_TAG)
+        #print req_op_attributes
+        #printer_uri = req_op_attributes[0].getAttribute('printer-uri')
 
-    #     op_attributes = [IPPAttribute('attributes-charset',
-    #                                   [IPPValue(IPPTags.CHARSET,
-    #                                             'utf-8',
-    #                                             unpack=False)]),
-    #                      IPPAttribute('attributes-natural-language',
-    #                                   [IPPValue(IPPTags.NATURAL_LANGUAGE,
-    #                                             'en-us',
-    #                                             unpack=False)])]
+        op_attributes = [ipp.Attribute('attributes-charset',
+                                      [ipp.Value(ipp.Tags.CHARSET,
+                                                'utf-8',
+                                                )]),
+                         ipp.Attribute('attributes-natural-language',
+                                      [ipp.Value(ipp.Tags.NATURAL_LANGUAGE,
+                                                'en-us',
+                                                )])]
         
-    #     job_attribute_group = IPPAttributeGroup(IPPTags.JOB_ATTRIBUTES_TAG,
-    #                                             job_attributes)
-    #     op_attributes_group = IPPAttributeGroup(IPPTags.OPERATION_ATTRIBUTES_TAG,
-    #                                             op_attributes)
-    #     response_kwargs['attribute_groups'] = [op_attributes_group,job_attribute_group]
-    #     response_kwargs['operation_id'] = const.IPP_OK
+        job_attribute_group = ipp.AttributeGroup(const.AttributeTags.JOB,
+                                                 job_attributes)
+        op_attributes_group = ipp.AttributeGroup(const.AttributeTags.OPERATION,
+                                                 op_attributes)
+        response_kwargs['attribute_groups'] = [op_attributes_group,job_attribute_group]
+        response_kwargs['operation_id'] = const.StatusCodes.OK
 
-    #     return response_kwargs
+        return response_kwargs
 
     ##### Printer Commands
 
@@ -95,8 +95,8 @@ class GutenbachIPPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def get_printer_attributes(self, request):
         pass
 
-    def get_jobs(self, request):
-        pass
+    #def get_jobs(self, request):
+    #    pass
 
     def print_uri(self, request):
         pass
