@@ -77,7 +77,6 @@ class Request():
             # make sure the request id isn't empty
             assert request_id is not None
             # make sure attribute_groups is a list of Attributes
-            assert len(attribute_groups) > 0
             for a in attribute_groups: assert isinstance(a, AttributeGroup)
             
         # if the request isn't None, then we'll read directly from
@@ -201,6 +200,19 @@ class Request():
         """
         Packs the value data into binary data.
         """
+
+        # make sure the version number isn't empty
+        assert self.version is not None
+        # make sure verison is a tuple of length 2
+        assert isinstance(self.version, tuple)
+        assert len(self.version) == 2
+        # make sure the operation id isn't empty
+        assert self.operation_id is not None
+        # make sure the request id isn't empty
+        assert self.request_id is not None
+        # make sure attribute_groups is a list of Attributes
+        assert len(self.attribute_groups) > 0
+        for a in self.attribute_groups: assert isinstance(a, AttributeGroup)
 
         # convert the version, operation id, and request id to binary
         preattributes = struct.pack('>bbhi',
