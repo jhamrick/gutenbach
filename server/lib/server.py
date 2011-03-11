@@ -20,12 +20,14 @@ class GutenbachIPPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         length = int(self.headers.getheader('content-length', 0))
         request = ipp.Request(request=self.rfile,
                               length=length)
+        print "Received request:", repr(request)
 
         response_kwargs = {}
         response_kwargs['version'] = request.version
         response_kwargs['request_id'] = request.request_id
         response_kwargs = self.get_jobs(request, response_kwargs)
         response = ipp.Request(**response_kwargs)
+        print "Sending response:", repr(response)
 
         self.send_response(200, "o hai")
         self.send_header("Content-Type", "application/ipp")
