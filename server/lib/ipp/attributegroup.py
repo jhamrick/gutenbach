@@ -57,6 +57,7 @@ class AttributeGroup(object):
 
     def __iter__(self):
         return (a.name for a in self.attributes)
+
     iterkeys = __iter__
 
     def __setitem__(self, name, attribute):
@@ -68,7 +69,8 @@ class AttributeGroup(object):
         return self.append(attribute)
 
     def __delitem__(self, name):
-        self.attributes = filter(lambda x: x.name != name, self.attributes)
+        self.attributes = filter(lambda x: x.name != name,
+				 self.attributes)
 
     def append(self, attribute):
         return self.extend([attribute])
