@@ -24,7 +24,7 @@ class Printer(object):
 	self.active_jobs = []
 	self.jobs = {}
 
-	self._next_jobid = -1
+	self._next_jobid = 0
 
     @property
     def next_jobid(self):
@@ -39,12 +39,11 @@ class Printer(object):
 	jobid = self.next_jobid
 	self.active_jobs.append(jobid)
 	self.jobs[jobid] = job
-	job.jobid = jobid
-	job.enqueue(self)
+	job.enqueue(self, jobid)
 	return jobid
 
     def complete_job(self, jobid):
-	job = self.active_jobs.pop(0)
+	job = self.jobs[self.active_jobs.pop(0)]
 	if job.jobid != jobid:
 	    raise InvalidJobException(
 		"Completed job %d has unexpected job id %d!" % \
@@ -55,7 +54,7 @@ class Printer(object):
 	return job.jobid
 
     def start_job(self, jobid):
-	job = self.active_jobs[0]
+	job = self.jobs[self.active_jobs[0]]
 	if job.jobid != jobid:
 	    raise InvalidJobException(
 		"Completed job %d has unexpected job id %d!" % \

@@ -54,12 +54,13 @@ class Job(object):
 	    "Setting printer directly is illegal!  " + \
 	    "Please use enqueue().")
 
-    def enqueue(self, printer):
+    def enqueue(self, printer, jobid):
 	if self.status != 'initializing':
 	    raise InvalidJobException(
 		"Cannot enqueue a job that has " + \
 		"already been initialized!")
 	self._printer = printer
+        self._jobid = jobid
 	self._status = 'active'
 
     def play(self):
@@ -69,13 +70,16 @@ class Job(object):
 	
 	self._status = 'playing'
 	# TODO: add external call to music player
+        print "Playing job %s" % str(self)
 	self.printer.complete_job(self.jobid)
 
-    def finished(self):
+    def finish(self):
 	self._status = 'finished'
 
     def __repr__(self):
 	return str(self)
 
     def __str__(self):
-	return "<Job %d>" % self.jobid
+        return "<Job %d '%s'>" % \
+               (self.jobid if self.jobid is not None else -1, \
+                                  self.document)
