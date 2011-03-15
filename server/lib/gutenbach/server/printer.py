@@ -1,6 +1,6 @@
-import ipp
 import alsaaudio as aa
-from ipp.attribute import Attribute
+import gutenbach.ipp
+from gutenbach.ipp.attribute import Attribute
 from .exceptions import InvalidJobException, \
      InvalidPrinterStateException
 

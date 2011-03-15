@@ -2,9 +2,9 @@
 
 import logging, BaseHTTPServer
 import time
-import ipp
-import ipp.constants as const
-from ipp.constants import Operations
+import gutenbach.ipp
+import gutenbach.ipp.constants as const
+from gutenbach.ipp.constants import Operations
 
 logging.basicConfig(level=logging.DEBUG)
 
