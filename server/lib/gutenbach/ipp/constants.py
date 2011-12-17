@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
 class Misc():
-    """
-    Miscellaneous config options for the IPP server.
+    """Miscellaneous config options for the IPP server.
+    
     """
     
     IPP_VERSION = "1.1"
@@ -11,8 +11,8 @@ class Misc():
     def __init__(self): pass
 
 class JobStates():
-    """
-    Job state codes, as defined by RFC 2911, Section 4.3.7
+    """Job state codes, as defined by RFC 2911, Section 4.3.7
+    
     """
     
     PENDING    = 3
@@ -26,8 +26,8 @@ class JobStates():
     def __init__(self): pass
 
 class PrinterStates():
-    """
-    Printer state codes, as defined by RFC 2911, Section 4.4.11
+    """Printer state codes, as defined by RFC 2911, Section 4.4.11
+    
     """
 
     IDLE       = 3
@@ -37,14 +37,14 @@ class PrinterStates():
     def __init__(self): pass
 
 class Operations():
-    """
-    IPP and CUPS IPP Operations, as defined in various RFCs:
+    """IPP and CUPS IPP Operations, as defined in various RFCs:
 
         0x0002 - 0x0012      RFC 2911 (Section 4.4.15)
         0x0013 - 0x0015      RFC 3380 (Section 4)
         0x0016 - 0x001b      RFC 3995 (Section 7.1)
         0x0022 - 0x0031      RFC 3998 (Section 14.3)
         0x4000 - 0x4027      CUPS IPP Actions
+        
     """
 
     # These are defined in RFC 2911, Section 4.4.15
@@ -119,8 +119,8 @@ class Operations():
     def __init__(self): pass
 
 class SuccessCodes():
-    """
-    Success status codes as defined in RFC 2911, Section 13
+    """Success status codes as defined in RFC 2911, Section 13
+    
     """
     
     OK                           = 0x0000
@@ -134,8 +134,8 @@ class SuccessCodes():
     def __init__(self): pass
 
 class ClientErrorCodes():
-    """
-    Client error codes as defined in RFC 2911, Section 13
+    """Client error codes as defined in RFC 2911, Section 13
+    
     """
     
     BAD_REQUEST                  = 0x0400
@@ -166,8 +166,8 @@ class ClientErrorCodes():
     def __init__(self): pass
 
 class ServerErrorCodes():
-    """
-    Server error codes as defined in RFC 2911, Section 13
+    """Server error codes as defined in RFC 2911, Section 13
+    
     """
 
     INTERNAL_ERROR              = 0x0500
@@ -188,11 +188,11 @@ class StatusCodes(SuccessCodes, ClientErrorCodes, ServerErrorCodes):
     pass
 
 class CUPSPrinterType():
-    """
-    Printer types as defined by cups_ptype_e in the CUPS API
+    """Printer types as defined by cups_ptype_e in the CUPS API
     specification:
     
     http://www.cups.org/documentation.php/doc-1.3/api-cups.html#cups_ptype_e
+    
     """
 
     LOCAL         = 0x000000
@@ -231,9 +231,9 @@ class CUPSPrinterType():
     def __init__(self): pass
 
 class AttributeTags():
-    """
-    Contains constants for the attribute IPP tags, as defined by RFC
-    2565.
+    """Contains constants for the attribute IPP tags, as defined by
+    RFC 2565.
+    
     """
     
     ZERO_NAME_LENGTH   = 0x00
@@ -248,9 +248,9 @@ class AttributeTags():
     def __init__(self): pass
 
 class OutOfBandTags():
-    """
-    Contains constants for the out-of-band value IPP tags, as defined
-    by RFC 2565.
+    """Contains constants for the out-of-band value IPP tags, as
+    defined by RFC 2565.
+    
     """
     
     UNSUPPORTED      = 0x10
@@ -264,9 +264,9 @@ class OutOfBandTags():
     def __init__(self): pass
 
 class IntegerTags():
-    """
-    Contains constants for the integer value IPP tags, as defined by
-    RFC 2565.
+    """Contains constants for the integer value IPP tags, as defined
+    by RFC 2565.
+    
     """
     
     GENERIC = 0x20
@@ -277,9 +277,9 @@ class IntegerTags():
     def __init__(self): pass
 
 class OctetStringTags():
-    """
-    Contains constants for the octetString value IPP tags, as defined
-    by RFC 2565.
+    """Contains constants for the octetString value IPP tags, as
+    defined by RFC 2565.
+    
     """
     
     UNSPECIFIED_OCTETSTRING = 0x30
@@ -294,9 +294,9 @@ class OctetStringTags():
     def __init__(self): pass
 
 class CharacterStringTags():
-    """
-    Contains constants for the character-string value IPP tags, as
+    """Contains constants for the character-string value IPP tags, as
     defined by RFC 2565.
+    
     """
     
     GENERIC               = 0x40

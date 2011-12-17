@@ -7,17 +7,16 @@ from .attribute import Attribute
 logger = logging.getLogger(__name__)
 
 class AttributeGroup(object):
-    """
-    An AttributeGroup consists of an attribute-group-tag, followed by
-    a sequence of Attributes. According to RFC 2565, "Within an
+    """An AttributeGroup consists of an attribute-group-tag, followed
+    by a sequence of Attributes. According to RFC 2565, 'Within an
     attribute-sequence, if two attributes have the same name, the
-    first occurrence MUST be ignored.", so we can effectively treat
+    first occurrence MUST be ignored.', so we can effectively treat
     this as an ordered dictionary.
+    
     """
 
     def __init__(self, attribute_group_tag=None, attributes=[]):
-        """
-        Initialize an AttributeGroup.  An AttributeGroup can be
+        """Initialize an AttributeGroup.  An AttributeGroup can be
         initialized in three ways:
 
             AttributeGroup()
@@ -30,6 +29,7 @@ class AttributeGroup(object):
                                    attribute group
 
             attributes -- a list of attributes
+
         """
 
         if attribute_group_tag is not None:
@@ -42,8 +42,8 @@ class AttributeGroup(object):
         self.extend(attributes)
 
     def __getitem__(self, name):
-        """
-        Returns a list of attributes which have name 'name'.
+        """Returns a list of attributes which have name 'name'.
+        
         """
         
         attribute = filter(lambda x: x.name == name, self.attributes)
@@ -61,9 +61,9 @@ class AttributeGroup(object):
     iterkeys = __iter__
 
     def __setitem__(self, name, attribute):
-        """
-        Sets an attribute in the attribute group. Note that the key is
-        ignored and the attribute is queried for its name.
+        """Sets an attribute in the attribute group. Note that the key
+        is ignored and the attribute is queried for its name.
+        
         """
 
         return self.append(attribute)
@@ -76,8 +76,8 @@ class AttributeGroup(object):
         return self.extend([attribute])
 
     def extend(self, attributes):
-        """
-        Sets the attributes for the attribute group.
+        """Sets the attributes for the attribute group.
+        
         """
 
         for a in attributes:
@@ -92,8 +92,8 @@ class AttributeGroup(object):
 
     @property
     def packed_value(self):
-        """
-        Convert the AttributeGroup to binary.
+        """Convert the AttributeGroup to binary.
+        
         """
 
         # conver the attribute_group_tag to binary

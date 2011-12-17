@@ -10,8 +10,7 @@ from .constants import AttributeTags
 logger = logging.getLogger(__name__)
 
 class Request():
-    """
-    From RFC 2565:
+    """From RFC 2565:
     
     The encoding for an operation request or response consists of:
     -----------------------------------------------
@@ -31,6 +30,7 @@ class Request():
     -----------------------------------------------
     |                     data                    |   q bytes  - optional
     -----------------------------------------------
+
     """
 
     # either give the version, operation_id, request_id,
@@ -38,8 +38,7 @@ class Request():
     # can be read from to get the request
     def __init__(self, version=None, operation_id=None, request_id=None,
                  attribute_groups=[], data=None, request=None, length=sys.maxint):
-        """
-        Create a Request.  Takes either the segments of the request
+        """Create a Request.  Takes either the segments of the request
         separately, or a file handle for the request to parse.  If the
         file handle is passed in, all other arguments are ignored.
 
@@ -64,6 +63,7 @@ class Request():
 
             request -- a file handle that supports the read()
                        operation
+
         """
 
         if request is None:
@@ -197,8 +197,8 @@ class Request():
 
     @property
     def packed_value(self):
-        """
-        Packs the value data into binary data.
+        """Packs the value data into binary data.
+        
         """
 
         # make sure the version number isn't empty

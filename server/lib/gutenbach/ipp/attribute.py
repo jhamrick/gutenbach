@@ -7,10 +7,9 @@ from .value import Value
 logger = logging.getLogger(__name__)
 
 class Attribute(object):
-    """
-    In addition to what the RFC reports, an attribute has an
-    'attribute tag', which specifies what type of attribute it is.
-    It is 1 bytes long, and comes before the list of values.
+    """In addition to what the RFC reports, an attribute has an
+    'attribute tag', which specifies what type of attribute it is.  It
+    is 1 bytes long, and comes before the list of values.
 
     From RFC 2565:
 
@@ -37,12 +36,12 @@ class Attribute(object):
     -----------------------------------------------           |
     |                     value                   |   w bytes |
     -----------------------------------------------------------
+
     """
 
     def __init__(self, name=None, values=None):
-        """
-        Initialize an Attribute.  This function can be called in three
-        different ways:
+        """Initialize an Attribute.  This function can be called in
+        three different ways:
 
             Attribute() -- creates an empty Attribute
 
@@ -56,6 +55,7 @@ class Attribute(object):
             name -- the name of the attribute
 
             values -- a list of Values.  May not be empty.
+
         """
 
         if name is not None:
@@ -72,8 +72,8 @@ class Attribute(object):
 
     @property
     def packed_value(self):
-        """
-        Packs the attribute data into binary data.
+        """Packs the attribute data into binary data.
+        
         """
 
         assert self.name is not None, \
@@ -131,9 +131,10 @@ class Attribute(object):
 
     @property
     def packed_value_size(self):
+        """Gets the total size of the attribute.
+        
         """
-        Gets the total size of the attribute.
-        """
+
         return len(self.packed_value)
 
     total_size = packed_value_size

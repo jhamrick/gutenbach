@@ -6,14 +6,8 @@ from .constants import OutOfBandTags, IntegerTags, OctetStringTags, CharacterStr
 # initialize logger
 logger = logging.getLogger(__name__)
 
-def setter(prop):
-    def f(func):
-        return property(prop.fget, func, prop.fdel, prop.__doc__)
-    return f
-
 class Value(object):
-    """
-    An IPP value consists of a tag and a value.
+    """An IPP value consists of a tag and a value.
 
     From RFC 2565:
      -----------------------------------------------
@@ -25,11 +19,11 @@ class Value(object):
      -----------------------------------------------
      |                     value                   |   v bytes
      -----------------------------------------------    
+
     """
 
     def __init__(self, value_tag=None, value=None):
-        """
-        Initialize a Value.  There are three different ways you can
+        """Initialize a Value.  There are three different ways you can
         call this method:
 
             Value() -- creates an empty Value instance
@@ -47,6 +41,7 @@ class Value(object):
 
             value -- variable size, containing the actual value.
             It should be a string or number.
+
         """
 
         # make sure the arguments are valid
@@ -61,19 +56,16 @@ class Value(object):
 
     @classmethod
     def unpack(cls, value_tag, packed_value):
-        """Unpack a binary IPP value
-
-        Unpacks a binary string into a Value object.
+        """Unpack a binary IPP value into a Value object.
 
         """
         return cls(value_tag, cls._unpack(value_tag, packed_value))
 
     @staticmethod
     def _unpack(value_tag, packed_value):
-        """
-        Given self.value_tag and self.packed_value, unpack the binary
-        value into either a string or number.  These values MUST NOT
-        be null.
+        """Given self.value_tag and self.packed_value, unpack the
+        binary value into either a string or number.  These values
+        MUST NOT be null.
 
         Returns: unpacked value
 
@@ -169,8 +161,7 @@ class Value(object):
 
     @property
     def packed_value(self):
-        """
-        Given self.value_tag and self.value, pack the value into
+        """Given self.value_tag and self.value, pack the value into
         binary form.  These values MUST NOT be null.
 
         Returns: packed_value
@@ -269,7 +260,7 @@ class Value(object):
 
         return packed_value
 
-    @setter(packed_value)
+    @packed_value.setter
     def packed_value(self, packed_value):
         """Replace a value using a new packed value
 
@@ -280,16 +271,16 @@ class Value(object):
 
     @property
     def packed_value_size(self):
-        """
-        Get the size of the value in bytes.
+        """Get the size of the value in bytes.
+        
         """
         
         return len(self.packed_value)
 
     @property
     def total_size(self):
-        """
-        Get the total size of the IPP value.
+        """Get the total size of the IPP value.
+        
         """
 
         # 1 byte for the tag
