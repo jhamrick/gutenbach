@@ -1,9 +1,11 @@
+import BaseHTTPServer
 import gutenbach.ipp
 import gutenbach.ipp.constants as const
 import logging
 import time
 
-logging.basicConfig(level=logging.DEBUG)
+# initialize logger
+logger = logging.getLogger(__name__)
 
 def handler_for(operation):
     """A decorator method to mark a function with the operation id

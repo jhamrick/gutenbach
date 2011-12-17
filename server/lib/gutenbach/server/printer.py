@@ -1,8 +1,10 @@
+from .exceptions import InvalidJobException, InvalidPrinterStateException
+from gutenbach.ipp.attribute import Attribute
 import alsaaudio as aa
 import gutenbach.ipp
-from gutenbach.ipp.attribute import Attribute
-from .exceptions import InvalidJobException, \
-     InvalidPrinterStateException
+
+# initialize logger
+logger = logging.getLogger(__name__)
 
 class Printer(object):
 

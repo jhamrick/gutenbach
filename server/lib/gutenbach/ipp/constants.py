@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 class Misc():
     """Miscellaneous config options for the IPP server.
     

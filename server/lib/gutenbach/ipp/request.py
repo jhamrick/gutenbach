@@ -1,10 +1,10 @@
-#!/usr/bin/python
-
-import sys, struct, logging
-from .attributegroup import AttributeGroup
 from .attribute import Attribute
-from .value import Value
+from .attributegroup import AttributeGroup
 from .constants import AttributeTags
+from .value import Value
+import sys
+import struct
+import logging
 
 # initialize logger
 logger = logging.getLogger(__name__)

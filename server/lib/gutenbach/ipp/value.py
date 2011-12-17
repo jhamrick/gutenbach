@@ -1,7 +1,7 @@
-#!/usr/bin/python
-
-import sys, struct, logging
 from .constants import OutOfBandTags, IntegerTags, OctetStringTags, CharacterStringTags
+import sys
+import struct
+import logging
 
 # initialize logger
 logger = logging.getLogger(__name__)

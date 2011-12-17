@@ -1,6 +1,8 @@
+from exceptions import InvalidJobException, InvalidPrinterStateException
 import os
-from exceptions import InvalidJobException, \
-     InvalidPrinterStateException
+
+# initialize logger
+logger = logging.getLogger(__name__)
 
 class Job(object):
 

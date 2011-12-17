@@ -1,7 +1,7 @@
-#!/usr/bin/python
-
-import sys, struct, logging
 from .attribute import Attribute
+import sys
+import struct
+import logging
 
 # initialize logger
 logger = logging.getLogger(__name__)
