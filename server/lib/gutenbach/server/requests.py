@@ -1,4 +1,3 @@
-import BaseHTTPServer
 import gutenbach.ipp as ipp
 import gutenbach.ipp.constants as const
 from gutenbach.server.printer import GutenbachPrinter
@@ -41,7 +40,7 @@ class GutenbachRequestHandler(object):
             handler_name = "unknown_operation"
         # call the handler
         handler = getattr(self, handler_name)
-        logger.debug("Sending request to handler '%s'" % handler_name)
+        logger.info("Handling request of type '%s'" % handler_name)
         handler(request, response)
 
     def unknown_operation(self, request, response):
@@ -104,7 +103,6 @@ class GutenbachRequestHandler(object):
         # Each job will append a new job attribute group.
         for job in self.printers[printer_name].get_jobs():
             self._get_job_attributes(job, request, response)
-        response.operation_id = const.StatusCodes.OK
 
     def print_uri(self, request, response):
         pass
@@ -124,7 +122,6 @@ class GutenbachRequestHandler(object):
         # is given
         printer_name = self._get_printer_name(request)
         self._get_printer_attributes(self.printers[printer_name], request, response)
-        response.operation_id = const.StatusCodes.OK
 
     def set_printer_attributes(self, request, response):
         pass
@@ -208,7 +205,6 @@ class GutenbachRequestHandler(object):
         """
             
         self._get_printer_attributes(self.printers[self.default], request, response)
-        response.operation_id = const.StatusCodes.OK
 
     @handler_for(const.Operations.CUPS_GET_PRINTERS)
     def cups_get_printers(self, request, response):
@@ -281,7 +277,6 @@ class GutenbachRequestHandler(object):
         # Each printer will append a new printer attribute group.
         for printer in self.printers:
             self._get_printer_attributes(self.printers[printer], request, response)
-        response.operation_id = const.StatusCodes.OK
 
     @handler_for(const.Operations.CUPS_GET_CLASSES)
     def cups_get_classes(self, request, response):
@@ -353,58 +348,4 @@ class GutenbachRequestHandler(object):
         """
         
         # We have no printer classes, so we don't need to do anything
-        response.operation_id = const.StatusCodes.OK
-
-class GutenbachIPPServer(BaseHTTPServer.BaseHTTPRequestHandler):
-    def setup(self):
-        self.root = GutenbachRequestHandler()
-        BaseHTTPServer.BaseHTTPRequestHandler.setup(self)
-
-    def handle_one_request(self):
-        self.raw_requestline = self.rfile.readline()
-        if not self.raw_requestline:
-            self.close_connection = 1
-            return
-        if not self.parse_request(): # An error code has been sent, just exit
-            return
-        self.handle_ipp()
-
-    def handle_ipp(self):
-        # Receive a request
-        length = int(self.headers.getheader('content-length', 0))
-        request = ipp.Request(request=self.rfile, length=length)
-        logger.debug("Received request: %s" % repr(request))
-
-        # Operation attributes -- typically the same for any request
-        attributes = [
-            ipp.Attribute(
-                'attributes-charset',
-                [ipp.Value(ipp.Tags.CHARSET, 'utf-8')]),
-            ipp.Attribute(
-                'attributes-natural-language',
-                [ipp.Value(ipp.Tags.NATURAL_LANGUAGE, 'en-us')])
-            ]
-        # Put the operation attributes in a group
-        attribute_group = ipp.AttributeGroup(
-            const.AttributeTags.OPERATION,
-            attributes)
-
-        # Set up the default response -- handlers will override these
-        # values if they need to
-        response_kwargs = {}
-        response_kwargs['version']          = request.version
-        response_kwargs['operation_id']     = const.StatusCodes.INTERNAL_ERROR
-        response_kwargs['request_id']       = request.request_id
-        response_kwargs['attribute_groups'] = [attribute_group]
-        response = ipp.Request(**response_kwargs)
-
-        # Get the handler and pass it the request and response objects
-        self.root.handle(request, response)
-        logger.debug("Sending response: %s" % repr(response))
-
-        # Send the response across HTTP
-        self.send_response(200, "Gutenbach IPP Response")
-        self.send_header("Content-Type", "application/ipp")
-        self.send_header("Connection", "close")
-        self.end_headers()
-        self.wfile.write(response.packed_value)
+        pass

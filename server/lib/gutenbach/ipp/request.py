@@ -237,7 +237,7 @@ class Request():
         return preattributes + attribute_groups + end_of_attributes_tag + data
 
     def __repr__(self):
-        val = '<IPPRequest (version=%r, ' % self.version
+        val = '<IPPRequest (version=%r, ' % [self.version]
         val += 'operation_id=%x, ' % self.operation_id
         val += 'request_id=%r, ' % self.request_id
         val += 'attribute_groups=%r)>' % self.attribute_groups

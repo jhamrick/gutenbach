@@ -1,9 +1,9 @@
-from requests import GutenbachIPPServer
+from server import GutenbachIPPServer
 import BaseHTTPServer
 import logging
 
 # configure logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 def start():
     server_address = ('', 8000)
