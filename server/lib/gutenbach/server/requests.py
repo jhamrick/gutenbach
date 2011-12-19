@@ -31,19 +31,24 @@ class GutenbachRequestHandler(object):
     def handle(self, request, response):
         # look up the handler
         handler = None
+        handler_name = None
         for d in dir(self):
             if getattr(getattr(self, d), "ipp_operation", None) == request.operation_id:
-                handler = getattr(self, d)
+                handler_name = d
                 break
         # we couldn't find a handler, so default to unknown operation
-        if handler is None:
-            handler = self.unknown_operation
+        if handler_name is None:
+            handler_name = "unknown_operation"
         # call the handler
+        handler = getattr(self, handler_name)
+        logger.debug("Sending request to handler '%s'" % handler_name)
         handler(request, response)
 
     def unknown_operation(self, request, response):
-        print "Received unknown operation %x" % request.operation_id
+        logger.warning("Received unknown operation 0x%x" % request.operation_id)
         response.operation_id = const.StatusCodes.OPERATION_NOT_SUPPORTED
+
+    ##### Helper functions
 
     def _get_printer_attributes(self, printer, request, response):
         response.attribute_groups.append(ipp.AttributeGroup(
@@ -63,45 +68,103 @@ class GutenbachRequestHandler(object):
                   "Expected OPERATION group tag, got %d\n", group_tag
 
         # make sure the printer-uri value is appropriate
-        printername_attr = request.attribute_groups[0]['printer-uri']
-        printername_value_tag = printername_attr.values[0].value_tag
-        if printername_value_tag != const.CharacterStringTags.URI:
+        printer_name_attr = request.attribute_groups[0]['printer-uri']
+        printer_name_value_tag = printer_name_attr.values[0].value_tag
+        if printer_name_value_tag != const.CharacterStringTags.URI:
             raise MalformedIPPRequestException, \
-                  "Expected URI value tag, got %s" % printername_value_tag
+                  "Expected URI value tag, got %s" % printer_name_value_tag
 
         # actually get the printer name
-        printername_value = printername_attr.values[0].value
+        printer_name_value = printer_name_attr.values[0].value
         # XXX: hack -- CUPS will strip the port from the request, so
         # we can't do an exact comparison (also the hostname might be
         # different, depending on the CNAME or whether it's localhost)
-        printername = printername_value.split("/")[-1]
+        printer_name = printer_name_value.split("/")[-1]
 
-        # make sure the printername is valid
-        if printername not in self.printers:
-            raise ValueError, "Invalid printer uri: %s" % printername_value
+        # make sure the printer name is valid
+        if printer_name not in self.printers:
+            raise ValueError, "Invalid printer uri: %s" % printer_name_value
 
-        return printername
+        return printer_name
 
-    @handler_for(const.Operations.CUPS_GET_DEFAULT)
-    def cups_get_default(self, request, response):
-        print "get_default called"
-        self._get_printer_attributes(self.printers[self.default], request, response)
+    ##### Printer Commands
+
+    def print_job(self, request, response):
+        pass
+
+    def validate_job(self, request, response):
+        pass
+
+    @handler_for(const.Operations.GET_JOBS)
+    def get_jobs(self, request, response):
+        printer_name = self._get_printer_name(request)
+        # Each job will append a new job attribute group.
+        for job in self.printers[printer_name].get_jobs():
+            self._get_job_attributes(job, request, response)
         response.operation_id = const.StatusCodes.OK
+
+    def print_uri(self, request, response):
+        pass
+
+    def create_job(self, request, response):
+        pass
+
+    def pause_printer(self, request, response):
+        pass
+
+    def resume_printer(self, request, response):
+        pass
 
     @handler_for(const.Operations.GET_PRINTER_ATTRIBUTES)
     def get_printer_attributes(self, request, response):
-        print "get_printer_attributes called"
-
         # this is just like cups_get_default, except the printer name
         # is given
-        printername = self._get_printer_name(request)
-        self._get_printer_attributes(self.printers[printername], request, response)
+        printer_name = self._get_printer_name(request)
+        self._get_printer_attributes(self.printers[printer_name], request, response)
+        response.operation_id = const.StatusCodes.OK
+
+    def set_printer_attributes(self, request, response):
+        pass
+
+    ##### Job Commands
+
+    def cancel_job(self, request, response):
+        pass
+
+    def send_document(self, request, response):
+        pass
+
+    def send_uri(self, request, response):
+        pass
+
+    def get_job_attributes(self, request, response):
+        printer_name = self._get_printer_name(request)
+        job_id = self._get_job_id(request)
+        self._get_job_attributes(
+            self.printers[printer_name].get_job(job_id), request, response)
+
+    def set_job_attributes(self, request, response):
+        pass
+
+    def cups_get_document(self, request, response):
+        pass
+
+    def restart_job(self, request, response):
+        pass
+
+    def promote_job(self, request, response):
+        pass
+
+
+    ##### CUPS Specific Commands
+
+    @handler_for(const.Operations.CUPS_GET_DEFAULT)
+    def cups_get_default(self, request, response):
+        self._get_printer_attributes(self.printers[self.default], request, response)
         response.operation_id = const.StatusCodes.OK
 
     @handler_for(const.Operations.CUPS_GET_PRINTERS)
     def cups_get_printers(self, request, response):
-        print "get_printers called"
-        
         # Each printer will append a new printer attribute group.
         for printer in self.printers:
             self._get_printer_attributes(self.printers[printer], request, response)
@@ -109,19 +172,8 @@ class GutenbachRequestHandler(object):
 
     @handler_for(const.Operations.CUPS_GET_CLASSES)
     def cups_get_classes(self, request, response):
-        print "get_classes called"
         response.operation_id = const.StatusCodes.OK
         # We have no printer classes, so nothing to return.
-
-    @handler_for(const.Operations.GET_JOBS)
-    def get_jobs(self, request, response):
-        print "get_jobs called"
-
-        printername = self._get_printer_name(request)
-        # Each job will append a new job attribute group.
-        for job in self.printers[printername].get_jobs():
-            self._get_job_attributes(job, request, response)
-        response.operation_id = const.StatusCodes.OK
 
 class GutenbachIPPServer(BaseHTTPServer.BaseHTTPRequestHandler):
     def setup(self):
@@ -141,7 +193,7 @@ class GutenbachIPPServer(BaseHTTPServer.BaseHTTPRequestHandler):
         # Receive a request
         length = int(self.headers.getheader('content-length', 0))
         request = ipp.Request(request=self.rfile, length=length)
-        print "Received request:", repr(request)
+        logger.debug("Received request: %s" % repr(request))
 
         # Attributes
         attributes = [
@@ -167,7 +219,7 @@ class GutenbachIPPServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
         # Get the handler and pass it the request and response objects
         self.root.handle(request, response)
-        print "Sending response:", repr(response)
+        logger.debug("Sending response: %s" % repr(response))
 
         # Send the response across HTTP
         self.send_response(200, "o hai")
@@ -175,55 +227,3 @@ class GutenbachIPPServer(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_header("Connection", "close")
         self.end_headers()
         self.wfile.write(response.packed_value)
-
-    ##### Printer Commands
-
-    def print_job(self, request):
-        pass
-
-    def validate_job(self, request):
-        pass
-
-    #def get_jobs(self, request):
-    #    pass
-
-    def print_uri(self, request):
-        pass
-
-    def create_job(self, request):
-        pass
-
-    def pause_printer(self, request):
-        pass
-
-    def resume_printer(self, request):
-        pass
-
-    def set_printer_attributes(self, request):
-        pass
-
-    ##### Job Commands
-
-    def cancel_job(self, request):
-        pass
-
-    def get_job_attributes(self, request):
-        pass
-
-    def send_document(self, request):
-        pass
-
-    def send_uri(self, request):
-        pass
-
-    def set_job_attributes(self, request):
-        pass
-
-    def cups_get_document(self, request):
-        pass
-
-    def restart_job(self, request):
-        pass
-
-    def promote_job(self, request):
-        pass
