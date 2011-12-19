@@ -87,6 +87,9 @@ class GutenbachRequestHandler(object):
 
         return printer_name
 
+    def _get_job_id(self, request):
+        pass
+        
     ##### Printer Commands
 
     def print_job(self, request, response):
@@ -160,11 +163,121 @@ class GutenbachRequestHandler(object):
 
     @handler_for(const.Operations.CUPS_GET_DEFAULT)
     def cups_get_default(self, request, response):
+        """The CUPS-Get-Default operation (0x4001) returns the default
+        printer URI and attributes.
+
+        CUPS-Get-Default Request
+        ------------------------
+
+        The following groups of attributes are supplied as part of the
+        CUPS-Get-Default request:
+
+        Group 1: Operation Attributes
+            Natural Language and Character Set:
+                The 'attributes-charset' and
+                'attributes-natural-language' attributes as described
+                in section 3.1.4.1 of the IPP Model and Semantics
+                document.
+            'requested-attributes' (1setOf keyword):
+                The client OPTIONALLY supplies a set of attribute
+                names and/or attribute group names in whose values the
+                requester is interested. If the client omits this
+                attribute, the server responds as if this attribute
+                had been supplied with a value of 'all'.
+        
+        CUPS-Get-Default Response
+        -------------------------
+
+        The following groups of attributes are send as part of the
+        CUPS-Get-Default Response:
+
+        Group 1: Operation Attributes
+            Status Message:
+                The standard response status message.
+            Natural Language and Character Set:
+                The 'attributes-charset' and
+                'attributes-natural-language' attributes as described
+                in section 3.1.4.2 of the IPP Model and Semantics
+                document.
+
+        Group 2: Printer Object Attributes
+            The set of requested attributes and their current values.
+
+        (Source: http://www.cups.org/documentation.php/spec-ipp.html#CUPS_GET_DEFAULT )
+
+        """
+            
         self._get_printer_attributes(self.printers[self.default], request, response)
         response.operation_id = const.StatusCodes.OK
 
     @handler_for(const.Operations.CUPS_GET_PRINTERS)
     def cups_get_printers(self, request, response):
+        """
+        The CUPS-Get-Printers operation (0x4002) returns the printer
+        attributes for every printer known to the system. This may
+        include printers that are not served directly by the server.
+
+        CUPS-Get-Printers Request
+        -------------------------
+        
+        The following groups of attributes are supplied as part of the
+        CUPS-Get-Printers request:
+
+        Group 1: Operation Attributes
+            Natural Language and Character Set:
+                The 'attributes-charset' and
+                'attributes-natural-language' attributes as described
+                in section 3.1.4.1 of the IPP Model and Semantics
+                document.
+            'first-printer-name' (name(127)):CUPS 1.2/Mac OS X 10.5
+                The client OPTIONALLY supplies this attribute to
+                select the first printer that is returned.
+            'limit' (integer (1:MAX)):
+                The client OPTIONALLY supplies this attribute limiting
+                the number of printers that are returned.
+            'printer-location' (text(127)): CUPS 1.1.7
+                The client OPTIONALLY supplies this attribute to
+                select which printers are returned.
+            'printer-type' (type2 enum): CUPS 1.1.7
+                The client OPTIONALLY supplies a printer type
+                enumeration to select which printers are returned.
+            'printer-type-mask' (type2 enum): CUPS 1.1.7
+                The client OPTIONALLY supplies a printer type mask
+                enumeration to select which bits are used in the
+                'printer-type' attribute.
+            'requested-attributes' (1setOf keyword) :
+                The client OPTIONALLY supplies a set of attribute
+                names and/or attribute group names in whose values the
+                requester is interested. If the client omits this
+                attribute, the server responds as if this attribute
+                had been supplied with a value of 'all'.
+            'requested-user-name' (name(127)) : CUPS 1.2/Mac OS X 10.5
+                The client OPTIONALLY supplies a user name that is
+                used to filter the returned printers.
+
+        CUPS-Get-Printers Response
+        --------------------------
+
+        The following groups of attributes are send as part of the
+        CUPS-Get-Printers Response:
+
+        Group 1: Operation Attributes
+            Status Message:
+                The standard response status message.
+            Natural Language and Character Set:
+                The 'attributes-charset' and
+                'attributes-natural-language' attributes as described
+                in section 3.1.4.2 of the IPP Model and Semantics
+                document.
+                
+        Group 2: Printer Object Attributes
+            The set of requested attributes and their current values
+            for each printer.
+
+        (Source: http://www.cups.org/documentation.php/spec-ipp.html#CUPS_GET_PRINTERS )
+            
+        """
+
         # Each printer will append a new printer attribute group.
         for printer in self.printers:
             self._get_printer_attributes(self.printers[printer], request, response)
@@ -172,8 +285,75 @@ class GutenbachRequestHandler(object):
 
     @handler_for(const.Operations.CUPS_GET_CLASSES)
     def cups_get_classes(self, request, response):
+        """The CUPS-Get-Classes operation (0x4005) returns the printer
+        attributes for every printer class known to the system. This
+        may include printer classes that are not served directly by
+        the server.
+
+        CUPS-Get-Classes Request
+        ------------------------
+
+        The following groups of attributes are supplied as part of the
+        CUPS-Get-Classes request:
+
+        Group 1: Operation Attributes
+            Natural Language and Character Set:
+                The 'attributes-charset' and
+                'attributes-natural-language' attributes as described
+                in section 3.1.4.1 of the IPP Model and Semantics
+                document.
+            'first-printer-name' (name(127)):CUPS 1.2/Mac OS X 10.5
+                The client OPTIONALLY supplies this attribute to
+                select the first printer that is returned.
+            'limit' (integer (1:MAX)):
+                The client OPTIONALLY supplies this attribute limiting
+                the number of printer classes that are returned.
+            'printer-location' (text(127)): CUPS 1.1.7
+                The client OPTIONALLY supplies this attribute to
+                select which printer classes are returned.
+            'printer-type' (type2 enum): CUPS 1.1.7
+                The client OPTIONALLY supplies a printer type
+                enumeration to select which printer classes are
+                returned.
+            'printer-type-mask' (type2 enum): CUPS 1.1.7
+                The client OPTIONALLY supplies a printer type mask
+                enumeration to select which bits are used in the
+                'printer-type' attribute.
+            'requested-attributes' (1setOf keyword) :
+                The client OPTIONALLY supplies a set of attribute
+                names and/or attribute group names in whose values the
+                requester is interested. If the client omits this
+                attribute, the server responds as if this attribute
+                had been supplied with a value of 'all'.
+            'requested-user-name' (name(127)) : CUPS 1.2/Mac OS X 10.5
+                The client OPTIONALLY supplies a user name that is
+                used to filter the returned printers.
+                
+        CUPS-Get-Classes Response
+        -------------------------
+
+        The following groups of attributes are send as part of the
+        CUPS-Get-Classes Response:
+
+        Group 1: Operation Attributes
+            Status Message:
+                The standard response status message.
+            Natural Language and Character Set:
+                The 'attributes-charset' and
+                'attributes-natural-language' attributes as described
+                in section 3.1.4.2 of the IPP Model and Semantics
+                document.
+
+        Group 2: Printer Class Object Attributes
+            The set of requested attributes and their current values
+            for each printer class.
+
+        (Source: http://www.cups.org/documentation.php/spec-ipp.html#CUPS_GET_CLASSES )
+
+        """
+        
+        # We have no printer classes, so we don't need to do anything
         response.operation_id = const.StatusCodes.OK
-        # We have no printer classes, so nothing to return.
 
 class GutenbachIPPServer(BaseHTTPServer.BaseHTTPRequestHandler):
     def setup(self):
@@ -195,7 +375,7 @@ class GutenbachIPPServer(BaseHTTPServer.BaseHTTPRequestHandler):
         request = ipp.Request(request=self.rfile, length=length)
         logger.debug("Received request: %s" % repr(request))
 
-        # Attributes
+        # Operation attributes -- typically the same for any request
         attributes = [
             ipp.Attribute(
                 'attributes-charset',
@@ -204,12 +384,13 @@ class GutenbachIPPServer(BaseHTTPServer.BaseHTTPRequestHandler):
                 'attributes-natural-language',
                 [ipp.Value(ipp.Tags.NATURAL_LANGUAGE, 'en-us')])
             ]
-        # Attribute group
+        # Put the operation attributes in a group
         attribute_group = ipp.AttributeGroup(
             const.AttributeTags.OPERATION,
             attributes)
 
-        # Set up the response
+        # Set up the default response -- handlers will override these
+        # values if they need to
         response_kwargs = {}
         response_kwargs['version']          = request.version
         response_kwargs['operation_id']     = const.StatusCodes.INTERNAL_ERROR
@@ -222,7 +403,7 @@ class GutenbachIPPServer(BaseHTTPServer.BaseHTTPRequestHandler):
         logger.debug("Sending response: %s" % repr(response))
 
         # Send the response across HTTP
-        self.send_response(200, "o hai")
+        self.send_response(200, "Gutenbach IPP Response")
         self.send_header("Content-Type", "application/ipp")
         self.send_header("Connection", "close")
         self.end_headers()
