@@ -15,29 +15,28 @@ class AttributeGroup(object):
     
     """
 
-    def __init__(self, attribute_group_tag=None, attributes=[]):
+    def __init__(self, tag=None, attributes=[]):
         """Initialize an AttributeGroup.  An AttributeGroup can be
         initialized in three ways:
 
             AttributeGroup()
-            AttributeGroup(attribute_group_tag)
-            AttributeGroup(attribute_group_tag, attributes)
+            AttributeGroup(tag)
+            AttributeGroup(tag, attributes)
 
         Arguments:
 
-            attribute_group_tag -- a signed char, holds the tag of the
-                                   attribute group
+            tag -- a signed char, holds the tag of the
+                   attribute group
 
             attributes -- a list of attributes
 
         """
 
-        if attribute_group_tag is not None:
-            assert isinstance(attribute_group_tag, int), \
-                   "attribute_group_tag must be a character!"
-            
+        if tag is not None:
+            assert isinstance(tag, int), \
+                   "tag must be a character!"
 
-        self.attribute_group_tag = attribute_group_tag
+        self.tag = tag
         self.attributes = []
         self.extend(attributes)
 
@@ -96,8 +95,8 @@ class AttributeGroup(object):
         
         """
 
-        # conver the attribute_group_tag to binary
-        tag = struct.pack('>b', self.attribute_group_tag)
+        # convert the tag to binary
+        tag = struct.pack('>b', self.tag)
 
         # convert each of the attributes to binary
         attributes = [a.packed_value for a in self.attributes]
@@ -106,4 +105,4 @@ class AttributeGroup(object):
         return tag + ''.join(attributes)
 
     def __repr__(self):
-        return '<IPPAttributeGroup (%r, %r)>' % (self.attribute_group_tag, self.attributes)
+        return '<IPPAttributeGroup (%r, %r)>' % (self.tag, self.attributes)

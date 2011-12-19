@@ -1,8 +1,9 @@
 import BaseHTTPServer
-import gutenbach.ipp
+import gutenbach.ipp as ipp
 import gutenbach.ipp.constants as const
+from gutenbach.server.printer import GutenbachPrinter
+from gutenbach.server.exceptions import MalformedIPPRequestException
 import logging
-import time
 
 # initialize logger
 logger = logging.getLogger(__name__)
@@ -19,132 +20,92 @@ def handler_for(operation):
         return func
     return f
 
-class IPPRequestHandler(object):
-    """A generic base class for IPP requests.  Provides a dispatch
-    function to conver request operation ids to handler functions.
+class GutenbachRequestHandler(object):
 
-    """
+    def __init__(self):
+        self.printers = {
+            "test": GutenbachPrinter(name="test")
+            }
+        self.default = "test"
     
-    def _ipp_dispatch(self, request):
+    def handle(self, request, response):
+        # look up the handler
+        handler = None
         for d in dir(self):
             if getattr(getattr(self, d), "ipp_operation", None) == request.operation_id:
-                return getattr(self, d)
-        return self.unknown_operation
+                handler = getattr(self, d)
+                break
+        # we couldn't find a handler, so default to unknown operation
+        if handler is None:
+            handler = self.unknown_operation
+        # call the handler
+        handler(request, response)
 
     def unknown_operation(self, request, response):
-        print "Received UNKNOWN OPERATION %x" % request.operation_id
+        print "Received unknown operation %x" % request.operation_id
         response.operation_id = const.StatusCodes.OPERATION_NOT_SUPPORTED
 
-class PrinterRequestHandler(IPPRequestHandler):
-    """This handles requests that are printer-specific: for example,
-    the printer's name or state.
+    def _get_printer_attributes(self, printer, request, response):
+        response.attribute_groups.append(ipp.AttributeGroup(
+            const.AttributeTags.PRINTER,
+            printer.get_printer_attributes(request)))
 
-    """
-    
-    def __init__(self, name):
-        self.name = name
+    def _get_job_attributes(self, job_id, printer, request, response):
+        response.attribute_groups.append(ipp.AttributeGroup(
+            const.AttributeTags.JOB,
+            job.get_job_attributes(request)))
 
-    @handler_for(const.Operations.GET_PRINTER_ATTRIBUTES)
-    def get_printer_attributes(self, request, response):
-        printer_attributes = ipp.AttributeGroup(const.AttributeTags.PRINTER)
-        printer_attributes.append(ipp.Attribute(
-            "printer-uri-supported",
-            [ipp.Value(ipp.Tags.URI, "ipp://localhost:8000/printers/" + self.name)]))
+    def _get_printer_name(self, request):
+        # make sure the first group is an OPERATION group
+        group_tag = request.attribute_groups[0].tag
+        if group_tag != const.AttributeTags.OPERATION:
+            raise MalformedIPPRequestException, \
+                  "Expected OPERATION group tag, got %d\n", group_tag
 
-        printer_attributes.append(ipp.Attribute(
-            "uri-authentication-supported",
-            [ipp.Value(ipp.Tags.KEYWORD, "none")]))
+        # make sure the printer-uri value is appropriate
+        printername_attr = request.attribute_groups[0]['printer-uri']
+        printername_value_tag = printername_attr.values[0].value_tag
+        if printername_value_tag != const.CharacterStringTags.URI:
+            raise MalformedIPPRequestException, \
+                  "Expected URI value tag, got %s" % printername_value_tag
 
-        printer_attributes.append(ipp.Attribute(
-            "uri-security-supported",
-            [ipp.Value(ipp.Tags.KEYWORD, "none")]))
+        # actually get the printer name
+        printername_value = printername_attr.values[0].value
+        # XXX: hack -- CUPS will strip the port from the request, so
+        # we can't do an exact comparison (also the hostname might be
+        # different, depending on the CNAME or whether it's localhost)
+        printername = printername_value.split("/")[-1]
 
-        printer_attributes.append(ipp.Attribute(
-            "printer-name",
-            [ipp.Value(ipp.Tags.NAME_WITHOUT_LANGUAGE, self.name)]))
+        # make sure the printername is valid
+        if printername not in self.printers:
+            raise ValueError, "Invalid printer uri: %s" % printername_value
 
-        printer_attributes.append(ipp.Attribute(
-            "printer-state",
-            [ipp.Value(ipp.Tags.ENUM, const.PrinterStates.IDLE)]))
-
-        printer_attributes.append(ipp.Attribute(
-            "printer-state-reasons",
-            [ipp.Value(ipp.Tags.KEYWORD, "none")]))
-
-        printer_attributes.append(ipp.Attribute(
-            "ipp-versions-supported",
-            [ipp.Value(ipp.Tags.KEYWORD, "1.0"),
-             ipp.Value(ipp.Tags.KEYWORD, "1.1")]))
-
-        # XXX: We should query ourself for the supported operations
-        printer_attributes.append(ipp.Attribute(
-            "operations-supported",
-            [ipp.Value(ipp.Tags.ENUM, const.Operations.GET_JOBS)]))
-
-        printer_attributes.append(ipp.Attribute(
-            "charset-configured",
-            [ipp.Value(ipp.Tags.CHARSET, "utf-8")]))
-
-        printer_attributes.append(ipp.Attribute(
-            "charset-supported",
-            [ipp.Value(ipp.Tags.CHARSET, "utf-8")]))
-
-        printer_attributes.append(ipp.Attribute(
-            "natural-language-configured",
-            [ipp.Value(ipp.Tags.NATURAL_LANGUAGE, "en-us")]))
-
-        printer_attributes.append(ipp.Attribute(
-            "generated-natural-language-supported",
-            [ipp.Value(ipp.Tags.NATURAL_LANGUAGE, "en-us")]))
-
-        printer_attributes.append(ipp.Attribute(
-            "document-format-default",
-            [ipp.Value(ipp.Tags.MIME_MEDIA_TYPE, "application/octet-stream")]))
-
-        printer_attributes.append(ipp.Attribute(
-            "document-format-supported",
-            [ipp.Value(ipp.Tags.MIME_MEDIA_TYPE, "application/octet-stream"),
-             ipp.Value(ipp.Tags.MIME_MEDIA_TYPE, "audio/mp3")]))
-
-        printer_attributes.append(ipp.Attribute(
-            "printer-is-accepting-jobs",
-            [ipp.Value(ipp.Tags.BOOLEAN, True)]))
-
-        printer_attributes.append(ipp.Attribute(
-            "queued-job-count",
-            [ipp.Value(ipp.Tags.INTEGER, 1)]))
-
-        printer_attributes.append(ipp.Attribute(
-            "pdl-override-supported",
-            [ipp.Value(ipp.Tags.KEYWORD, "not-attempted")]))
-
-        printer_attributes.append(ipp.Attribute(
-            "printer-up-time",
-            [ipp.Value(ipp.Tags.INTEGER, int(time.time()))]))
-
-        printer_attributes.append(ipp.Attribute(
-            "compression-supported",
-            [ipp.Value(ipp.Tags.KEYWORD, "none")]))
-
-        response.attribute_groups.append(printer_attributes)
-        response.operation_id = const.StatusCodes.OK
-        print "get_printer_attributes called"
-
-class RootRequestHandler(IPPRequestHandler):
-    printers = [PrinterRequestHandler(name="sipbmp3")]
+        return printername
 
     @handler_for(const.Operations.CUPS_GET_DEFAULT)
     def cups_get_default(self, request, response):
         print "get_default called"
-        return self.printers[0].get_printer_attributes(request, response)
+        self._get_printer_attributes(self.printers[self.default], request, response)
+        response.operation_id = const.StatusCodes.OK
+
+    @handler_for(const.Operations.GET_PRINTER_ATTRIBUTES)
+    def get_printer_attributes(self, request, response):
+        print "get_printer_attributes called"
+
+        # this is just like cups_get_default, except the printer name
+        # is given
+        printername = self._get_printer_name(request)
+        self._get_printer_attributes(self.printers[printername], request, response)
+        response.operation_id = const.StatusCodes.OK
 
     @handler_for(const.Operations.CUPS_GET_PRINTERS)
     def cups_get_printers(self, request, response):
         print "get_printers called"
-        response.operation_id = const.StatusCodes.OK
+        
         # Each printer will append a new printer attribute group.
-        for p in self.printers:
-            p.get_printer_attributes(request, response)
+        for printer in self.printers:
+            self._get_printer_attributes(self.printers[printer], request, response)
+        response.operation_id = const.StatusCodes.OK
 
     @handler_for(const.Operations.CUPS_GET_CLASSES)
     def cups_get_classes(self, request, response):
@@ -152,9 +113,19 @@ class RootRequestHandler(IPPRequestHandler):
         response.operation_id = const.StatusCodes.OK
         # We have no printer classes, so nothing to return.
 
-class GutenbachIPPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+    @handler_for(const.Operations.GET_JOBS)
+    def get_jobs(self, request, response):
+        print "get_jobs called"
+
+        printername = self._get_printer_name(request)
+        # Each job will append a new job attribute group.
+        for job in self.printers[printername].get_jobs():
+            self._get_job_attributes(job, request, response)
+        response.operation_id = const.StatusCodes.OK
+
+class GutenbachIPPServer(BaseHTTPServer.BaseHTTPRequestHandler):
     def setup(self):
-        self.root = RootRequestHandler()
+        self.root = GutenbachRequestHandler()
         BaseHTTPServer.BaseHTTPRequestHandler.setup(self)
 
     def handle_one_request(self):
@@ -195,8 +166,7 @@ class GutenbachIPPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         response = ipp.Request(**response_kwargs)
 
         # Get the handler and pass it the request and response objects
-        handler = self.root._ipp_dispatch(request)
-        handler(request, response)
+        self.root.handle(request, response)
         print "Sending response:", repr(response)
 
         # Send the response across HTTP
@@ -205,55 +175,6 @@ class GutenbachIPPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_header("Connection", "close")
         self.end_headers()
         self.wfile.write(response.packed_value)
-
-    def get_jobs(self, request, response_kwargs):
-        """get-jobs response"""
-
-        # Job attributes
-        job_attributes = [
-            ipp.Attribute(
-                'job-id',
-                [ipp.Value(ipp.Tags.INTEGER, 12345)]),
-            ipp.Attribute(
-                'job-name',
-                [ipp.Value(ipp.Tags.NAME_WITHOUT_LANGUAGE, 'foo')]),
-            ipp.Attribute(
-                'job-originating-user-name',
-                [ipp.Value(ipp.Tags.NAME_WITHOUT_LANGUAGE, 'jhamrick')]),
-            ipp.Attribute(
-                'job-k-octets',
-                [ipp.Value(ipp.Tags.INTEGER, 1)]),
-            ipp.Attribute(
-                'job-state',
-                [ipp.Value(ipp.Tags.ENUM, const.JobStates.HELD)]),
-            ipp.Attribute(
-                'job-printer-uri',
-                [ipp.Value(ipp.Tags.URI, 'ipp://localhost:8000/printers/foo')])
-            ]
-        # Job attribute group
-        job_attribute_group = ipp.AttributeGroup(
-            const.AttributeTags.JOB,
-            job_attributes)
-
-        # Operation attributions
-        op_attributes = [
-            ipp.Attribute(
-                'attributes-charset',
-                [ipp.Value(ipp.Tags.CHARSET, 'utf-8')]),
-            ipp.Attribute(
-                'attributes-natural-language',
-                [ipp.Value(ipp.Tags.NATURAL_LANGUAGE, 'en-us')])
-            ]
-        # Operation attribution group
-        op_attributes_group = ipp.AttributeGroup(
-            const.AttributeTags.OPERATION,
-            op_attributes)
-
-        # Setup the actual response dictionary
-        response_kwargs['attribute_groups'] = [op_attributes_group,job_attribute_group]
-        response_kwargs['operation_id'] = const.StatusCodes.OK
-
-        return response_kwargs
 
     ##### Printer Commands
 
