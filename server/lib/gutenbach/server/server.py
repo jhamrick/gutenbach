@@ -1,9 +1,9 @@
-import logging
-import BaseHTTPServer
-import traceback
 from gutenbach.server.requests import GutenbachRequestHandler
+import BaseHTTPServer
 import gutenbach.ipp as ipp
 import gutenbach.ipp.constants as const
+import logging
+import traceback
 
 # initialize logger
 logger = logging.getLogger(__name__)

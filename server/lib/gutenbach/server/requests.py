@@ -1,7 +1,7 @@
+from gutenbach.server.exceptions import MalformedIPPRequestException
+from gutenbach.server.printer import GutenbachPrinter
 import gutenbach.ipp as ipp
 import gutenbach.ipp.constants as const
-from gutenbach.server.printer import GutenbachPrinter
-from gutenbach.server.exceptions import MalformedIPPRequestException
 import logging
 
 # initialize logger
