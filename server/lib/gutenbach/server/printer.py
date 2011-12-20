@@ -155,6 +155,7 @@ class GutenbachPrinter(object):
 
     def get_printer_attributes(self, request):
         attributes = [(attr, getattr(self, attr)) for attr in self.attributes]
+        attributes = map(lambda x: x if isinstance(x, (tuple, list)) else [x], attributes)
         return attributes
 
     ## Printer operations

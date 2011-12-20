@@ -63,7 +63,7 @@ class Job(object):
     # XXX: we need to actually calculate this!
     @property
     def job_k_octets(self):
-        return "job-k-octets"
+        return 1
 
     @property
     def job_state(self):
@@ -75,6 +75,7 @@ class Job(object):
 
     def get_job_attributes(self, request):
         attributes = [(attr, getattr(self, attr)) for attr in self.attributes]
+        attributes = map(lambda x: x if isinstance(x, (tuple, list)) else [x], attributes)
         return attributes
     
     #######

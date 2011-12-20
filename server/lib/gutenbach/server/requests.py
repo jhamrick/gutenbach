@@ -1,7 +1,7 @@
-from gutenbach.server.exceptions import MalformedIPPRequestException
 from gutenbach.server.printer import GutenbachPrinter
 import gutenbach.ipp as ipp
 import gutenbach.ipp.constants as const
+from gutenbach.ipp.constants import job_attribute_value_tags, printer_attribute_value_tags
 import logging
 
 # initialize logger
@@ -50,41 +50,26 @@ class GutenbachRequestHandler(object):
     ##### Helper functions
 
     def _get_printer_attributes(self, printer, request, response):
+        attrs = printer.get_printer_attributes(request)
+        ipp_attrs = []
+        for attr, vals in enumerate(attrs):
+            ipp_vals = [ipp.Value(
+                tag=printer_attribute_value_tags[attr],
+                value=val) for val in vals]
+            ipp_attrs.append(ipp.Attribute(name=attr, values=ipp_vals))
         response.attribute_groups.append(ipp.AttributeGroup(
-            const.AttributeTags.PRINTER,
-            printer.get_printer_attributes(request)))
+            const.AttributeTags.PRINTER, ipp_attrs))
 
-    def _get_job_attributes(self, job_id, printer, request, response):
+    def _get_job_attributes(self, job, request, response):
+        attrs = job.get_job_attributes(request)
+        ipp_attrs = []
+        for attr, vals in enumerate(attrs):
+            ipp_vals = [ipp.Value(
+                tag=job_attribute_value_tags[attr],
+                value=val) for val in vals]
+            ipp_attrs.append(ipp.Attribute(name=attr, values=ipp_vals))
         response.attribute_groups.append(ipp.AttributeGroup(
-            const.AttributeTags.JOB,
-            job.get_job_attributes(request)))
-
-    def _get_printer_name(self, request):
-        # make sure the first group is an OPERATION group
-        group_tag = request.attribute_groups[0].tag
-        if group_tag != const.AttributeTags.OPERATION:
-            raise MalformedIPPRequestException, \
-                  "Expected OPERATION group tag, got %d\n", group_tag
-
-        # make sure the printer-uri value is appropriate
-        printer_name_attr = request.attribute_groups[0]['printer-uri']
-        printer_name_value_tag = printer_name_attr.values[0].value_tag
-        if printer_name_value_tag != const.CharacterStringTags.URI:
-            raise MalformedIPPRequestException, \
-                  "Expected URI value tag, got %s" % printer_name_value_tag
-
-        # actually get the printer name
-        printer_name_value = printer_name_attr.values[0].value
-        # XXX: hack -- CUPS will strip the port from the request, so
-        # we can't do an exact comparison (also the hostname might be
-        # different, depending on the CNAME or whether it's localhost)
-        printer_name = printer_name_value.split("/")[-1]
-
-        # make sure the printer name is valid
-        if printer_name not in self.printers:
-            raise ValueError, "Invalid printer uri: %s" % printer_name_value
-
-        return printer_name
+            const.AttributeTags.JOB, ipp_attrs))
 
     def _get_job_id(self, request):
         pass
@@ -112,9 +97,16 @@ class GutenbachRequestHandler(object):
         possibly more than one object.
 
         """
+        
+        reqdict = ipp.ops.verify_get_jobs_request(request)
+        printer_name = reqdict['printer-uri']
+        if printer_name not in self.printers:
+            raise ipp.errors.Attributes(
+                "Invalid printer uri: %s" % printer_name,
+                [request.attribute_groups[0].attributes[2]])
 
-        printer_name = self._get_printer_name(request)
         # Each job will append a new job attribute group.
+        # XXX: we need to honor the things that the request actually asks for
         for job in self.printers[printer_name].get_jobs():
             self._get_job_attributes(job, request, response)
 
@@ -134,7 +126,13 @@ class GutenbachRequestHandler(object):
     def get_printer_attributes(self, request, response):
         # this is just like cups_get_default, except the printer name
         # is given
-        printer_name = self._get_printer_name(request)
+        reqdict = ipp.ops.verify_get_printer_attributes_request(request)
+        printer_name = reqdict['printer-uri']
+        if printer_name not in self.printers:
+            raise ipp.errors.Attributes(
+                "Invalid printer uri: %s" % printer_name,
+                [request.attribute_groups[0].attributes[2]])
+        
         self._get_printer_attributes(self.printers[printer_name], request, response)
 
     def set_printer_attributes(self, request, response):
@@ -152,10 +150,24 @@ class GutenbachRequestHandler(object):
         pass
 
     def get_job_attributes(self, request, response):
-        printer_name = self._get_printer_name(request)
-        job_id = self._get_job_id(request)
-        self._get_job_attributes(
-            self.printers[printer_name].get_job(job_id), request, response)
+        reqdict = ipp.ops.verify_get_jobs_request(request)
+        printer_name = reqdict['printer-uri']
+        job_id = reqdict['job-id']
+        
+        if printer_name not in self.printers:
+            raise ipp.errors.Attributes(
+                "Invalid printer uri: %s" % printer_name,
+                [request.attribute_groups[0].attributes[2]])
+        try:
+            job = self.printers[printer_name].get_job(job_id)
+        except InvalidJobException:
+            raise ipp.errors.Attributes(
+                "Invalid job id: %d" % job_id,
+                [request.attribute_groups[0].attributes[2]]) # XXX: this is wrong
+
+        # Each job will append a new job attribute group.
+        # XXX: we need to honor the things that the request actually asks for
+        self._get_job_attributes(job, request, response)
 
     def set_job_attributes(self, request, response):
         pass
