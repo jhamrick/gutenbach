@@ -65,7 +65,7 @@ class Attribute(object):
             values = []
         for value in values:
             assert isinstance(value, Value), \
-                   "Value %r must be of type Value" % (value)
+                   "Value %s must be of type Value" % (value,)
 
         self.name = name
         self.values = values
@@ -99,10 +99,10 @@ class Attribute(object):
             logger.debug("dumping name_length : %i" % name_length)
             logger.debug("dumping name : %s" % self.name)
             logger.debug("dumping value_length : %i" % value_length)
-            logger.debug("dumping value : %s" % v.value)
+            logger.debug("dumping value (0x%x): %s" % (v.tag, v.value))
 
             # the value tag in binary
-            value_tag_bin = struct.pack('>b', v.value_tag)
+            tag_bin = struct.pack('>b', v.tag)
 
             # the name length in binary
             name_length_bin = struct.pack('>h', name_length)
@@ -114,13 +114,13 @@ class Attribute(object):
             value_length_bin = struct.pack('>h', value_length)
 
             if i == 0:
-                values.append(''.join([value_tag_bin,
+                values.append(''.join([tag_bin,
                                        name_length_bin,
                                        name_bin,
                                        value_length_bin,
                                        value_bin]))
             else:
-                values.append(''.join([value_tag_bin,
+                values.append(''.join([tag_bin,
                                        name_length_bin,
                                        value_length_bin,
                                        value_bin]))
