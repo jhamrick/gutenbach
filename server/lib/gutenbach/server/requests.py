@@ -236,9 +236,6 @@ class GutenbachRequestHandler(object):
     def set_job_attributes(self, request):
         pass
 
-    def cups_get_document(self, request):
-        pass
-
     def restart_job(self, request):
         pass
 
@@ -246,6 +243,9 @@ class GutenbachRequestHandler(object):
         pass
 
     ##### CUPS Specific Commands
+
+    def cups_get_document(self, request):
+        pass
 
     @handler_for(consts.Operations.CUPS_GET_DEFAULT)
     def cups_get_default(self, request):

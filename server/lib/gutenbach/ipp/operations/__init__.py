@@ -150,28 +150,55 @@ def make_printer_attributes(attrs, request, response):
     response.attribute_groups.append(AttributeGroup(
         consts.AttributeTags.PRINTER, ipp_attrs))
 
-
 from cups_get_classes import verify_cups_get_classes_request, make_cups_get_classes_response
 from cups_get_default import verify_cups_get_default_request, make_cups_get_default_response
+from cups_get_document import verify_cups_get_document_request, make_cups_get_document_response
 from cups_get_printers import verify_cups_get_printers_request, make_cups_get_printers_response
 
+from cancel_job import verify_cancel_job_request, make_cancel_job_response
+from create_job import verify_create_job_request, make_create_job_response
 from get_jobs import verify_get_jobs_request, make_get_jobs_response
-from get_printer_attributes import verify_get_printer_attributes_request
 from get_printer_attributes import make_get_printer_attributes_response
+from get_printer_attributes import verify_get_printer_attributes_request
+from pause_printer import verify_pause_printer_request, make_pause_printer_response
 from print_job import verify_print_job_request, make_print_job_response
+from print_uri import verify_print_uri_request, make_print_uri_response
+from promote_job import verify_promote_job_request, make_promote_job_response
+from restart_job import verify_restart_job_request, make_restart_job_response
+from resume_printer import verify_resume_printer_request, make_resume_printer_response
+from send_document import verify_send_document_request, make_send_document_response
+from send_uri import verify_send_uri_request, make_send_uri_response
+from set_job_attributes import make_set_job_attributes_response
+from set_job_attributes import verify_set_job_attributes_request
+from set_printer_attributes import make_set_printer_attributes_response
+from set_printer_attributes import verify_set_printer_attributes_request
+from validate_job import verify_validate_job_request, make_validate_job_response
 
-__all__ = ['verify_cups_get_classes_request',
-           'make_cups_get_classes_response',
-           'verify_cups_get_default_request',
-           'make_cups_get_default_response',
-           'verify_cups_get_printers_request',
-           'make_cups_get_printers_response',
-           'verify_get_jobs_request',
-           'make_get_jobs_response',
-           'verify_get_printer_attributes_request',
-           'make_get_printer_attributes_response',
-           'verify_print_job_request',
-           'make_print_job_response',
+
+
+__all__ = ['verify_cups_get_classes_request', 'make_cups_get_classes_response'
+           'verify_cups_get_default_request', 'make_cups_get_default_response'
+           'verify_cups_get_document_request', 'make_cups_get_document_response'
+           'verify_cups_get_printers_request', 'make_cups_get_printers_response'
+
+           'verify_cancel_job_request', 'make_cancel_job_response'
+           'verify_create_job_request', 'make_create_job_response'
+           'verify_get_jobs_request', 'make_get_jobs_response'
+           'make_get_printer_attributes_response'
+           'verify_get_printer_attributes_request'
+           'verify_pause_printer_request', 'make_pause_printer_response'
+           'verify_print_job_request', 'make_print_job_response'
+           'verify_print_uri_request', 'make_print_uri_response'
+           'verify_promote_job_request', 'make_promote_job_response'
+           'verify_restart_job_request', 'make_restart_job_response'
+           'verify_resume_printer_request', 'make_resume_printer_response'
+           'verify_send_document_request', 'make_send_document_response'
+           'verify_send_uri_request', 'make_send_uri_response'
+           'make_set_job_attributes_response'
+           'verify_set_job_attributes_request'
+           'make_set_printer_attributes_response'
+           'verify_set_printer_attributes_request'
+           'verify_validate_job_request', 'make_validate_job_response'
 
            'verify_operations',
            'verify_printer_uri',

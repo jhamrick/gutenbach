@@ -2,7 +2,6 @@ from . import verify_operations
 from . import verify_printer_uri
 from . import verify_requesting_username
 from . import make_empty_response
-from . import make_printer_attributes
 
 import logging
 logger = logging.getLogger(__name__)
@@ -236,7 +235,7 @@ def verify_print_job_request(request):
     
     pass
 
-def make_print_job_response(attrs, request):
+def make_print_job_response(job, request):
     """3.2.1.2 Print-Job Response
 
     The Printer object MUST return to the client the following sets of
