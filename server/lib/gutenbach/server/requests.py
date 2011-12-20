@@ -99,6 +99,20 @@ class GutenbachRequestHandler(object):
 
     @handler_for(const.Operations.GET_JOBS)
     def get_jobs(self, request, response):
+        """RFC 2911: 3.2.6 Get-Jobs Operation
+        
+        This REQUIRED operation allows a client to retrieve the list
+        of Job objects belonging to the target Printer object. The
+        client may also supply a list of Job attribute names and/or
+        attribute group names. A group of Job object attributes will
+        be returned for each Job object that is returned.
+
+        This operation is similar to the Get-Job-Attributes operation,
+        except that this Get-Jobs operation returns attributes from
+        possibly more than one object.
+
+        """
+
         printer_name = self._get_printer_name(request)
         # Each job will append a new job attribute group.
         for job in self.printers[printer_name].get_jobs():
@@ -154,7 +168,6 @@ class GutenbachRequestHandler(object):
 
     def promote_job(self, request, response):
         pass
-
 
     ##### CUPS Specific Commands
 
