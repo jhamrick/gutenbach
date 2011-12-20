@@ -73,6 +73,16 @@ class GutenbachRequestHandler(object):
     ##### Printer Commands
 
     def print_job(self, request):
+        """RFC 2911: 3.2.1 Print-Job Operation
+
+        This REQUIRED operation allows a client to submit a print job
+        with only one document and supply the document data (rather
+        than just a reference to the data). See Section 15 for the
+        suggested steps for processing create operations and their
+        Operation and Job Template attributes.
+
+        """
+        
         pass
 
     def validate_job(self, request):

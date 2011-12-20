@@ -158,6 +158,7 @@ from cups_get_printers import verify_cups_get_printers_request, make_cups_get_pr
 from get_jobs import verify_get_jobs_request, make_get_jobs_response
 from get_printer_attributes import verify_get_printer_attributes_request
 from get_printer_attributes import make_get_printer_attributes_response
+from print_job import verify_print_job_request, make_print_job_response
 
 __all__ = ['verify_cups_get_classes_request',
            'make_cups_get_classes_response',
@@ -169,6 +170,8 @@ __all__ = ['verify_cups_get_classes_request',
            'make_get_jobs_response',
            'verify_get_printer_attributes_request',
            'make_get_printer_attributes_response',
+           'verify_print_job_request',
+           'make_print_job_response',
 
            'verify_operations',
            'verify_printer_uri',
