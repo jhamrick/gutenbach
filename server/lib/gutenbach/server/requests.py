@@ -52,7 +52,7 @@ class GutenbachRequestHandler(object):
     def _get_printer_attributes(self, printer, request, response):
         attrs = printer.get_printer_attributes(request)
         ipp_attrs = []
-        for attr, vals in enumerate(attrs):
+        for attr, vals in attrs:
             ipp_vals = [ipp.Value(
                 tag=printer_attribute_value_tags[attr],
                 value=val) for val in vals]
@@ -63,7 +63,7 @@ class GutenbachRequestHandler(object):
     def _get_job_attributes(self, job, request, response):
         attrs = job.get_job_attributes(request)
         ipp_attrs = []
-        for attr, vals in enumerate(attrs):
+        for attr, vals in attrs:
             ipp_vals = [ipp.Value(
                 tag=job_attribute_value_tags[attr],
                 value=val) for val in vals]

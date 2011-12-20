@@ -60,19 +60,17 @@ class GutenbachPrinter(object):
 
     def __getattr__(self, attr):
         try:
-            return super(Printer, self).__getattr__(attr)
+            return self.__getattribute__(attr)
         except AttributeError:
             pass
-
-        return super(Printer, self).__getattr__(
-            attr.replace("-", "_"))
+        return self.__getattribute__(attr.replace("-", "_"))
 
     def __hasattr__(self, attr):
-        has = super(Printer, self).__hasattr__(attr)
-        if not has:
-            has = super(Printer, self).__hasattr__(
-                attr.replace("-", "_"))
-        return has
+        try:
+            getattr(self, attr)
+            return True
+        except AttributeError:
+            return False
 
     ## Printer attributes
 
@@ -155,7 +153,8 @@ class GutenbachPrinter(object):
 
     def get_printer_attributes(self, request):
         attributes = [(attr, getattr(self, attr)) for attr in self.attributes]
-        attributes = map(lambda x: x if isinstance(x, (tuple, list)) else [x], attributes)
+        attributes = map(lambda x: x if isinstance(x[1], (tuple, list)) else (x[0], [x[1]]),
+                         attributes)
         return attributes
 
     ## Printer operations

@@ -40,7 +40,7 @@ class GutenbachIPPServer(BaseHTTPServer.BaseHTTPRequestHandler):
         # Handle any errors that occur.  If an exception occurs that
         # is an IPP error, then we can get the error code from the
         # exception itself.
-        except IPPException:
+        except ipp.errors.IPPException:
             exctype, excval, exctb = sys.exc_info()
             excval.update_response(response)
             logger.error(traceback.format_exc())
@@ -48,13 +48,19 @@ class GutenbachIPPServer(BaseHTTPServer.BaseHTTPRequestHandler):
         # If it wasn't an IPP error, then it's our fault, so mark it
         # as an internal server error
         except Exception:
-            response.operation_id = const.ErrorCodes.INTERNAL_ERROR
+            response.operation_id = ipp.StatusCodes.INTERNAL_ERROR
             logger.error(traceback.format_exc())
 
         # Send the response across HTTP
         logger.debug("Sending response: %s" % repr(response))
+        try:
+            binary = response.packed_value
+        except:
+            logger.fatal(traceback.format_exc())
+            sys.exit(1)
+            
         self.send_response(200, "Gutenbach IPP Response")
         self.send_header("Content-Type", "application/ipp")
         self.send_header("Connection", "close")
         self.end_headers()
-        self.wfile.write(response.packed_value)
+        self.wfile.write(binary)
