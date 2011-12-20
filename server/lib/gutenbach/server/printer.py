@@ -92,7 +92,7 @@ class GutenbachPrinter(object):
 
     @property
     def printer_state(self):
-        return self.state
+        return 3 # idle
 
     @property
     def printer_state_reasons(self):
@@ -105,7 +105,7 @@ class GutenbachPrinter(object):
 
     @property
     def operations_supported(self):
-        return "get-jobs"
+        return 0xa # get-jobs
 
     @property
     def charset_configured(self):

@@ -92,14 +92,17 @@ class Attribute(object):
             else:
                 name_length = 0
 
-            # get the value length and binary value
+            logger.debug("dumping name : %s" % self.name)
+            logger.debug("dumping name_length : %i" % name_length)
+            logger.debug("value tag : 0x%x" % v.tag)
+
+            # get the binary value
             value_bin = v.packed_value
+            # get the value length
             value_length = len(value_bin)
 
-            logger.debug("dumping name_length : %i" % name_length)
-            logger.debug("dumping name : %s" % self.name)
+            logger.debug("dumping value : %s" % v.value)
             logger.debug("dumping value_length : %i" % value_length)
-            logger.debug("dumping value (0x%x): %s" % (v.tag, v.value))
 
             # the value tag in binary
             tag_bin = struct.pack('>b', v.tag)
