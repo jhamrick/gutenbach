@@ -2,7 +2,7 @@ from .value import Value
 from .attribute import Attribute
 from .attributegroup import AttributeGroup
 from .request import Request
-from .constants import AttributeTags, Tags
+from .constants import AttributeTags, operations_attribute_value_tags
 import exceptions as err
 
 from collections import OrderedDictionary as odict
@@ -53,9 +53,9 @@ def verify_operations(request):
 
     # check charset value
     charset_value = charset_attr.values[0]
-    if charset_value.tag != Tags.CHARSET:
+    if charset_value.tag != operations_attribute_value_tags['attributes-charset']:
         raise err.BadRequest(
-            "Charset value does not have CHARSET tag: 0x%x" % charset_value.tag)
+            "Wrong tag for charset value: 0x%x" % charset_value.tag)
     if charset_value.value != 'utf-8':
         raise err.CharsetNotSupported(str(charset_value.value))
 
@@ -70,26 +70,45 @@ def verify_operations(request):
 
     # check natural language value
     natlang_value = natlang_attr.values[0]
-    if natlang_value.tag != Tags.NATURAL_LANGUAGE:
+    if natlang_value.tag != operations_attribute_value_tags['attributes-natural-language']:
         raise err.BadRequest(
             "Natural language value does not have NATURAL_LANGUAGE tag: 0x%x" natlang_value.tag)
     if natlang_value.value != 'en-us':
         raise err.Attributes(
             "Invalid natural language value: %s" % natlang_value.value, [natlang_attr])
 
-def verify_requesting_username(requser_attr):
-    if requser_attr.tag != Tags.NAME_WITHOUT_LANGUAGE:
+def verify_printer_uri(uri_attr):
+    if uri_attr.name != 'printer-uri':
         raise err.BadRequest(
-            "Requesting user name attribute tag is not NAME_WITHOUT_LANGUAGE: 0x%x" % \
-            requser_attr.tag)
+            "Unexpected name for attribute 'printer-uri': %s" % uri_attr.name)
+    if len(uri_attr.values) != 1:
+        raise err.BadRequest(
+            "Requesting printer uri attribute has too many values: %d" % len(uri_attr.values))
+    printer_name_value = uri_attr.values[0]
+    if printer_name_value.tag != operations_attribute_value_tags['printer-uri']:
+        raise err.BadRequest(
+            "Bad value tag (expected URI): 0x%x" % printer_name_value_tag)
+    
+    # actually get the printer name
+    printer_name_value = printer_name_attr.values[0].value
+    # XXX: hack -- CUPS will strip the port from the request, so
+    # we can't do an exact comparison (also the hostname might be
+    # different, depending on the CNAME or whether it's localhost)
+    printer_name = printer_name_value.split("/")[-1]
+    return printer_name
+
+def verify_requesting_username(requser_attr):
+    if requser_attr.name != 'requesting-user-name':
+        raise err.BadRequest(
+            "Unexpected name for attribute 'requesting-user-name': %s" % requser_attr.name)
     if len(requser_attr.values) != 1:
         raise err.BadRequest(
             "Requesting user name attribute has too many values: %d" % len(requser_attr.values))
     requser_value = requser_attr.values[0]
-    if requser_value.tag != Tags.NAME_WITHOUT_LANGUAGE:
+    if requser_value.tag != operations_attribute_value_tags['requesting-user-name']:
         raise err.BadRequest(
-            "Requesting user name value tag is not NAME_WITHOUT_LANGUAGE: 0x%x" % \
-            requser_value.tag)
+            "Bad value tag (expected NAME_WITHOUT_LANGUAGE): 0x%x" % requser_value.tag)
+    
     return requser_value.value
 
 def make_empty_response(request):
@@ -97,10 +116,10 @@ def make_empty_response(request):
     attributes = [
         ipp.Attribute(
             'attributes-charset',
-            [ipp.Value(ipp.Tags.CHARSET, 'utf-8')]),
+            [(operations_attribute_value_tags['attributes-charset'], 'utf-8')]),
         ipp.Attribute(
             'attributes-natural-language',
-            [ipp.Value(ipp.Tags.NATURAL_LANGUAGE, 'en-us')])
+            [(operations_attribute_value_tags['attributes-natural-language'], 'en-us')])
         ]
     # Put the operation attributes in a group
     attribute_group = ipp.AttributeGroup(
@@ -204,16 +223,21 @@ def verify_get_jobs_request(request):
 
     """
 
+
     # generic operations verification
     verify_operations(request)
-
+    # requested printer uri
+    printeruri = verify_printer_uri(request.attribute_groups[0].attributes[2])
     # requesting username
-    requser = verify_requesting_username(request.attributes[2])
-    out = {'requesting-user-name': requser}
-
+    requser = verify_requesting_username(request.attribute_groups[0].attributes[3])
     # make the rest of the attributes into a dictionary
-    attrs = dict([(attr.name, attr.values) for attr in request.attributes[3:]])
+    attrs = dict([(attr.name, attr.values) for attr in request.attributes[4:]])
     
+    out = {
+        'printer-uri': printeruri,
+        'requesting-user-name': requser
+        }
+
     if 'limit' in attrs:
         out['limit'] = None # XXX
 
@@ -229,7 +253,7 @@ def verify_get_jobs_request(request):
     return out
 
 def make_get_jobs_response(self, request):
-    """3.2.6.2 Get-Jobs Response
+    """RFC 2911: 3.2.6.2 Get-Jobs Response
         
     The Printer object returns all of the Job objects up to the number
     specified by the 'limit' attribute that match the criteria as
