@@ -55,7 +55,7 @@ class GutenbachIPPServer(BaseHTTPServer.BaseHTTPRequestHandler):
         try:
             self.root.handle(request, response)
         except:
-            response_kwargs['operation_id'] = const.StatusCodes.INTERNAL_ERROR
+            response.operation_id = const.StatusCodes.INTERNAL_ERROR
             logger.error(traceback.format_exc())
 
         # Send the response across HTTP
