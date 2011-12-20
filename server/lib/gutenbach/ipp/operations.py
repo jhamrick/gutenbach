@@ -2,7 +2,7 @@ from .value import Value
 from .attribute import Attribute
 from .attributegroup import AttributeGroup
 from .request import Request
-from .constants import AttributeTags, StatusCodes, operations_attribute_value_tags
+import constants as consts
 import exceptions as err
 import logging
 
@@ -26,7 +26,7 @@ def verify_operations(request):
 
     # check operation attributes tag
     op_attrs = request.attribute_groups[0]
-    if op_attrs.tag != AttributeTags.OPERATION:
+    if op_attrs.tag != consts.AttributeTags.OPERATION:
         raise err.BadRequest(
             "Attribute group does not have OPERATION tag: 0x%x" % op_attrs.tag)
 
@@ -52,7 +52,7 @@ def verify_operations(request):
             "Too many values for attributes-charset: %d" % len(charset_attr.values))
     # check charset value
     charset_value = charset_attr.values[0]
-    if charset_value.tag != operations_attribute_value_tags['attributes-charset']:
+    if charset_value.tag != consts.operations_attribute_value_tags['attributes-charset']:
         raise err.BadRequest(
             "Wrong tag for charset value: 0x%x" % charset_value.tag)
     if charset_value.value != 'utf-8':
@@ -68,7 +68,7 @@ def verify_operations(request):
             "Too many values for attributes-natural-language: %s" % len(natlang_attr.values))
     # check natural language value
     natlang_value = natlang_attr.values[0]
-    if natlang_value.tag != operations_attribute_value_tags['attributes-natural-language']:
+    if natlang_value.tag != consts.operations_attribute_value_tags['attributes-natural-language']:
         raise err.BadRequest(
             "Natural language value does not have NATURAL_LANGUAGE tag: 0x%x" % natlang_value.tag)
     if natlang_value.value != 'en-us':
@@ -82,7 +82,7 @@ def verify_printer_uri(values):
         raise err.BadRequest(
             "Requesting printer uri attribute has too many values: %d" % len(values))
     uri_value = values[0]
-    if uri_value.tag != operations_attribute_value_tags['printer-uri']:
+    if uri_value.tag != consts.operations_attribute_value_tags['printer-uri']:
         raise err.BadRequest(
             "Bad value tag (expected URI): 0x%x" % uri_value_tag)
     
@@ -98,7 +98,7 @@ def verify_requesting_username(values):
         raise err.BadRequest(
             "Requesting user name attribute has too many values: %d" % len(values))
     requser_value = values[0]
-    if requser_value.tag != operations_attribute_value_tags['requesting-user-name']:
+    if requser_value.tag != consts.operations_attribute_value_tags['requesting-user-name']:
         raise err.BadRequest(
             "Bad value tag (expected NAME_WITHOUT_LANGUAGE): 0x%x" % requser_value.tag)
     
@@ -109,26 +109,47 @@ def make_empty_response(request):
     attributes = [
         Attribute(
             'attributes-charset',
-            [Value(operations_attribute_value_tags['attributes-charset'], 'utf-8')]),
+            [Value(consts.operations_attribute_value_tags['attributes-charset'], 'utf-8')]),
         Attribute(
             'attributes-natural-language',
-            [Value(operations_attribute_value_tags['attributes-natural-language'], 'en-us')])
+            [Value(consts.operations_attribute_value_tags['attributes-natural-language'],
+                   'en-us')])
         ]
     # Put the operation attributes in a group
     attribute_group = AttributeGroup(
-        AttributeTags.OPERATION,
+        consts.AttributeTags.OPERATION,
         attributes)
 
     # Set up the default response -- handlers will override these
     # values if they need to
     response_kwargs = {}
     response_kwargs['version']          = request.version
-    response_kwargs['operation_id']     = StatusCodes.OK
+    response_kwargs['operation_id']     = consts.StatusCodes.OK
     response_kwargs['request_id']       = request.request_id
     response_kwargs['attribute_groups'] = [attribute_group]
     response = Request(**response_kwargs)
 
     return response
+
+def make_job_attributes(attrs, request, response):
+    ipp_attrs = []
+    for attr, vals in attrs:
+        ipp_vals = [Value(
+            tag=consts.job_attribute_value_tags[attr],
+            value=val) for val in vals]
+        ipp_attrs.append(Attribute(name=attr, values=ipp_vals))
+    response.attribute_groups.append(AttributeGroup(
+        consts.AttributeTags.JOB, ipp_attrs))
+
+def make_printer_attributes(attrs, request, response):
+    ipp_attrs = []
+    for attr, vals in attrs:
+        ipp_vals = [Value(
+            tag=consts.printer_attribute_value_tags[attr],
+            value=val) for val in vals]
+        ipp_attrs.append(Attribute(name=attr, values=ipp_vals))
+    response.attribute_groups.append(AttributeGroup(
+        consts.AttributeTags.PRINTER, ipp_attrs))
 
 #### GET-JOBS
 
@@ -246,7 +267,7 @@ def verify_get_jobs_request(request):
 
     return out
 
-def make_get_jobs_response(self, request):
+def make_get_jobs_response(jobs, request):
     """RFC 2911: 3.2.6.2 Get-Jobs Response
         
     The Printer object returns all of the Job objects up to the number
@@ -319,7 +340,11 @@ def make_get_jobs_response(self, request):
 
     """
 
-    pass
+    response = make_empty_response(request)
+    # XXX: we need to honor the things that the request actually asks for
+    for job in jobs:
+        make_job_attributes(job, request, response)
+    return response
 
 ## GET-PRINTER-ATTRIBUTES
 
@@ -449,7 +474,7 @@ def verify_get_printer_attributes_request(request):
     return out
 
 
-def make_get_printer_attributes_response(self, request):
+def make_get_printer_attributes_response(attrs, request):
     """3.2.5.2 Get-Printer-Attributes Response
 
     The Printer object returns the following sets of attributes as
@@ -494,4 +519,202 @@ def make_get_printer_attributes_response(self, request):
         values in the beginning of Section 4.1.
 
     """
-    pass
+
+    response = make_empty_response(request)
+    make_printer_attributes(attrs, request, response)
+    return response
+
+
+def verify_cups_get_default_request(request):
+    """CUPS-Get-Default Request
+    
+    The following groups of attributes are supplied as part of the
+    CUPS-Get-Default request:
+
+    Group 1: Operation Attributes
+        Natural Language and Character Set:
+            The 'attributes-charset' and
+            'attributes-natural-language' attributes as described
+            in section 3.1.4.1 of the IPP Model and Semantics
+            document.
+        'requested-attributes' (1setOf keyword):
+            The client OPTIONALLY supplies a set of attribute
+            names and/or attribute group names in whose values the
+            requester is interested. If the client omits this
+            attribute, the server responds as if this attribute
+            had been supplied with a value of 'all'.
+
+    (Source: http://www.cups.org/documentation.php/spec-ipp.html#CUPS_GET_DEFAULT )
+
+    """
+
+    return {}
+
+def make_cups_get_default_response(attrs, request):
+    """CUPS-Get-Default Response
+
+    The following groups of attributes are send as part of the
+    CUPS-Get-Default Response:
+
+    Group 1: Operation Attributes
+        Status Message:
+            The standard response status message.
+        Natural Language and Character Set:
+            The 'attributes-charset' and
+            'attributes-natural-language' attributes as described
+            in section 3.1.4.2 of the IPP Model and Semantics
+            document.
+
+    Group 2: Printer Object Attributes
+        The set of requested attributes and their current values.
+
+    (Source: http://www.cups.org/documentation.php/spec-ipp.html#CUPS_GET_DEFAULT )
+
+    """
+
+    response = make_empty_response(request)
+    make_printer_attributes(attrs, request, response)
+    return response
+
+def verify_cups_get_printers_request(request):
+    """CUPS-Get-Printers Request
+    
+    The following groups of attributes are supplied as part of the
+    CUPS-Get-Printers request:
+
+    Group 1: Operation Attributes
+        Natural Language and Character Set:
+            The 'attributes-charset' and
+            'attributes-natural-language' attributes as described
+            in section 3.1.4.1 of the IPP Model and Semantics
+            document.
+        'first-printer-name' (name(127)):CUPS 1.2/Mac OS X 10.5
+            The client OPTIONALLY supplies this attribute to
+            select the first printer that is returned.
+        'limit' (integer (1:MAX)):
+            The client OPTIONALLY supplies this attribute limiting
+            the number of printers that are returned.
+        'printer-location' (text(127)): CUPS 1.1.7
+            The client OPTIONALLY supplies this attribute to
+            select which printers are returned.
+        'printer-type' (type2 enum): CUPS 1.1.7
+            The client OPTIONALLY supplies a printer type
+            enumeration to select which printers are returned.
+        'printer-type-mask' (type2 enum): CUPS 1.1.7
+            The client OPTIONALLY supplies a printer type mask
+            enumeration to select which bits are used in the
+            'printer-type' attribute.
+        'requested-attributes' (1setOf keyword) :
+            The client OPTIONALLY supplies a set of attribute
+            names and/or attribute group names in whose values the
+            requester is interested. If the client omits this
+            attribute, the server responds as if this attribute
+            had been supplied with a value of 'all'.
+        'requested-user-name' (name(127)) : CUPS 1.2/Mac OS X 10.5
+            The client OPTIONALLY supplies a user name that is
+            used to filter the returned printers.
+
+    (Source: http://www.cups.org/documentation.php/spec-ipp.html#CUPS_GET_PRINTERS )
+
+    """
+
+    return {}
+
+def make_cups_get_printers_response(printers, request):
+    """CUPS-Get-Printers Response
+
+    The following groups of attributes are send as part of the
+    CUPS-Get-Printers Response:
+
+    Group 1: Operation Attributes
+        Status Message:
+            The standard response status message.
+        Natural Language and Character Set:
+            The 'attributes-charset' and
+            'attributes-natural-language' attributes as described
+            in section 3.1.4.2 of the IPP Model and Semantics
+            document.
+            
+    Group 2: Printer Object Attributes
+        The set of requested attributes and their current values
+        for each printer.
+
+    (Source: http://www.cups.org/documentation.php/spec-ipp.html#CUPS_GET_PRINTERS )
+
+    """
+
+    response = make_empty_response(request)
+    for printer in printers:
+        make_printer_attributes(printer, request, response)
+    return response
+
+def verify_cups_get_classes_request(request):
+    """CUPS-Get-Classes Request
+
+    The following groups of attributes are supplied as part of the
+    CUPS-Get-Classes request:
+
+    Group 1: Operation Attributes
+        Natural Language and Character Set:
+            The 'attributes-charset' and
+            'attributes-natural-language' attributes as described
+            in section 3.1.4.1 of the IPP Model and Semantics
+            document.
+        'first-printer-name' (name(127)):CUPS 1.2/Mac OS X 10.5
+            The client OPTIONALLY supplies this attribute to
+            select the first printer that is returned.
+        'limit' (integer (1:MAX)):
+            The client OPTIONALLY supplies this attribute limiting
+            the number of printer classes that are returned.
+        'printer-location' (text(127)): CUPS 1.1.7
+            The client OPTIONALLY supplies this attribute to
+            select which printer classes are returned.
+        'printer-type' (type2 enum): CUPS 1.1.7
+            The client OPTIONALLY supplies a printer type
+            enumeration to select which printer classes are
+            returned.
+        'printer-type-mask' (type2 enum): CUPS 1.1.7
+            The client OPTIONALLY supplies a printer type mask
+            enumeration to select which bits are used in the
+            'printer-type' attribute.
+        'requested-attributes' (1setOf keyword) :
+            The client OPTIONALLY supplies a set of attribute
+            names and/or attribute group names in whose values the
+            requester is interested. If the client omits this
+            attribute, the server responds as if this attribute
+            had been supplied with a value of 'all'.
+        'requested-user-name' (name(127)) : CUPS 1.2/Mac OS X 10.5
+            The client OPTIONALLY supplies a user name that is
+            used to filter the returned printers.
+
+    (Source: http://www.cups.org/documentation.php/spec-ipp.html#CUPS_GET_CLASSES )
+
+    """
+
+    return {}
+
+def make_cups_get_classes_response(request):
+    """CUPS-Get-Classes Response
+
+    The following groups of attributes are send as part of the
+    CUPS-Get-Classes Response:
+
+    Group 1: Operation Attributes
+        Status Message:
+            The standard response status message.
+        Natural Language and Character Set:
+            The 'attributes-charset' and
+            'attributes-natural-language' attributes as described
+            in section 3.1.4.2 of the IPP Model and Semantics
+            document.
+
+    Group 2: Printer Class Object Attributes
+        The set of requested attributes and their current values
+        for each printer class.
+
+    (Source: http://www.cups.org/documentation.php/spec-ipp.html#CUPS_GET_CLASSES )
+
+    """
+
+    response = make_empty_response(request)
+    return response

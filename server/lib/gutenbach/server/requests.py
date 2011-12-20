@@ -1,7 +1,6 @@
 from gutenbach.server.printer import GutenbachPrinter
 import gutenbach.ipp as ipp
 import gutenbach.ipp.constants as const
-from gutenbach.ipp.constants import job_attribute_value_tags, printer_attribute_value_tags
 import logging
 
 # initialize logger
@@ -27,7 +26,7 @@ class GutenbachRequestHandler(object):
             }
         self.default = "test"
     
-    def handle(self, request, response):
+    def handle(self, request):
         # look up the handler
         handler = None
         handler_name = None
@@ -41,49 +40,25 @@ class GutenbachRequestHandler(object):
         # call the handler
         handler = getattr(self, handler_name)
         logger.info("Handling request of type '%s'" % handler_name)
-        handler(request, response)
+        response = handler(request)
+        return response
 
-    def unknown_operation(self, request, response):
+    def unknown_operation(self, request):
         logger.warning("Received unknown operation 0x%x" % request.operation_id)
+        response = ipp.ops.make_empty_response(request)
         response.operation_id = const.StatusCodes.OPERATION_NOT_SUPPORTED
-
-    ##### Helper functions
-
-    def _get_printer_attributes(self, printer, request, response):
-        attrs = printer.get_printer_attributes(request)
-        ipp_attrs = []
-        for attr, vals in attrs:
-            ipp_vals = [ipp.Value(
-                tag=printer_attribute_value_tags[attr],
-                value=val) for val in vals]
-            ipp_attrs.append(ipp.Attribute(name=attr, values=ipp_vals))
-        response.attribute_groups.append(ipp.AttributeGroup(
-            const.AttributeTags.PRINTER, ipp_attrs))
-
-    def _get_job_attributes(self, job, request, response):
-        attrs = job.get_job_attributes(request)
-        ipp_attrs = []
-        for attr, vals in attrs:
-            ipp_vals = [ipp.Value(
-                tag=job_attribute_value_tags[attr],
-                value=val) for val in vals]
-            ipp_attrs.append(ipp.Attribute(name=attr, values=ipp_vals))
-        response.attribute_groups.append(ipp.AttributeGroup(
-            const.AttributeTags.JOB, ipp_attrs))
-
-    def _get_job_id(self, request):
-        pass
+        return response
         
     ##### Printer Commands
 
-    def print_job(self, request, response):
+    def print_job(self, request):
         pass
 
-    def validate_job(self, request, response):
+    def validate_job(self, request):
         pass
 
     @handler_for(const.Operations.GET_JOBS)
-    def get_jobs(self, request, response):
+    def get_jobs(self, request):
         """RFC 2911: 3.2.6 Get-Jobs Operation
         
         This REQUIRED operation allows a client to retrieve the list
@@ -98,32 +73,33 @@ class GutenbachRequestHandler(object):
 
         """
         
-        reqdict = ipp.ops.verify_get_jobs_request(request)
-        printer_name = reqdict['printer-uri']
+        req_dict = ipp.ops.verify_get_jobs_request(request)
+        printer_name = req_dict['printer-uri']
         if printer_name not in self.printers:
             raise ipp.errors.Attributes(
                 "Invalid printer uri: %s" % printer_name,
                 [request.attribute_groups[0].attributes[2]])
 
         # Each job will append a new job attribute group.
-        # XXX: we need to honor the things that the request actually asks for
-        for job in self.printers[printer_name].get_jobs():
-            self._get_job_attributes(job, request, response)
+        jobs = [job.get_job_attributes(request) for job in \
+                self.printers[printer_name].get_jobs()]
+        response = ipp.ops.make_get_jobs_response(jobs, request)
+        return response
 
-    def print_uri(self, request, response):
+    def print_uri(self, request):
         pass
 
-    def create_job(self, request, response):
+    def create_job(self, request):
         pass
 
-    def pause_printer(self, request, response):
+    def pause_printer(self, request):
         pass
 
-    def resume_printer(self, request, response):
+    def resume_printer(self, request):
         pass
 
     @handler_for(const.Operations.GET_PRINTER_ATTRIBUTES)
-    def get_printer_attributes(self, request, response):
+    def get_printer_attributes(self, request):
         """RFC 2911: 3.2.5 Get-Printer-Attributes Operation
 
         This REQUIRED operation allows a client to request the values
@@ -168,33 +144,35 @@ class GutenbachRequestHandler(object):
 
         # this is just like cups_get_default, except the printer name
         # is given
-        reqdict = ipp.ops.verify_get_printer_attributes_request(request)
-        printer_name = reqdict['printer-uri']
+        req_dict = ipp.ops.verify_get_printer_attributes_request(request)
+        printer_name = req_dict['printer-uri']
         if printer_name not in self.printers:
             raise ipp.errors.Attributes(
                 "Invalid printer uri: %s" % printer_name,
                 [request.attribute_groups[0].attributes[2]])
         
-        self._get_printer_attributes(self.printers[printer_name], request, response)
+        response = ipp.ops.make_get_printer_attributes_response(
+            self.printers[printer_name].get_printer_attributes(request), request)
+        return response
 
-    def set_printer_attributes(self, request, response):
+    def set_printer_attributes(self, request):
         pass
 
     ##### Job Commands
 
-    def cancel_job(self, request, response):
+    def cancel_job(self, request):
         pass
 
-    def send_document(self, request, response):
+    def send_document(self, request):
         pass
 
-    def send_uri(self, request, response):
+    def send_uri(self, request):
         pass
 
-    def get_job_attributes(self, request, response):
-        reqdict = ipp.ops.verify_get_jobs_request(request)
-        printer_name = reqdict['printer-uri']
-        job_id = reqdict['job-id']
+    def get_job_attributes(self, request):
+        req_dict = ipp.ops.verify_get_jobs_request(request)
+        printer_name = req_dict['printer-uri']
+        job_id = req_dict['job-id']
         
         if printer_name not in self.printers:
             raise ipp.errors.Attributes(
@@ -209,210 +187,66 @@ class GutenbachRequestHandler(object):
 
         # Each job will append a new job attribute group.
         # XXX: we need to honor the things that the request actually asks for
-        self._get_job_attributes(job, request, response)
+        response = ipp.ops.make_get_job_attributes_response(
+            job.get_job_attributes(request), request)
+        return response
 
-    def set_job_attributes(self, request, response):
+    def set_job_attributes(self, request):
         pass
 
-    def cups_get_document(self, request, response):
+    def cups_get_document(self, request):
         pass
 
-    def restart_job(self, request, response):
+    def restart_job(self, request):
         pass
 
-    def promote_job(self, request, response):
+    def promote_job(self, request):
         pass
 
     ##### CUPS Specific Commands
 
     @handler_for(const.Operations.CUPS_GET_DEFAULT)
-    def cups_get_default(self, request, response):
+    def cups_get_default(self, request):
         """The CUPS-Get-Default operation (0x4001) returns the default
         printer URI and attributes.
-
-        CUPS-Get-Default Request
-        ------------------------
-
-        The following groups of attributes are supplied as part of the
-        CUPS-Get-Default request:
-
-        Group 1: Operation Attributes
-            Natural Language and Character Set:
-                The 'attributes-charset' and
-                'attributes-natural-language' attributes as described
-                in section 3.1.4.1 of the IPP Model and Semantics
-                document.
-            'requested-attributes' (1setOf keyword):
-                The client OPTIONALLY supplies a set of attribute
-                names and/or attribute group names in whose values the
-                requester is interested. If the client omits this
-                attribute, the server responds as if this attribute
-                had been supplied with a value of 'all'.
-        
-        CUPS-Get-Default Response
-        -------------------------
-
-        The following groups of attributes are send as part of the
-        CUPS-Get-Default Response:
-
-        Group 1: Operation Attributes
-            Status Message:
-                The standard response status message.
-            Natural Language and Character Set:
-                The 'attributes-charset' and
-                'attributes-natural-language' attributes as described
-                in section 3.1.4.2 of the IPP Model and Semantics
-                document.
-
-        Group 2: Printer Object Attributes
-            The set of requested attributes and their current values.
 
         (Source: http://www.cups.org/documentation.php/spec-ipp.html#CUPS_GET_DEFAULT )
 
         """
-            
-        self._get_printer_attributes(self.printers[self.default], request, response)
+
+        req_dict = ipp.ops.verify_cups_get_default_request(request)
+        response = ipp.ops.make_get_printer_attributes_response(
+            self.printers[self.default].get_printer_attributes(request), request)
+        return response
 
     @handler_for(const.Operations.CUPS_GET_PRINTERS)
-    def cups_get_printers(self, request, response):
-        """
-        The CUPS-Get-Printers operation (0x4002) returns the printer
-        attributes for every printer known to the system. This may
-        include printers that are not served directly by the server.
-
-        CUPS-Get-Printers Request
-        -------------------------
-        
-        The following groups of attributes are supplied as part of the
-        CUPS-Get-Printers request:
-
-        Group 1: Operation Attributes
-            Natural Language and Character Set:
-                The 'attributes-charset' and
-                'attributes-natural-language' attributes as described
-                in section 3.1.4.1 of the IPP Model and Semantics
-                document.
-            'first-printer-name' (name(127)):CUPS 1.2/Mac OS X 10.5
-                The client OPTIONALLY supplies this attribute to
-                select the first printer that is returned.
-            'limit' (integer (1:MAX)):
-                The client OPTIONALLY supplies this attribute limiting
-                the number of printers that are returned.
-            'printer-location' (text(127)): CUPS 1.1.7
-                The client OPTIONALLY supplies this attribute to
-                select which printers are returned.
-            'printer-type' (type2 enum): CUPS 1.1.7
-                The client OPTIONALLY supplies a printer type
-                enumeration to select which printers are returned.
-            'printer-type-mask' (type2 enum): CUPS 1.1.7
-                The client OPTIONALLY supplies a printer type mask
-                enumeration to select which bits are used in the
-                'printer-type' attribute.
-            'requested-attributes' (1setOf keyword) :
-                The client OPTIONALLY supplies a set of attribute
-                names and/or attribute group names in whose values the
-                requester is interested. If the client omits this
-                attribute, the server responds as if this attribute
-                had been supplied with a value of 'all'.
-            'requested-user-name' (name(127)) : CUPS 1.2/Mac OS X 10.5
-                The client OPTIONALLY supplies a user name that is
-                used to filter the returned printers.
-
-        CUPS-Get-Printers Response
-        --------------------------
-
-        The following groups of attributes are send as part of the
-        CUPS-Get-Printers Response:
-
-        Group 1: Operation Attributes
-            Status Message:
-                The standard response status message.
-            Natural Language and Character Set:
-                The 'attributes-charset' and
-                'attributes-natural-language' attributes as described
-                in section 3.1.4.2 of the IPP Model and Semantics
-                document.
-                
-        Group 2: Printer Object Attributes
-            The set of requested attributes and their current values
-            for each printer.
+    def cups_get_printers(self, request):
+        """The CUPS-Get-Printers operation (0x4002) returns the
+        printer attributes for every printer known to the system. This
+        may include printers that are not served directly by the
+        server.
 
         (Source: http://www.cups.org/documentation.php/spec-ipp.html#CUPS_GET_PRINTERS )
             
         """
 
-        # Each printer will append a new printer attribute group.
-        for printer in self.printers:
-            self._get_printer_attributes(self.printers[printer], request, response)
+        req_dict = ipp.ops.verify_cups_get_printers_request(request)
+        attrs = [self.printers[printer].get_printer_attributes(request) \
+                 for printer in self.printers]
+        response = ipp.ops.make_cups_get_printers_response(attrs, request)
+        return response
 
     @handler_for(const.Operations.CUPS_GET_CLASSES)
-    def cups_get_classes(self, request, response):
+    def cups_get_classes(self, request):
         """The CUPS-Get-Classes operation (0x4005) returns the printer
         attributes for every printer class known to the system. This
         may include printer classes that are not served directly by
         the server.
-
-        CUPS-Get-Classes Request
-        ------------------------
-
-        The following groups of attributes are supplied as part of the
-        CUPS-Get-Classes request:
-
-        Group 1: Operation Attributes
-            Natural Language and Character Set:
-                The 'attributes-charset' and
-                'attributes-natural-language' attributes as described
-                in section 3.1.4.1 of the IPP Model and Semantics
-                document.
-            'first-printer-name' (name(127)):CUPS 1.2/Mac OS X 10.5
-                The client OPTIONALLY supplies this attribute to
-                select the first printer that is returned.
-            'limit' (integer (1:MAX)):
-                The client OPTIONALLY supplies this attribute limiting
-                the number of printer classes that are returned.
-            'printer-location' (text(127)): CUPS 1.1.7
-                The client OPTIONALLY supplies this attribute to
-                select which printer classes are returned.
-            'printer-type' (type2 enum): CUPS 1.1.7
-                The client OPTIONALLY supplies a printer type
-                enumeration to select which printer classes are
-                returned.
-            'printer-type-mask' (type2 enum): CUPS 1.1.7
-                The client OPTIONALLY supplies a printer type mask
-                enumeration to select which bits are used in the
-                'printer-type' attribute.
-            'requested-attributes' (1setOf keyword) :
-                The client OPTIONALLY supplies a set of attribute
-                names and/or attribute group names in whose values the
-                requester is interested. If the client omits this
-                attribute, the server responds as if this attribute
-                had been supplied with a value of 'all'.
-            'requested-user-name' (name(127)) : CUPS 1.2/Mac OS X 10.5
-                The client OPTIONALLY supplies a user name that is
-                used to filter the returned printers.
-                
-        CUPS-Get-Classes Response
-        -------------------------
-
-        The following groups of attributes are send as part of the
-        CUPS-Get-Classes Response:
-
-        Group 1: Operation Attributes
-            Status Message:
-                The standard response status message.
-            Natural Language and Character Set:
-                The 'attributes-charset' and
-                'attributes-natural-language' attributes as described
-                in section 3.1.4.2 of the IPP Model and Semantics
-                document.
-
-        Group 2: Printer Class Object Attributes
-            The set of requested attributes and their current values
-            for each printer class.
-
+        
         (Source: http://www.cups.org/documentation.php/spec-ipp.html#CUPS_GET_CLASSES )
 
         """
-        
-        # We have no printer classes, so we don't need to do anything
-        pass
+
+        req_dict = ipp.ops.verify_cups_get_classes_request(request)
+        response = ipp.ops.make_cups_get_classes_response(request)
+        return response
