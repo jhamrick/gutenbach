@@ -1,6 +1,6 @@
 from gutenbach.server.printer import GutenbachPrinter
 import gutenbach.ipp as ipp
-import gutenbach.ipp.constants as const
+import gutenbach.ipp.constants as consts
 import logging
 
 # initialize logger
@@ -40,13 +40,33 @@ class GutenbachRequestHandler(object):
         # call the handler
         handler = getattr(self, handler_name)
         logger.info("Handling request of type '%s'" % handler_name)
-        response = handler(request)
+
+        # Try to handle the request
+        try:
+            response = handler(request)
+
+        # Handle any errors that occur.  If an exception occurs that
+        # is an IPP error, then we can get the error code from the
+        # exception itself.
+        except ipp.errors.IPPException:
+            exctype, excval, exctb = sys.exc_info()
+            logger.error(traceback.format_exc())
+            response = ipp.ops.make_empty_response(request)
+            excval.update_response(response)
+
+        # If it wasn't an IPP error, then it's our fault, so mark it
+        # as an internal server error
+        except Exception:
+            logger.error(traceback.format_exc())
+            response = ipp.ops.make_empty_response(request)
+            response.operation_id = ipp.StatusCodes.INTERNAL_ERROR
+
         return response
 
     def unknown_operation(self, request):
         logger.warning("Received unknown operation 0x%x" % request.operation_id)
         response = ipp.ops.make_empty_response(request)
-        response.operation_id = const.StatusCodes.OPERATION_NOT_SUPPORTED
+        response.operation_id = consts.StatusCodes.OPERATION_NOT_SUPPORTED
         return response
         
     ##### Printer Commands
@@ -57,7 +77,7 @@ class GutenbachRequestHandler(object):
     def validate_job(self, request):
         pass
 
-    @handler_for(const.Operations.GET_JOBS)
+    @handler_for(consts.Operations.GET_JOBS)
     def get_jobs(self, request):
         """RFC 2911: 3.2.6 Get-Jobs Operation
         
@@ -103,7 +123,7 @@ class GutenbachRequestHandler(object):
     def resume_printer(self, request):
         pass
 
-    @handler_for(const.Operations.GET_PRINTER_ATTRIBUTES)
+    @handler_for(consts.Operations.GET_PRINTER_ATTRIBUTES)
     def get_printer_attributes(self, request):
         """RFC 2911: 3.2.5 Get-Printer-Attributes Operation
 
@@ -216,7 +236,7 @@ class GutenbachRequestHandler(object):
 
     ##### CUPS Specific Commands
 
-    @handler_for(const.Operations.CUPS_GET_DEFAULT)
+    @handler_for(consts.Operations.CUPS_GET_DEFAULT)
     def cups_get_default(self, request):
         """The CUPS-Get-Default operation (0x4001) returns the default
         printer URI and attributes.
@@ -232,7 +252,7 @@ class GutenbachRequestHandler(object):
             self.printers[self.default].get_printer_attributes(request), request)
         return response
 
-    @handler_for(const.Operations.CUPS_GET_PRINTERS)
+    @handler_for(consts.Operations.CUPS_GET_PRINTERS)
     def cups_get_printers(self, request):
         """The CUPS-Get-Printers operation (0x4002) returns the
         printer attributes for every printer known to the system. This
@@ -252,7 +272,7 @@ class GutenbachRequestHandler(object):
         response = ipp.ops.make_cups_get_printers_response(attrs, request)
         return response
 
-    @handler_for(const.Operations.CUPS_GET_CLASSES)
+    @handler_for(consts.Operations.CUPS_GET_CLASSES)
     def cups_get_classes(self, request):
         """The CUPS-Get-Classes operation (0x4005) returns the printer
         attributes for every printer class known to the system. This

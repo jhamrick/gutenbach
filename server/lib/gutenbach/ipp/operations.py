@@ -1,7 +1,7 @@
-from .value import Value
 from .attribute import Attribute
 from .attributegroup import AttributeGroup
 from .request import Request
+from .value import Value
 import constants as consts
 import exceptions as err
 import logging

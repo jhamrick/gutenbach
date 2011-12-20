@@ -2,8 +2,8 @@ from gutenbach.server.requests import GutenbachRequestHandler
 import BaseHTTPServer
 import gutenbach.ipp as ipp
 import logging
-import traceback
 import sys
+import traceback
 
 # initialize logger
 logger = logging.getLogger(__name__)
@@ -26,29 +26,16 @@ class GutenbachIPPServer(BaseHTTPServer.BaseHTTPRequestHandler):
         # Receive a request
         length = int(self.headers.getheader('content-length', 0))
         request = ipp.Request(request=self.rfile, length=length)
-        logger.debug("Received request: %s" % repr(request))
 
         # Get the handler and pass it the request and response
         # objects.  It will fill in values for the response object or
-        # thrown an error.
+        # throw a fatal error.
+        logger.debug("Received request: %s" % repr(request))
         try:
             response = self.root.handle(request)
-            
-        # Handle any errors that occur.  If an exception occurs that
-        # is an IPP error, then we can get the error code from the
-        # exception itself.
-        except ipp.errors.IPPException:
-            exctype, excval, exctb = sys.exc_info()
-            logger.error(traceback.format_exc())
-            response = ipp.ops.make_empty_response(request)
-            excval.update_response(response)
-
-        # If it wasn't an IPP error, then it's our fault, so mark it
-        # as an internal server error
-        except Exception:
-            logger.error(traceback.format_exc())
-            response = ipp.ops.make_empty_response(request)
-            response.operation_id = ipp.StatusCodes.INTERNAL_ERROR
+        except:
+            logger.fatal(traceback.format_exc())
+            sys.exit(1)
 
         # Send the response across HTTP
         logger.debug("Sending response: %s" % repr(response))
