@@ -21,7 +21,28 @@ def verify_operations(request):
         raise err.BadRequest(
             "Attribute group does not have OPERATION tag: 0x%x" % op_attrs.tag)
 
-    # check charset attribute
+    # XXX: check version
+    if False:
+        raise err.VersionNotSupported(str(request.version))
+
+    # check operation id
+    if False:
+        raise err.OperationNotSupported(str(request.operation_id))
+
+    # # check compression
+    # if False:
+    #     raise err.CompressionNotSupported
+
+    # # check document format
+    # if False:
+    #     raise err.DocumentFormatNotSupported
+
+    # # check document uri
+    # if False:
+    #     raise err.UriSchemeNotSupported
+
+    # check charset
+    charset attribute
     charset_attr = op_attrs.attributes[0]
     if charset_attr.name != 'attributes-charset':
         raise err.BadRequest(
@@ -36,8 +57,7 @@ def verify_operations(request):
         raise err.BadRequest(
             "Charset value does not have CHARSET tag: 0x%x" % charset_value.tag)
     if charset_value.value != 'utf-8':
-        raise err.Charset(
-            "Invalid charset value: %s" % charset_value.value)
+        raise err.CharsetNotSupported(str(charset_value.value))
 
     # check for attributes-natural-language
     natlang_attr = op_attrs.attributes[1]
@@ -71,6 +91,34 @@ def verify_requesting_username(requser_attr):
             "Requesting user name value tag is not NAME_WITHOUT_LANGUAGE: 0x%x" % \
             requser_value.tag)
     return requser_value.value
+
+def make_empty_response(request):
+    # Operation attributes -- typically the same for any request
+    attributes = [
+        ipp.Attribute(
+            'attributes-charset',
+            [ipp.Value(ipp.Tags.CHARSET, 'utf-8')]),
+        ipp.Attribute(
+            'attributes-natural-language',
+            [ipp.Value(ipp.Tags.NATURAL_LANGUAGE, 'en-us')])
+        ]
+    # Put the operation attributes in a group
+    attribute_group = ipp.AttributeGroup(
+        const.AttributeTags.OPERATION,
+        attributes)
+
+    # Set up the default response -- handlers will override these
+    # values if they need to
+    response_kwargs = {}
+    response_kwargs['version']          = request.version
+    response_kwargs['operation_id']     = const.StatusCodes.OK
+    response_kwargs['request_id']       = request.request_id
+    response_kwargs['attribute_groups'] = [attribute_group]
+    response = ipp.Request(**response_kwargs)
+
+    return response
+
+#### GET-JOBS
 
 def verify_get_jobs_request(request):
     """RFC 2911 3.2.6.1 Get-Jobs Request
