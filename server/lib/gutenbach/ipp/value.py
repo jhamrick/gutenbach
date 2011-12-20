@@ -22,22 +22,22 @@ class Value(object):
 
     """
 
-    def __init__(self, value_tag=None, value=None):
+    def __init__(self, tag=None, value=None):
         """Initialize a Value.  There are three different ways you can
         call this method:
 
             Value() -- creates an empty Value instance
 
-            Value(value_tag, value) -- creates a Value instance from
+            Value(tag, value) -- creates a Value instance from
             a non-binary value
 
         If you create an empty Value instance, once you have set
-        value_tag and value, you can retrieve the packed value from
+        tag and value, you can retrieve the packed value from
         the packed_value property.
 
         Arguments:
 
-            value_tag -- one byte, identifying the type of value
+            tag -- one byte, identifying the type of value
 
             value -- variable size, containing the actual value.
             It should be a string or number.
@@ -46,24 +46,24 @@ class Value(object):
 
         # make sure the arguments are valid
         if value is not None:
-            assert value_tag is not None, \
-                   "value_tag must not be null because " + \
+            assert tag is not None, \
+                   "tag must not be null because " + \
                    "value is not null!"
 
         # initialize member variables
-        self.value_tag = value_tag # one byte, the type of value
+        self.tag = tag # one byte, the type of value
         self.value     = value     # non-binary value of self.value
 
     @classmethod
-    def unpack(cls, value_tag, packed_value):
+    def unpack(cls, tag, packed_value):
         """Unpack a binary IPP value into a Value object.
 
         """
-        return cls(value_tag, cls._unpack(value_tag, packed_value))
+        return cls(tag, cls._unpack(tag, packed_value))
 
     @staticmethod
-    def _unpack(value_tag, packed_value):
-        """Given self.value_tag and self.packed_value, unpack the
+    def _unpack(tag, packed_value):
+        """Given self.tag and self.packed_value, unpack the
         binary value into either a string or number.  These values
         MUST NOT be null.
 
@@ -71,7 +71,7 @@ class Value(object):
 
         """
 
-        assert value_tag is not None, \
+        assert tag is not None, \
                "Cannot unpack values with unspecified value tag!"
         assert packed_value is not None, \
                "Cannot unpack null values!"
@@ -79,23 +79,23 @@ class Value(object):
         value = None
 
         # out-of-band value tags
-        if value_tag == OutOfBandTags.UNSUPPORTED or \
-               value_tag == OutOfBandTags.DEFAULT or \
-               value_tag == OutOfBandTags.UNKNOWN or \
-               value_tag == OutOfBandTags.NO_VALUE:
+        if tag == OutOfBandTags.UNSUPPORTED or \
+               tag == OutOfBandTags.DEFAULT or \
+               tag == OutOfBandTags.UNKNOWN or \
+               tag == OutOfBandTags.NO_VALUE:
             value_size = 0
             value = ''
 
         # integer value tags
-        elif value_tag == IntegerTags.INTEGER:
+        elif tag == IntegerTags.INTEGER:
             value = struct.unpack('>i', packed_value)[0]
-        elif value_tag == IntegerTags.BOOLEAN:
+        elif tag == IntegerTags.BOOLEAN:
             value = struct.unpack('>b', packed_value)[0]
-        elif value_tag == IntegerTags.ENUM:
+        elif tag == IntegerTags.ENUM:
             value = struct.unpack('>i', packed_value)[0]
 
         
-        elif value_tag == OctetStringTags.DATETIME:
+        elif tag == OctetStringTags.DATETIME:
             # field  octets  contents                  range
             # -----  ------  --------                  -----
             #   1      1-2   year                      0..65536
@@ -112,7 +112,7 @@ class Value(object):
 
             value = struct.unpack('>hbbbbbbcbb', packed_value)
             
-        elif value_tag == OctetStringTags.RESOLUTION:
+        elif tag == OctetStringTags.RESOLUTION:
             # OCTET-STRING consisting of nine octets of 2
             # SIGNED-INTEGERs followed by a SIGNED-BYTE. The first
             # SIGNED-INTEGER contains the value of cross feed
@@ -122,15 +122,15 @@ class Value(object):
 
             value = struct.unpack('>iib', packed_value)
             
-        elif value_tag == OctetStringTags.RANGE_OF_INTEGER:
+        elif tag == OctetStringTags.RANGE_OF_INTEGER:
             # Eight octets consisting of 2 SIGNED-INTEGERs.  The first
             # SIGNED-INTEGER contains the lower bound and the second
             # SIGNED-INTEGER contains the upper bound.
 
             value = struct.unpack('>ii', packed_value)
 
-        elif value_tag == OctetStringTags.TEXT_WITH_LANGUAGE or \
-                 value_tag == OctetStringTags.NAME_WITH_LANGUAGE:
+        elif tag == OctetStringTags.TEXT_WITH_LANGUAGE or \
+                 tag == OctetStringTags.NAME_WITH_LANGUAGE:
             a = struct.unpack('>h', packed_value[:2])[0]
             b = struct.unpack('>%ss' % a, packed_value[2:a+2])[0]
             c = struct.unpack('>h', packed_value[a+2:a+4])[0]
@@ -138,18 +138,18 @@ class Value(object):
             value = (a, b, c, d)
 
         # character string value tags
-        elif value_tag == \
+        elif tag == \
                  CharacterStringTags.TEXT_WITHOUT_LANGUAGE or \
-                 value_tag == \
+                 tag == \
                  CharacterStringTags.NAME_WITHOUT_LANGUAGE:
             value = str(packed_value)
-        elif value_tag == CharacterStringTags.GENERIC or \
-                 value_tag == CharacterStringTags.KEYWORD or \
-                 value_tag == CharacterStringTags.URI or \
-                 value_tag == CharacterStringTags.URI_SCHEME or \
-                 value_tag == CharacterStringTags.CHARSET or \
-                 value_tag == CharacterStringTags.NATURAL_LANGUAGE or \
-                 value_tag == CharacterStringTags.MIME_MEDIA_TYPE:
+        elif tag == CharacterStringTags.GENERIC or \
+                 tag == CharacterStringTags.KEYWORD or \
+                 tag == CharacterStringTags.URI or \
+                 tag == CharacterStringTags.URI_SCHEME or \
+                 tag == CharacterStringTags.CHARSET or \
+                 tag == CharacterStringTags.NATURAL_LANGUAGE or \
+                 tag == CharacterStringTags.MIME_MEDIA_TYPE:
             value = str(packed_value)
 
         # anything else that we didn't handle
@@ -161,14 +161,14 @@ class Value(object):
 
     @property
     def packed_value(self):
-        """Given self.value_tag and self.value, pack the value into
+        """Given self.tag and self.value, pack the value into
         binary form.  These values MUST NOT be null.
 
         Returns: packed_value
 
         """
         
-        assert self.value_tag is not None, \
+        assert self.tag is not None, \
                "cannot pack value with null value tag!"
         assert self.value is not None, \
                "cannot pack null value!"
@@ -176,22 +176,22 @@ class Value(object):
         packed_value = None
 
         # out-of-band value tags
-        if self.value_tag == OutOfBandTags.UNSUPPORTED or \
-               self.value_tag == OutOfBandTags.DEFAULT or \
-               self.value_tag == OutOfBandTags.UNKNOWN or \
-               self.value_tag == OutOfBandTags.NO_VALUE:
+        if self.tag == OutOfBandTags.UNSUPPORTED or \
+               self.tag == OutOfBandTags.DEFAULT or \
+               self.tag == OutOfBandTags.UNKNOWN or \
+               self.tag == OutOfBandTags.NO_VALUE:
             packed_value = ''
 
         # integer value tags
-        elif self.value_tag == IntegerTags.INTEGER:
+        elif self.tag == IntegerTags.INTEGER:
             packed_value = struct.pack('>i', self.value)
-        elif self.value_tag == IntegerTags.BOOLEAN:
+        elif self.tag == IntegerTags.BOOLEAN:
             packed_value = struct.pack('>b', self.value)
-        elif self.value_tag == IntegerTags.ENUM:
+        elif self.tag == IntegerTags.ENUM:
             packed_value = struct.pack('>i', self.value)
 
         # octet string value tags
-        elif self.value_tag == OctetStringTags.DATETIME:
+        elif self.tag == OctetStringTags.DATETIME:
             # field  octets  contents                  range
             # -----  ------  --------                  -----
             #   1      1-2   year                      0..65536
@@ -208,7 +208,7 @@ class Value(object):
 
             packed_value = struct.pack('>hbbbbbbcbb', *self.value)
             
-        elif self.value_tag == OctetStringTags.RESOLUTION:
+        elif self.tag == OctetStringTags.RESOLUTION:
             # OCTET-STRING consisting of nine octets of 2
             # SIGNED-INTEGERs followed by a SIGNED-BYTE. The first
             # SIGNED-INTEGER contains the value of cross feed
@@ -218,15 +218,15 @@ class Value(object):
 
             packed_value = truct.pack('>iib', *self.value)
             
-        elif self.value_tag == OctetStringTags.RANGE_OF_INTEGER:
+        elif self.tag == OctetStringTags.RANGE_OF_INTEGER:
             # Eight octets consisting of 2 SIGNED-INTEGERs.  The first
             # SIGNED-INTEGER contains the lower bound and the second
             # SIGNED-INTEGER contains the upper bound.
 
             packed_value = struct.pack('>ii', *self.value)
 
-        elif self.value_tag == OctetStringTags.TEXT_WITH_LANGUAGE or \
-                 self.value_tag == OctetStringTags.NAME_WITH_LANGUAGE:
+        elif self.tag == OctetStringTags.TEXT_WITH_LANGUAGE or \
+                 self.tag == OctetStringTags.NAME_WITH_LANGUAGE:
             
             a_bin = struct.pack('>h', self.value[0])
             b_bin = struct.pack('>%ss' % self.value[0], self.value[1])
@@ -236,21 +236,21 @@ class Value(object):
             packed_value = a_bin + b_bin + c_bin + d_bin
 
         # character string value tags
-        elif self.value_tag == \
+        elif self.tag == \
                  CharacterStringTags.TEXT_WITHOUT_LANGUAGE or \
-                 self.value_tag == \
+                 self.tag == \
                  CharacterStringTags.NAME_WITHOUT_LANGUAGE:
 
             packed_value = struct.pack('>%ss' % len(self.value),
                                        self.value)
                     
-        elif self.value_tag == CharacterStringTags.GENERIC or \
-                 self.value_tag == CharacterStringTags.KEYWORD or \
-                 self.value_tag == CharacterStringTags.URI or \
-                 self.value_tag == CharacterStringTags.URI_SCHEME or \
-                 self.value_tag == CharacterStringTags.CHARSET or \
-                 self.value_tag == CharacterStringTags.NATURAL_LANGUAGE or \
-                 self.value_tag == CharacterStringTags.MIME_MEDIA_TYPE:
+        elif self.tag == CharacterStringTags.GENERIC or \
+                 self.tag == CharacterStringTags.KEYWORD or \
+                 self.tag == CharacterStringTags.URI or \
+                 self.tag == CharacterStringTags.URI_SCHEME or \
+                 self.tag == CharacterStringTags.CHARSET or \
+                 self.tag == CharacterStringTags.NATURAL_LANGUAGE or \
+                 self.tag == CharacterStringTags.MIME_MEDIA_TYPE:
             
             packed_value = struct.pack('>%ss' % len(self.value),
                                        self.value)
@@ -264,10 +264,10 @@ class Value(object):
     def packed_value(self, packed_value):
         """Replace a value using a new packed value
 
-        Unpacks a new packed_value (of the same value_tag).
+        Unpacks a new packed_value (of the same tag).
 
         """
-        self.value = self._unpack(self.value_tag, packed_value)
+        self.value = self._unpack(self.tag, packed_value)
 
     @property
     def packed_value_size(self):
@@ -286,8 +286,12 @@ class Value(object):
         # 1 byte for the tag
         return self.packed_value_size + 1
 
+    @property
+    def pyobj(self):
+        return (self.tag, self.value)
+
     def __str__(self):
         return str(self.value)
 
     def __repr__(self):
-        return '<IPPValue (%x, %r)>' % (self.value_tag, self.value)
+        return '<IPPValue (%x, %r)>' % (self.tag, self.value)
