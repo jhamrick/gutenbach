@@ -20,7 +20,7 @@ def verify_operations(request):
     if False:
         raise err.VersionNotSupported(str(request.version))
 
-    # check operation id
+    # XXX: check operation id
     if False:
         raise err.OperationNotSupported(str(request.operation_id))
 
@@ -30,6 +30,8 @@ def verify_operations(request):
         raise err.BadRequest(
             "Attribute group does not have OPERATION tag: 0x%x" % op_attrs.tag)
 
+    # XXX: if these aren't valid, then you HAVE to return something
+    # special.  See RFC 2911 3.1.6.1
     # # check compression
     # if False:
     #     raise err.CompressionNotSupported
@@ -473,7 +475,6 @@ def verify_get_printer_attributes_request(request):
 
     return out
 
-
 def make_get_printer_attributes_response(attrs, request):
     """3.2.5.2 Get-Printer-Attributes Response
 
@@ -524,6 +525,7 @@ def make_get_printer_attributes_response(attrs, request):
     make_printer_attributes(attrs, request, response)
     return response
 
+### CUPS-GET-DEFAULT
 
 def verify_cups_get_default_request(request):
     """CUPS-Get-Default Request
@@ -576,6 +578,8 @@ def make_cups_get_default_response(attrs, request):
     make_printer_attributes(attrs, request, response)
     return response
 
+### CUPS-GET-PRINTERS
+
 def verify_cups_get_printers_request(request):
     """CUPS-Get-Printers Request
     
@@ -618,6 +622,7 @@ def verify_cups_get_printers_request(request):
 
     """
 
+    # XXX: actually do something here
     return {}
 
 def make_cups_get_printers_response(printers, request):
@@ -647,6 +652,8 @@ def make_cups_get_printers_response(printers, request):
     for printer in printers:
         make_printer_attributes(printer, request, response)
     return response
+
+### CUPS-GET-CLASSES
 
 def verify_cups_get_classes_request(request):
     """CUPS-Get-Classes Request
@@ -691,6 +698,7 @@ def verify_cups_get_classes_request(request):
 
     """
 
+    # XXX: actually do something here
     return {}
 
 def make_cups_get_classes_response(request):

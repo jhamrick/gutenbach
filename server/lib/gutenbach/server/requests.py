@@ -72,17 +72,22 @@ class GutenbachRequestHandler(object):
         possibly more than one object.
 
         """
-        
+
+        # verify the request and get an attribute dictionary
         req_dict = ipp.ops.verify_get_jobs_request(request)
+
+        # lookup printer name
         printer_name = req_dict['printer-uri']
         if printer_name not in self.printers:
             raise ipp.errors.Attributes(
                 "Invalid printer uri: %s" % printer_name,
                 [request.attribute_groups[0].attributes[2]])
 
-        # Each job will append a new job attribute group.
+        # get the job attributes
         jobs = [job.get_job_attributes(request) for job in \
                 self.printers[printer_name].get_jobs()]
+
+        # build the response
         response = ipp.ops.make_get_jobs_response(jobs, request)
         return response
 
@@ -142,15 +147,17 @@ class GutenbachRequestHandler(object):
 
         """
 
-        # this is just like cups_get_default, except the printer name
-        # is given
+        # verify the request and get the attributes dictionary
         req_dict = ipp.ops.verify_get_printer_attributes_request(request)
+
+        # lookup the printer name
         printer_name = req_dict['printer-uri']
         if printer_name not in self.printers:
             raise ipp.errors.Attributes(
                 "Invalid printer uri: %s" % printer_name,
                 [request.attribute_groups[0].attributes[2]])
-        
+
+        # bulid response
         response = ipp.ops.make_get_printer_attributes_response(
             self.printers[printer_name].get_printer_attributes(request), request)
         return response
@@ -170,23 +177,27 @@ class GutenbachRequestHandler(object):
         pass
 
     def get_job_attributes(self, request):
-        req_dict = ipp.ops.verify_get_jobs_request(request)
-        printer_name = req_dict['printer-uri']
-        job_id = req_dict['job-id']
         
+        # verify the request and get the attributes dictionary
+        req_dict = ipp.ops.verify_get_jobs_request(request)
+        
+        # lookup the printer name
+        printer_name = req_dict['printer-uri']
         if printer_name not in self.printers:
             raise ipp.errors.Attributes(
                 "Invalid printer uri: %s" % printer_name,
                 [request.attribute_groups[0].attributes[2]])
-        try:
-            job = self.printers[printer_name].get_job(job_id)
+
+        # lookup the job id
+        job_id = req_dict['job-id']
+        try: job = self.printers[printer_name].get_job(job_id)
         except InvalidJobException:
             raise ipp.errors.Attributes(
                 "Invalid job id: %d" % job_id,
                 [request.attribute_groups[0].attributes[2]]) # XXX: this is wrong
 
-        # Each job will append a new job attribute group.
         # XXX: we need to honor the things that the request actually asks for
+        # build the response
         response = ipp.ops.make_get_job_attributes_response(
             job.get_job_attributes(request), request)
         return response
@@ -214,7 +225,9 @@ class GutenbachRequestHandler(object):
 
         """
 
+        # verify the request and get the attributes dictionary
         req_dict = ipp.ops.verify_cups_get_default_request(request)
+        # build the response
         response = ipp.ops.make_get_printer_attributes_response(
             self.printers[self.default].get_printer_attributes(request), request)
         return response
@@ -230,9 +243,12 @@ class GutenbachRequestHandler(object):
             
         """
 
+        # verify the request and get the attributes dictionary
         req_dict = ipp.ops.verify_cups_get_printers_request(request)
+        # get the printer attributes
         attrs = [self.printers[printer].get_printer_attributes(request) \
                  for printer in self.printers]
+        # build the response
         response = ipp.ops.make_cups_get_printers_response(attrs, request)
         return response
 
@@ -247,6 +263,8 @@ class GutenbachRequestHandler(object):
 
         """
 
+        # verify the request and get the attributes dictionaryu
         req_dict = ipp.ops.verify_cups_get_classes_request(request)
+        # build the response
         response = ipp.ops.make_cups_get_classes_response(request)
         return response
