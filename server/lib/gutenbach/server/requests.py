@@ -2,6 +2,7 @@ from gutenbach.server.printer import GutenbachPrinter
 import gutenbach.ipp as ipp
 import gutenbach.ipp.constants as consts
 import logging
+import traceback
 
 # initialize logger
 logger = logging.getLogger(__name__)
