@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 class GutenbachPrinter(object):
 
+    # for IPP
     attributes = [
         "printer-uri-supported",
         "uri-authentication-supported",
@@ -30,14 +31,16 @@ class GutenbachPrinter(object):
         "queued-job-count",
         "pdl-override-supported",
         "printer-up-time",
-        "compression-supported"]
+        "compression-supported"
+    ]
 
     #def __init__(self, name, card, mixer):
     def __init__(self, name):
 
-	self._name = name
-        self._uri = "ipp://localhost:8000/printers/" + self._name
-        self._time_created = int(time.time())
+	self.name = name
+        self.uri = "ipp://localhost:8000/printers/" + self.name
+        self.time_created = int(time.time())
+        self.state = "idle"
 
 	# if card >= len(aa.cards()):
 	#     raise aa.ALSAAudioError(
@@ -55,126 +58,103 @@ class GutenbachPrinter(object):
 
 	self._next_jobid = 0
 
+    def __getattr__(self, attr):
+        try:
+            return super(Printer, self).__getattr__(attr)
+        except AttributeError:
+            pass
+
+        return super(Printer, self).__getattr__(
+            attr.replace("-", "_"))
+
+    def __hasattr__(self, attr):
+        has = super(Printer, self).__hasattr__(attr)
+        if not has:
+            has = super(Printer, self).__hasattr__(
+                attr.replace("-", "_"))
+        return has
+
     ## Printer attributes
+
     @property
     def printer_uri_supported(self):
-        return ipp.Attribute(
-            "printer-uri-supported",
-            [ipp.Value(ipp.Tags.URI, self._uri)])
-    
+        return self.uri
+
     @property
     def uri_authentication_supported(self):
-        return ipp.Attribute(
-            "uri-authentication-supported",
-            [ipp.Value(ipp.Tags.KEYWORD, "none")])
+        return "none"
 
     @property
     def uri_security_supported(self):
-        return ipp.Attribute(
-            "uri-security-supported",
-            [ipp.Value(ipp.Tags.KEYWORD, "none")])
+        return "none"
 
     @property
     def printer_name(self):
-        return ipp.Attribute(
-            "printer-name",
-            [ipp.Value(ipp.Tags.NAME_WITHOUT_LANGUAGE, self._name)])
-        
+        return self.name
+
     @property
     def printer_state(self):
-        return ipp.Attribute(
-            "printer-state",
-            [ipp.Value(ipp.Tags.ENUM, const.PrinterStates.IDLE)])
-        
+        return self.state
+
     @property
     def printer_state_reasons(self):
-        return ipp.Attribute(
-            "printer-state-reasons",
-            [ipp.Value(ipp.Tags.KEYWORD, "none")])
+        return "none"
 
     @property
     def ipp_versions_supported(self):
-        return ipp.Attribute(
-            "ipp-versions-supported",
-            [ipp.Value(ipp.Tags.KEYWORD, "1.0"),
-             ipp.Value(ipp.Tags.KEYWORD, "1.1")])
-
+        return ("1.0", "1.1")
     # XXX: We should query ourself for the supported operations
+
     @property
     def operations_supported(self):
-        return ipp.Attribute(
-            "operations-supported",
-            [ipp.Value(ipp.Tags.ENUM, const.Operations.GET_JOBS)])
+        return "get-jobs"
 
     @property
     def charset_configured(self):
-        return ipp.Attribute(
-            "charset-configured",
-            [ipp.Value(ipp.Tags.CHARSET, "utf-8")])
+        return "utf-8"
 
     @property
     def charset_supported(self):
-        return ipp.Attribute(
-            "charset-supported",
-            [ipp.Value(ipp.Tags.CHARSET, "utf-8")])
+        return "utf-8"
 
     @property
     def natural_language_configured(self):
-        return ipp.Attribute(
-            "natural-language-configured",
-            [ipp.Value(ipp.Tags.NATURAL_LANGUAGE, "en-us")])
+        return "en-us"
 
     @property
     def generated_natural_language_supported(self):
-        return ipp.Attribute(
-            "generated-natural-language-supported",
-            [ipp.Value(ipp.Tags.NATURAL_LANGUAGE, "en-us")])
+        return "en-us"
 
     @property
     def document_format_default(self):
-        return ipp.Attribute(
-            "document-format-default",
-            [ipp.Value(ipp.Tags.MIME_MEDIA_TYPE, "application/octet-stream")])
+        return "application/octet-stream"
 
     @property
     def document_format_supported(self):
-        return ipp.Attribute(
-            "document-format-supported",
-            [ipp.Value(ipp.Tags.MIME_MEDIA_TYPE, "application/octet-stream"),
-             ipp.Value(ipp.Tags.MIME_MEDIA_TYPE, "audio/mp3")])
+        return ("application/octet-stream", "audio/mp3")
 
     @property
     def printer_is_accepting_jobs(self):
-        return ipp.Attribute(
-            "printer-is-accepting-jobs",
-            [ipp.Value(ipp.Tags.BOOLEAN, True)])
+        return True
 
     @property
     def queued_job_count(self):
-        return ipp.Attribute(
-            "queued-job-count",
-            [ipp.Value(ipp.Tags.INTEGER, len(self.active_jobs))])
+        return len(self.active_jobs)
 
     @property
     def pdl_override_supported(self):
-        return ipp.Attribute(
-            "pdl-override-supported",
-            [ipp.Value(ipp.Tags.KEYWORD, "not-attempted")])
+        return "not-attempted"
 
     @property
     def printer_up_time(self):
-        return ipp.Attribute(
-            "printer-up-time",
-            [ipp.Value(ipp.Tags.INTEGER, int(time.time()) - self._time_created)])
+        return int(time.time()) - self.time_created
 
     @property
     def compression_supported(self):
-        return ipp.Attribute(
-            "compression-supported",
-            [ipp.Value(ipp.Tags.KEYWORD, "none")])
+        return "none"
 
     def get_printer_attributes(self, request):
-        attributes = [getattr(self, attr.replace("-", "_")) for attr in self.attributes]
+        attributes = [(attr, getattr(self, attr)) for attr in self.attributes]
         return attributes
 
     ## Printer operations
@@ -228,4 +208,4 @@ class GutenbachPrinter(object):
 	return str(self)
 
     def __str__(self):
-	return "<Printer '%s'>" % self._name
+	return "<Printer '%s'>" % self.name
