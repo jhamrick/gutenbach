@@ -184,6 +184,8 @@ class ServerErrorCodes():
 
 class StatusCodes(SuccessCodes, ClientErrorCodes, ServerErrorCodes):
     pass
+class ErrorCodes(ClientErrorCodes, ServerErrorCodes):
+    pass
 
 class CUPSPrinterType():
     """Printer types as defined by cups_ptype_e in the CUPS API
