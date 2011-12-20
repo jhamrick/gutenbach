@@ -1,9 +1,9 @@
 from gutenbach.server.requests import GutenbachRequestHandler
 import BaseHTTPServer
 import gutenbach.ipp as ipp
-import gutenbach.ipp.constants as const
 import logging
 import traceback
+import sys
 
 # initialize logger
 logger = logging.getLogger(__name__)
@@ -28,34 +28,27 @@ class GutenbachIPPServer(BaseHTTPServer.BaseHTTPRequestHandler):
         request = ipp.Request(request=self.rfile, length=length)
         logger.debug("Received request: %s" % repr(request))
 
-        # Operation attributes -- typically the same for any request
-        attributes = [
-            ipp.Attribute(
-                'attributes-charset',
-                [ipp.Value(ipp.Tags.CHARSET, 'utf-8')]),
-            ipp.Attribute(
-                'attributes-natural-language',
-                [ipp.Value(ipp.Tags.NATURAL_LANGUAGE, 'en-us')])
-            ]
-        # Put the operation attributes in a group
-        attribute_group = ipp.AttributeGroup(
-            const.AttributeTags.OPERATION,
-            attributes)
+        # Create an empty response object
+        response = ipp.ops.make_empty_response(request)
 
-        # Set up the default response -- handlers will override these
-        # values if they need to
-        response_kwargs = {}
-        response_kwargs['version']          = request.version
-        response_kwargs['operation_id']     = const.StatusCodes.OK
-        response_kwargs['request_id']       = request.request_id
-        response_kwargs['attribute_groups'] = [attribute_group]
-        response = ipp.Request(**response_kwargs)
-
-        # Get the handler and pass it the request and response objects
+        # Get the handler and pass it the request and response
+        # objects.  It will fill in values for the response object or
+        # thrown an error.
         try:
             self.root.handle(request, response)
-        except:
-            response.operation_id = const.StatusCodes.INTERNAL_ERROR
+            
+        # Handle any errors that occur.  If an exception occurs that
+        # is an IPP error, then we can get the error code from the
+        # exception itself.
+        except IPPException:
+            exctype, excval, exctb = sys.exc_info()
+            excval.update_response(response)
+            logger.error(traceback.format_exc())
+
+        # If it wasn't an IPP error, then it's our fault, so mark it
+        # as an internal server error
+        except Exception:
+            response.operation_id = const.ErrorCodes.INTERNAL_ERROR
             logger.error(traceback.format_exc())
 
         # Send the response across HTTP
