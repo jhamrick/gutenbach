@@ -58,7 +58,7 @@ class Operations():
     GET_PRINTER_ATTRIBUTES = 0x000b
     #HOLD_JOB              = 0x000c
     #RELEASE_JOB           = 0x000d
-    #RESTART_JOB           = 0x000e
+    RESTART_JOB            = 0x000e
     PAUSE_PRINTER          = 0x0010
     RESUME_PRINTER         = 0x0011
     #PURGE_JOBS            = 0x0012

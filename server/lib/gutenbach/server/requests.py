@@ -72,6 +72,7 @@ class GutenbachRequestHandler(object):
         
     ##### Printer Commands
 
+    @handler_for(consts.Operations.PRINT_JOB)
     def print_job(self, request):
         """RFC 2911: 3.2.1 Print-Job Operation
 
@@ -83,10 +84,12 @@ class GutenbachRequestHandler(object):
 
         """
         
-        pass
+        raise NotImplementedError
 
+    @handler_for(consts.Operations.VALIDATE_JOB)
     def validate_job(self, request):
-        pass
+
+        raise NotImplementedError
 
     @handler_for(consts.Operations.GET_JOBS)
     def get_jobs(self, request):
@@ -122,17 +125,69 @@ class GutenbachRequestHandler(object):
         response = ipp.ops.make_get_jobs_response(jobs, request)
         return response
 
+    @handler_for(consts.Operations.PRINT_URI)
     def print_uri(self, request):
-        pass
+        raise NotImplementedError
 
+    @handler_for(consts.Operations.CREATE_JOB)
     def create_job(self, request):
-        pass
+        """RFC 2911: 3.2.4 Create-Job Operation
 
+        This OPTIONAL operation is similar to the Print-Job operation
+        (section 3.2.1) except that in the Create-Job request, a
+        client does not supply document data or any reference to
+        document data. Also, the client does not supply any of the
+        'document-name', 'document- format', 'compression', or
+        'document-natural-language' operation attributes. This
+        operation is followed by one or more Send-Document or Send-URI
+        operations. In each of those operation requests, the client
+        OPTIONALLY supplies the 'document-name', 'document-format',
+        and 'document-natural-language' attributes for each document
+        in the multi-document Job object.
+
+        If a Printer object supports the Create-Job operation, it MUST
+        also support the Send-Document operation and also MAY support
+        the Send-URI operation.
+        
+        If the Printer object supports this operation, it MUST support
+        the 'multiple-operation-time-out' Printer attribute (see
+        section 4.4.31).  If the Printer object supports this
+        operation, then it MUST support the
+        'multiple-document-jobs-supported' Printer Description
+        attribute (see section 4.4.16) and indicate whether or not it
+        supports multiple-document jobs.
+        
+        If the Printer object supports this operation and supports
+        multiple documents in a job, then it MUST support the
+        'multiple-document- handling' Job Template job attribute with
+        at least one value (see section 4.2.4) and the associated
+        'multiple-document-handling- default' and
+        'multiple-document-handling-supported' Job Template Printer
+        attributes (see section 4.2).
+        
+        After the Create-Job operation has completed, the value of the
+        'job- state' attribute is similar to the 'job-state' after a
+        Print-Job, even though no document-data has arrived. A Printer
+        MAY set the 'job-data-insufficient' value of the job's
+        'job-state-reason' attribute to indicate that processing
+        cannot begin until sufficient data has arrived and set the
+        'job-state' to either 'pending' or 'pending-held'. A
+        non-spooling printer that doesn't implement the 'pending' job
+        state may even set the 'job-state' to 'processing', even
+        though there is not yet any data to process. See sections
+        4.3.7 and 4.3.8.
+        
+        """
+
+        raise NotImplementedError
+    
+    @handler_for(consts.Operations.PAUSE_PRINTER)
     def pause_printer(self, request):
-        pass
+        raise NotImplementedError
 
+    @handler_for(consts.Operations.RESUME_PRINTER)
     def resume_printer(self, request):
-        pass
+        raise NotImplementedError
 
     @handler_for(consts.Operations.GET_PRINTER_ATTRIBUTES)
     def get_printer_attributes(self, request):
@@ -193,20 +248,25 @@ class GutenbachRequestHandler(object):
             self.printers[printer_name].get_printer_attributes(request), request)
         return response
 
+    @handler_for(consts.Operations.SET_PRINTER_ATTRIBUTES)
     def set_printer_attributes(self, request):
-        pass
+        raise NotImplementedError
 
     ##### Job Commands
 
+    @handler_for(consts.Operations.CANCEL_JOB)
     def cancel_job(self, request):
-        pass
+        raise NotImplementedError
 
+    @handler_for(consts.Operations.SEND_DOCUMENT)
     def send_document(self, request):
-        pass
+        raise NotImplementedError
 
+    @handler_for(consts.Operations.SEND_URI)
     def send_uri(self, request):
-        pass
+        raise NotImplementedError
 
+    @handler_for(consts.Operations.GET_JOB_ATTRIBUTES)
     def get_job_attributes(self, request):
         
         # verify the request and get the attributes dictionary
@@ -233,19 +293,23 @@ class GutenbachRequestHandler(object):
             job.get_job_attributes(request), request)
         return response
 
+    @handler_for(consts.Operations.SET_JOB_ATTRIBUTES)
     def set_job_attributes(self, request):
-        pass
+        raise NotImplementedError
 
+    @handler_for(consts.Operations.RESTART_JOB)
     def restart_job(self, request):
-        pass
+        raise NotImplementedError
 
+    @handler_for(consts.Operations.PROMOTE_JOB)
     def promote_job(self, request):
-        pass
+        raise NotImplementedError
 
     ##### CUPS Specific Commands
 
+    @handler_for(consts.Operations.CUPS_GET_DOCUMENT)
     def cups_get_document(self, request):
-        pass
+        raise NotImplementedError
 
     @handler_for(consts.Operations.CUPS_GET_DEFAULT)
     def cups_get_default(self, request):
