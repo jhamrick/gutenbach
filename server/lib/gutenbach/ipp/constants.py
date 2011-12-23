@@ -1,3 +1,24 @@
+__all__ = [
+    'Misc',
+    'JobStates',
+    'PrinterStates',
+    'Operations',
+    'SuccessCodes',
+    'ClientErrorCodes',
+    'ServerErrorCodes',
+    'ErrorCodes',
+    'StatusCodes',
+    'CUPSPrinterType',
+    'AttributeTags',
+    'OutOfBandTags',
+    'IntegerTags',
+    'OctetStringTags',
+    'CharacterStringTags',
+    'operations_attribute_value_tags',
+    'job_attribute_value_tags',
+    'printer_attribute_value_tags',
+]
+
 class Misc():
     """Miscellaneous config options for the IPP server.
     
@@ -310,9 +331,6 @@ class CharacterStringTags():
     MIME_MEDIA_TYPE       = 0x49                                    
     MEMBER_ATTR_NAME      = 0x4a
 
-class Tags(AttributeTags, OutOfBandTags, IntegerTags, OctetStringTags, CharacterStringTags):
-    pass
-
 operations_attribute_value_tags = {
     'attributes-charset': CharacterStringTags.CHARSET,
     'attributes-natural-language': CharacterStringTags.NATURAL_LANGUAGE,
@@ -348,6 +366,8 @@ printer_attribute_value_tags = {
     "queued-job-count": IntegerTags.INTEGER,
     "pdl-override-supported": CharacterStringTags.KEYWORD,
     "printer-up-time": IntegerTags.INTEGER,
-    "compression-supported": CharacterStringTags.KEYWORD
+    "compression-supported": CharacterStringTags.KEYWORD,
+    "multiple-operation-time-out": IntegerTags.INTEGER,
+    "multiple-document-jobs-supported": IntegerTags.BOOLEAN
     }
     

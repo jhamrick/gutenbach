@@ -31,8 +31,19 @@ class GutenbachPrinter(object):
         "queued-job-count",
         "pdl-override-supported",
         "printer-up-time",
-        "compression-supported"
+        "compression-supported",
+        "multiple-operation-time-out",
+        "multiple-document-jobs-supported",
     ]
+
+    operations = [
+        "print-job",
+        "complete-job",
+        "start-job",
+        "get-job",
+        "get-jobs",
+    ]
+        
 
     #def __init__(self, name, card, mixer):
     def __init__(self, name):
@@ -101,11 +112,11 @@ class GutenbachPrinter(object):
     @property
     def ipp_versions_supported(self):
         return ("1.0", "1.1")
-    # XXX: We should query ourself for the supported operations
 
+    # XXX: We should query ourself for the supported operations
     @property
     def operations_supported(self):
-        return 0xa # get-jobs
+        return ipp.Operations.GET_JOBS # get-jobs
 
     @property
     def charset_configured(self):
@@ -151,6 +162,14 @@ class GutenbachPrinter(object):
     def compression_supported(self):
         return "none"
 
+    @property
+    def multiple_operation_time_out(self):
+        return 240
+
+    @property
+    def multiple_document_jobs_supported(self):
+        return False
+
     def get_printer_attributes(self, request):
         attributes = [(attr, getattr(self, attr)) for attr in self.attributes]
         attributes = map(lambda x: x if isinstance(x[1], (tuple, list)) else (x[0], [x[1]]),
@@ -158,13 +177,10 @@ class GutenbachPrinter(object):
         return attributes
 
     ## Printer operations
-    @property
-    def next_jobid(self):
-	self._next_jobid += 1
-	return self._next_jobid
 
     def print_job(self, job):
-	jobid = self.next_jobid
+	jobid = self._next_jobid
+        self._next_jobid += 1
 	self.active_jobs.append(jobid)
 	self.jobs[jobid] = job
 	job.enqueue(self, jobid)
