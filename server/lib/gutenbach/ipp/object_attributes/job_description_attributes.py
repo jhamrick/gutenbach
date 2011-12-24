@@ -36,7 +36,7 @@ from ..value import Value
 from ..exceptions import ClientErrorAttributes
 from ..constants import *
 
-class JobUri(Attribute):
+def JobUri(val):
     """4.3.1 job-uri (uri)
 
     This REQUIRED attribute contains the URI for the job. The Printer
@@ -60,12 +60,11 @@ class JobUri(Attribute):
 
     """
 
-    def __init__(self, val):
-        super(type(self), self).__init__(
-            'job-uri',
-            [Value(CharacterStringTags.URI, val)])
+    return Attribute(
+        'job-uri',
+        [Value(CharacterStringTags.URI, val)])
 
-class JobId(Attribute):
+def JobId(val):
     """4.3.2 job-id (integer(1:MAX))
 
     This REQUIRED attribute contains the ID of the job. The Printer,
@@ -81,12 +80,11 @@ class JobId(Attribute):
 
     """
     
-    def __init__(self, val):
-        super(type(self), self).__init__(
-            'job-id',
-            [Value(IntegerTags.INTEGER, val)])
+    return Attribute(
+        'job-id',
+        [Value(IntegerTags.INTEGER, val)])
 
-class JobPrinterUri(Attribute):
+def JobPrinterUri(val):
     """4.3.3 job-printer-uri (uri)
 
     This REQUIRED attribute identifies the Printer object that created
@@ -104,20 +102,18 @@ class JobPrinterUri(Attribute):
 
     """
 
-    def __init__(self, val):
-        super(type(self), self).__init__(
-            'job-printer-uri',
-            [Value(CharacterStringTags.URI, val)])
+    return Attribute(
+        'job-printer-uri',
+        [Value(CharacterStringTags.URI, val)])
 
-class JobMoreInfo(Attribute):
+def JobMoreInfo(val):
     """4.3.4 job-more-info (uri)
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "job-more-info"
+    raise ClientErrorAttributes, "job-more-info"
 
-class JobName(Attribute):
+def JobName(val):
     """4.3.5 job-name (name(MAX))
     
     This REQUIRED attribute is the name of the job. It is a name that
@@ -137,12 +133,11 @@ class JobName(Attribute):
 
     """
     
-    def __init__(self, val):
-        super(type(self), self).__init__(
-            'job-name',
-            [Value(CharacterStringTags.NAME_WITHOUT_LANGUAGE, val)])
+    return Attribute(
+        'job-name',
+        [Value(CharacterStringTags.NAME_WITHOUT_LANGUAGE, val)])
 
-class JobOriginatingUserName(Attribute):
+def JobOriginatingUserName(val):
     """4.3.6 job-originating-user-name (name(MAX))
 
     This REQUIRED attribute contains the name of the end user that
@@ -162,12 +157,11 @@ class JobOriginatingUserName(Attribute):
 
     """
     
-    def __init__(self, val):
-        super(type(self), self).__init__(
-            'job-originating-user-name',
-            [Value(CharacterStringTags.NAME_WITHOUT_LANGUAGE, val)])
+    return Attribute(
+        'job-originating-user-name',
+        [Value(CharacterStringTags.NAME_WITHOUT_LANGUAGE, val)])
 
-class JobState(Attribute):
+def JobState(val):
     """4.3.7 job-state (type1 enum)
 
     This REQUIRED attribute identifies the current state of the job.
@@ -180,12 +174,11 @@ class JobState(Attribute):
     
     """
     
-    def __init__(self, val):
-        super(type(self), self).__init__(
-            'job-state',
-            [Value(IntegerTags.ENUM, val)])
+    return Attribute(
+        'job-state',
+        [Value(IntegerTags.ENUM, val)])
 
-class JobStateReasons(Attribute):
+def JobStateReasons(val):
     """4.3.8 job-state-reasons (1setOf type2 keyword)
 
     This REQUIRED attribute provides additional information about the
@@ -211,52 +204,46 @@ class JobStateReasons(Attribute):
 
     """
 
-    def __init__(self, *vals):
-        super(type(self), self).__init__(
-            'job-state-reasons',
-            [Value(CharacterStringTags.KEYWORD, val) for val in vals])
+    return Attribute(
+        'job-state-reasons',
+        [Value(CharacterStringTags.KEYWORD, val) for val in vals])
 
-class JobStateMessage(Attribute):
+def JobStateMessage(val):
     """4.3.9 job-state-message (text(MAX))
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "job-state-message"
+    raise ClientErrorAttributes, "job-state-message"
 
-class JobDetailedStatusMessages(Attribute):
+def JobDetailedStatusMessages(val):
     """4.3.10 job-detailed-status-messages (1setOf text(MAX))
 
     """
 
-    def __init__(self, *vals):
-        raise ClientErrorAttributes, "job-detailed-status-messages"
+    raise ClientErrorAttributes, "job-detailed-status-messages"
 
-class JobDocumentAccessErrors(Attribute):
+def JobDocumentAccessErrors(val):
     """4.3.11 job-document-access-errors (1setOf text(MAX))
 
     """
 
-    def __init__(self, *vals):
-        raise ClientErrorAttributes, "job-document-access-errors"
+    raise ClientErrorAttributes, "job-document-access-errors"
 
-class NumberOfDocuments(Attribute):
+def NumberOfDocuments(val):
     """4.3.12 number-of-documents (integer(0:MAX))
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "number-of-documents"
+    raise ClientErrorAttributes, "number-of-documents"
 
-class OutputDeviceAssigned(Attribute):
+def OutputDeviceAssigned(val):
     """4.3.13 output-device-assigned (name(127))
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "output-device-assigned"
+    raise ClientErrorAttributes, "output-device-assigned"
 
-class TimeAtCreation(Attribute):
+def TimeAtCreation(val):
     """4.3.14.1 time-at-creation (integer(MIN:MAX))
 
     This REQUIRED attribute indicates the time at which the Job object
@@ -264,12 +251,11 @@ class TimeAtCreation(Attribute):
 
     """
     
-    def __init__(self, val):
-        super(type(self), self).__init__(
-            "time-at-creation",
-            [Value(IntegerTags.INTEGER, val)])
+    return Attribute(
+        "time-at-creation",
+        [Value(IntegerTags.INTEGER, val)])
 
-class TimeAtProcessing(Attribute):
+def TimeAtProcessing(val):
     """4.3.14.2 time-at-processing (integer(MIN:MAX))
 
     This REQUIRED attribute indicates the time at which the Job object
@@ -280,12 +266,11 @@ class TimeAtProcessing(Attribute):
 
     """
 
-    def __init__(self, val):
-        super(type(self), self).__init__(
-            "time-at-processing",
-            [Value(IntegerTags.INTEGER, val)])
+    return Attribute(
+        "time-at-processing",
+        [Value(IntegerTags.INTEGER, val)])
 
-class TimeAtCompleted(Attribute):
+def TimeAtCompleted(val):
     """4.3.14.3 time-at-completed (integer(MIN:MAX))
 
     This REQUIRED attribute indicates the time at which the Job object
@@ -295,12 +280,11 @@ class TimeAtCompleted(Attribute):
 
     """
 
-    def __init__(self, val):
-        super(type(self), self).__init__(
-            "time-at-completed",
-            [Value(IntegerTags.INTEGER, val)])
+    return Attribute(
+        "time-at-completed",
+        [Value(IntegerTags.INTEGER, val)])
 
-class JobPrinterUpTime(Attribute):
+def JobPrinterUpTime(val):
     """4.3.14.4 job-printer-up-time (integer(1:MAX))
 
     This REQUIRED Job Description attribute indicates the amount of
@@ -320,53 +304,47 @@ class JobPrinterUpTime(Attribute):
     
     """
 
-    def __init__(self, val):
-        super(type(self), self).__init__(
-            "job-printer-up-time",
-            [Value(IntegerTags.INTEGER, val)])
+    return Attribute(
+        "job-printer-up-time",
+        [Value(IntegerTags.INTEGER, val)])
 
 
-class DateTimeAtCreation(Attribute):
+def DateTimeAtCreation(val):
     """4.3.14.5 date-time-at-creation (dateTime)
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "date-time-at-creation"
+    raise ClientErrorAttributes, "date-time-at-creation"
 
-class DateTimeAtProcessing(Attribute):
+def DateTimeAtProcessing(val):
     """4.3.14.6 date-time-at-processing (dateTime)
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "date-time-at-processing"
+    raise ClientErrorAttributes, "date-time-at-processing"
 
-class DateTimeAtCompletion(Attribute):
+def DateTimeAtCompletion(val):
     """4.3.14.7 date-time-at-completed (dateTime)
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "date-time-at-completion"
+    raise ClientErrorAttributes, "date-time-at-completion"
 
-class NumberOfInterveningJobs(Attribute):
+def NumberOfInterveningJobs(val):
     """4.3.15 number-of-intervening-jobs (integer(0:MAX))
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "number-of-intervening-jobs"
+    raise ClientErrorAttributes, "number-of-intervening-jobs"
 
-class JobMessageFromOperator(Attribute):
+def JobMessageFromOperator(val):
     """4.3.16 job-message-from-operator (text(127))
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "job-message-from-operator"
+    raise ClientErrorAttributes, "job-message-from-operator"
 
-class JobKOctets(Attribute):
+def JobKOctets(val):
     """4.3.17.1 job-k-octets (integer(0:MAX))
 
     This attribute specifies the total size of the document(s) in K
@@ -391,52 +369,46 @@ class JobKOctets(Attribute):
 
     """
     
-    def __init__(self, val):
-        super(type(self), self).__init__(
-            'job-k-octets',
-            [Value(IntegerTags.INTEGER, val)])
+    return Attribute(
+        'job-k-octets',
+        [Value(IntegerTags.INTEGER, val)])
 
-class JobImpressions(Attribute):
+def JobImpressions(val):
     """4.3.17.2 job-impressions (integer(0:MAX))
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "job-impressions"
+    raise ClientErrorAttributes, "job-impressions"
 
-class JobMediaSheets(Attribute):
+def JobMediaSheets(val):
     """4.3.17.3 job-media-sheets (integer(0:MAX))
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "job-media-sheets"
+    raise ClientErrorAttributes, "job-media-sheets"
 
-class JobKOctetsProcessed(Attribute):
+def JobKOctetsProcessed(val):
     """4.3.18.1 job-k-octets-processed (integer(0:MAX))
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "job-k-octets-processed"
+    raise ClientErrorAttributes, "job-k-octets-processed"
 
-class JobImpressionsCompleted(Attribute):
+def JobImpressionsCompleted(val):
     """4.3.18.2 job-impressions-completed (integer(0:MAX))
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "job-impressions-completed"
+    raise ClientErrorAttributes, "job-impressions-completed"
 
-class JobMediaSheetsCompleted(Attribute):
+def JobMediaSheetsCompleted(val):
     """4.3.18.3 job-media-sheets-completed (integer(0:MAX))
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "job-media-sheets-completed"
+    raise ClientErrorAttributes, "job-media-sheets-completed"
 
-class AttributesCharset(Attribute):
+def AttributesCharset(val):
     """4.3.19 attributes-charset (charset)
 
     This REQUIRED attribute is populated using the value in the client
@@ -455,12 +427,11 @@ class AttributesCharset(Attribute):
 
     """
     
-    def __init__(self, val):
-        super(type(self), self).__init__(
-            'attributes-charset',
-            [Value(CharacterStringTags.CHARSET, val)])
+    return Attribute(
+        'attributes-charset',
+        [Value(CharacterStringTags.CHARSET, val)])
 
-class AttributesNaturalLanguage(Attribute):
+def AttributesNaturalLanguage(val):
     """4.3.20 attributes-natural-language (naturalLanguage)
 
     This REQUIRED attribute is populated using the value in the client
@@ -476,7 +447,6 @@ class AttributesNaturalLanguage(Attribute):
 
     """
     
-    def __init__(self, val):
-        super(type(self), self).__init__(
-            'attributes-natural-language',
-            [Value(CharacterStringTags.NATURAL_LANGUAGE, val)])
+    return Attribute(
+        'attributes-natural-language',
+        [Value(CharacterStringTags.NATURAL_LANGUAGE, val)])

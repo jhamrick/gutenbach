@@ -44,19 +44,22 @@ def verify_operations(request):
 
     # check charset
     charset_attr = op_attrs.attributes[0]
-    if charset_attr != object_attributes.AttributesCharset('utf-8'):
-        raise errors.ClientErrorBadRequest
+    expected = object_attributes.AttributesCharset('utf-8')
+    if charset_attr != expected:
+        raise errors.ClientErrorBadRequest("%s != %s" % (charset_attr, expected))
 
     # check for attributes-natural-language
     natlang_attr = op_attrs.attributes[1]
-    if natlang_attr != object_attributes.AttributesNaturalLanguage('en-us'):
-        raise errors.ClientErrorBadRequest
+    expected = object_attributes.AttributesNaturalLanguage('en-us')
+    if natlang_attr != expected:
+        raise errors.ClientErrorBadRequest("%s != %s" % (natlang_attr, expected))
 
     return dict([(attr.name, attr) for attr in op_attrs.attributes])
 
 def verify_printer_uri(uri_attr):
-    if uri_attr != object_attributes.PrinterUri(uri_attr.values[0].value):
-        raise errors.ClientErrorBadRequest
+    expected = object_attributes.PrinterUri(uri_attr.values[0].value)
+    if uri_attr != expected:
+        raise errors.ClientErrorBadRequest("%s != %s" % (uri_attr, expected))
     
     # actually get the printer name
     # XXX: hack -- CUPS will strip the port from the request, so
@@ -66,8 +69,9 @@ def verify_printer_uri(uri_attr):
     return uri
 
 def verify_requesting_username(username_attr):
-    if username_attr != object_attributes.RequestingUserName(username_attr.values[0].value):
-        raise errors.ClientErrorBadRequest
+    expected = object_attributes.RequestingUserName(username_attr.values[0].value)
+    if username_attr != expected:
+        raise errors.ClientErrorBadRequest("%s != %s" % (username_attr, expected))
     return username_attr.values[0].value
 
 def make_empty_response(request):
@@ -119,8 +123,6 @@ from set_job_attributes import verify_set_job_attributes_request
 from set_printer_attributes import make_set_printer_attributes_response
 from set_printer_attributes import verify_set_printer_attributes_request
 from validate_job import verify_validate_job_request, make_validate_job_response
-
-
 
 __all__ = ['verify_cups_get_classes_request', 'make_cups_get_classes_response'
            'verify_cups_get_default_request', 'make_cups_get_default_response'

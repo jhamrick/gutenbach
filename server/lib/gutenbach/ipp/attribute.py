@@ -70,6 +70,12 @@ class Attribute(object):
         self.name = name
         self.values = values
 
+    def __cmp__(self, other):
+        eq = self.name == other.name
+        for v1, v2 in zip(self.values, other.values):
+            eq = eq and (v1 == v2)
+        return 0 if eq else 1
+
     @property
     def packed_value(self):
         """Packs the attribute data into binary data.

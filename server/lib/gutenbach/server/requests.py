@@ -52,7 +52,7 @@ class GutenbachRequestHandler(object):
         # exception itself.
         except ipp.errors.IPPException:
             exctype, excval, exctb = sys.exc_info()
-            logger.error(traceback.format_exc())
+            logger.error("%s: %s" % (exctype.__name__, excval.message))
             response = ipp.ops.make_empty_response(request)
             excval.update_response(response)
 
@@ -85,12 +85,12 @@ class GutenbachRequestHandler(object):
 
         """
         
-        raise NotImplementedError
+        raise ipp.errors.ServerErrorOperationNotSupported
 
     @handler_for(consts.Operations.VALIDATE_JOB)
     def validate_job(self, request):
 
-        raise NotImplementedError
+        raise ipp.errors.ServerErrorOperationNotSupported
 
     @handler_for(consts.Operations.GET_JOBS)
     def get_jobs(self, request):
@@ -128,7 +128,7 @@ class GutenbachRequestHandler(object):
 
     @handler_for(consts.Operations.PRINT_URI)
     def print_uri(self, request):
-        raise NotImplementedError
+        raise ipp.errors.ServerErrorOperationNotSupported
 
     @handler_for(consts.Operations.CREATE_JOB)
     def create_job(self, request):
@@ -180,15 +180,15 @@ class GutenbachRequestHandler(object):
         
         """
 
-        raise NotImplementedError
+        raise ipp.errors.ServerErrorOperationNotSupported
     
     @handler_for(consts.Operations.PAUSE_PRINTER)
     def pause_printer(self, request):
-        raise NotImplementedError
+        raise ipp.errors.ServerErrorOperationNotSupported
 
     @handler_for(consts.Operations.RESUME_PRINTER)
     def resume_printer(self, request):
-        raise NotImplementedError
+        raise ipp.errors.ServerErrorOperationNotSupported
 
     @handler_for(consts.Operations.GET_PRINTER_ATTRIBUTES)
     def get_printer_attributes(self, request):
@@ -251,21 +251,21 @@ class GutenbachRequestHandler(object):
 
     @handler_for(consts.Operations.SET_PRINTER_ATTRIBUTES)
     def set_printer_attributes(self, request):
-        raise NotImplementedError
+        raise ipp.errors.ServerErrorOperationNotSupported
 
     ##### Job Commands
 
     @handler_for(consts.Operations.CANCEL_JOB)
     def cancel_job(self, request):
-        raise NotImplementedError
+        raise ipp.errors.ServerErrorOperationNotSupported
 
     @handler_for(consts.Operations.SEND_DOCUMENT)
     def send_document(self, request):
-        raise NotImplementedError
+        raise ipp.errors.ServerErrorOperationNotSupported
 
     @handler_for(consts.Operations.SEND_URI)
     def send_uri(self, request):
-        raise NotImplementedError
+        raise ipp.errors.ServerErrorOperationNotSupported
 
     @handler_for(consts.Operations.GET_JOB_ATTRIBUTES)
     def get_job_attributes(self, request):
@@ -296,21 +296,21 @@ class GutenbachRequestHandler(object):
 
     @handler_for(consts.Operations.SET_JOB_ATTRIBUTES)
     def set_job_attributes(self, request):
-        raise NotImplementedError
+        raise ipp.errors.ServerErrorOperationNotSupported
 
     @handler_for(consts.Operations.RESTART_JOB)
     def restart_job(self, request):
-        raise NotImplementedError
+        raise ipp.errors.ServerErrorOperationNotSupported
 
     @handler_for(consts.Operations.PROMOTE_JOB)
     def promote_job(self, request):
-        raise NotImplementedError
+        raise ipp.errors.ServerErrorOperationNotSupported
 
     ##### CUPS Specific Commands
 
     @handler_for(consts.Operations.CUPS_GET_DOCUMENT)
     def cups_get_document(self, request):
-        raise NotImplementedError
+        raise ipp.errors.ServerErrorOperationNotSupported
 
     @handler_for(consts.Operations.CUPS_GET_DEFAULT)
     def cups_get_default(self, request):

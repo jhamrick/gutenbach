@@ -18,7 +18,7 @@ from ..attribute import Attribute
 from ..value import Value
 from ..exceptions import ClientErrorAttributes
 
-class JobPriority(Attribute):
+def JobPriority(val):
     """4.2.1 job-priority (integer(1:100))
 
     This attribute specifies a priority for scheduling the Job. A
@@ -68,104 +68,91 @@ class JobPriority(Attribute):
     """
     
     
-    def __init__(self, val):
-        super(type(self), self).__init__(
-            'job-priority',
-            [Value(IntegerTags.INTEGER), val])
+    return Attribute(
+        'job-priority',
+        [Value(IntegerTags.INTEGER), val])
 
-class JobHoldUntil(Attribute):
+def JobHoldUntil(val):
     """4.2.2 job-hold-until (type3 keyword | name (MAX))
     
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "job-hold-until"
-
-class JobSheets(Attribute):
+    raise ClientErrorAttributes, "job-hold-until"
+    
+def JobSheets(val):
     """4.2.3 job-sheets (type3 keyword | name(MAX))
 
     """
+    
+    raise ClientErrorAttributes, "job-sheets"
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "job-sheets"
-
-class MultipleDocumentHandling(Attribute):
+def MultipleDocumentHandling(val):
     """4.2.4 multiple-document-handling (type2 keyword)
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "multiple-document-handling"
+    raise ClientErrorAttributes, "multiple-document-handling"
 
-class Copies(Attribute):
+def Copies(val):
     """4.2.5 copies (integer(1:MAX))
 
     """
+    
+    raise ClientErrorAttributes, "copies"
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "copies"
-
-class Finishings(Attribute):
+def Finishings(*vals):
     """4.2.6 finishings (1setOf type2 enum)
 
     """
 
-    def __init__(self, *vals):
-        raise ClientErrorAttributes, "finishings"
+    raise ClientErrorAttributes, "finishings"
 
-class PageRanges(Attribute):
+def PageRanges(*vals):
     """4.2.7 page-ranges (1setOf rangeOfInteger (1:MAX))
 
     """
 
-    def __init__(self, *vals):
-        raise ClientErrorAttributes, "page-ranges"
+    raise ClientErrorAttributes, "page-ranges"
 
-class Sides(Attribute):
+def Sides(val):
     """4.2.8 sides (type2 keyword)
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "sides"
+    raise ClientErrorAttributes, "sides"
 
-class NumberUp(Attribute):
+def NumberUp(val):
     """4.2.9 number-up (integer(1:MAX))
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "number-up"
+    raise ClientErrorAttributes, "number-up"
 
-class OrientationRequested(Attribute):
+def OrientationRequested(val):
     """4.2.10 orientation-requested (type2 enum)
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "orientation-requested"
+    raise ClientErrorAttributes, "orientation-requested"
 
-class Media(Attribute):
+def Media(val):
     """4.2.11 media (type3 keyword | name(MAX))
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "media"
+    raise ClientErrorAttributes, "media"
 
 ### XXX: we may want to repurpose this for bitrate?
-class PrinterResolution(Attribute):
+def PrinterResolution(val):
     """4.2.12 printer-resolution (resolution)
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "printer-resolution"
+    raise ClientErrorAttributes, "printer-resolution"
 
-class PrintQuality(Attribute):
+def PrintQuality(val):
     """4.2.13 print-quality (type2 enum)
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "print-quality"
+    raise ClientErrorAttributes, "print-quality"

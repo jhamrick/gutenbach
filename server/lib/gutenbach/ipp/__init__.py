@@ -17,7 +17,7 @@ from constants import *
 __all__.append('constants')
 __all__.extend(constants.__all__)
 
-import exceptions as errors
+import errors
 __all__.append('errors')
 
 import object_attributes

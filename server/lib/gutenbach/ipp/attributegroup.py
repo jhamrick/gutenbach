@@ -40,6 +40,12 @@ class AttributeGroup(object):
         self.attributes = []
         self.extend(attributes)
 
+    def __cmp__(self, other):
+        eq = self.tag == other.tag
+        for a1, a2 in zip(self.attributes, other.attributes):
+            eq = eq and (a1 == a2)
+        return 0 if eq else 1
+
     def __getitem__(self, name):
         """Returns a list of attributes which have name 'name'.
         

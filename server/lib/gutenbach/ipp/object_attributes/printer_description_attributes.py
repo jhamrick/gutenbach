@@ -43,7 +43,7 @@ from ..value import Value
 from ..exceptions import ClientErrorAttributes
 from ..constants import *
 
-class PrinterUriSupported(Attribute):
+def PrinterUriSupported(*vals):
     """4.4.1 printer-uri-supported (1setOf uri)
 
     This REQUIRED Printer attribute contains at least one URI for the
@@ -62,13 +62,12 @@ class PrinterUriSupported(Attribute):
     
     """
     
-    def __init__(self, *vals):
-        super(type(self), self).__init__(
-            'printer-uri-supported',
-            [Value(CharacterStringTags.URI, val) for val in vals])
+    return Attribute(
+        'printer-uri-supported',
+        [Value(CharacterStringTags.URI, val) for val in vals])
 
 
-class UriAuthenticationSupported(Attribute):
+def UriAuthenticationSupported(*vals):
     """4.4.2 uri-authentication-supported (1setOf type2 keyword)
 
     This REQUIRED Printer attribute MUST have the same cardinality
@@ -85,12 +84,11 @@ class UriAuthenticationSupported(Attribute):
 
     """
     
-    def __init__(self, val):
-        super(type(self), self).__init__(
-            'uri-authentication-supported',
-            [Value(CharacterStringTags.KEYWORD, val)])
+    return Attribute(
+        'uri-authentication-supported',
+        [Value(CharacterStringTags.KEYWORD, val) for val in vals])
 
-class UriSecuritySupported(Attribute):
+def UriSecuritySupported(*vals):
     """4.4.3 uri-security-supported (1setOf type2 keyword)
 
     This REQUIRED Printer attribute MUST have the same cardinality
@@ -116,12 +114,11 @@ class UriSecuritySupported(Attribute):
 
     """
     
-    def __init__(self, val):
-        super(type(self), self).__init__(
-            'uri-security-supported',
-            [Value(CharacterStringTags.KEYWORD, val)])
+    return Attribute(
+        'uri-security-supported',
+        [Value(CharacterStringTags.KEYWORD, val) for val in vals])
 
-class PrinterName(Attribute):
+def PrinterName(val):
     """4.4.4 printer-name (name(127))
 
     This REQUIRED Printer attribute contains the name of the Printer
@@ -133,60 +130,53 @@ class PrinterName(Attribute):
 
     """
     
-    def __init__(self, val):
-        super(type(self), self).__init__(
-            'printer-name',
-            [Value(CharacterStringTags.NAME_WITHOUT_LANGUAGE, val)])
+    return Attribute(
+        'printer-name',
+        [Value(CharacterStringTags.NAME_WITHOUT_LANGUAGE, val)])
 
-class PrinterLocation(Attribute):
+def PrinterLocation(val):
     """4.4.5 printer-location (text(127))
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "printer-location"
+    raise ClientErrorAttributes, "printer-location"
 
-class PrinterInfo(Attribute):
+def PrinterInfo(val):
     """4.4.6 printer-info (text(127))
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "printer-info"
+    raise ClientErrorAttributes, "printer-info"
 
-class PrinterMoreInfo(Attribute):
+def PrinterMoreInfo(val):
     """4.4.7 printer-more-info (uri)
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "printer-more-info"
+    raise ClientErrorAttributes, "printer-more-info"
 
-class PrinterDriverInstaller(Attribute):
+def PrinterDriverInstaller(val):
     """4.4.8 printer-driver-installer (uri)
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "printer-driver-installer"
+    raise ClientErrorAttributes, "printer-driver-installer"
 
-class PrinterMakeAndModel(Attribute):
+def PrinterMakeAndModel(val):
     """4.4.9 printer-make-and-model (text(127))
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "printer-make-and-model"
+    raise ClientErrorAttributes, "printer-make-and-model"
 
-class PrinterMoreInfoManufacturer(Attribute):
+def PrinterMoreInfoManufacturer(val):
     """4.4.10 printer-more-info-manufacturer (uri)
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "printer-more-info-manufacturer"
+    raise ClientErrorAttributes, "printer-more-info-manufacturer"
 
-class PrinterState(Attribute):
+def PrinterState(val):
     """4.4.11 printer-state (type1 enum)
 
     This REQUIRED Printer attribute identifies the current state of
@@ -202,12 +192,11 @@ class PrinterState(Attribute):
 
     """
     
-    def __init__(self, val):
-        super(type(self), self).__init__(
-            'printer-state',
-            [Value(IntegerTags.ENUM, val)])
+    return Attribute(
+        'printer-state',
+        [Value(IntegerTags.ENUM, val)])
 
-class PrinterStateReasons(Attribute):
+def PrinterStateReasons(*vals):
     """4.4.12 printer-state-reasons (1setOf type2 keyword)
 
     This REQUIRED Printer attribute supplies additional detail about
@@ -220,20 +209,18 @@ class PrinterStateReasons(Attribute):
 
     """
     
-    def __init__(self, val):
-        super(type(self), self).__init__(
-            'printer-state-reasons',
-            [Value(CharacterStringTags.KEYWORD, val)])
+    return Attribute(
+        'printer-state-reasons',
+        [Value(CharacterStringTags.KEYWORD, val) for val in vals])
 
-class PrinterStateMessage(Attribute):
+def PrinterStateMessage(val):
     """4.4.13 printer-state-message (text(MAX))
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "printer-state-message"
+    raise ClientErrorAttributes, "printer-state-message"
 
-class IppVersionsSupported(Attribute):
+def IppVersionsSupported(*vals):
     """4.4.14 ipp-versions-supported (1setOf type2 keyword)
 
     This REQUIRED attribute identifies the IPP protocol version(s)
@@ -265,12 +252,11 @@ class IppVersionsSupported(Attribute):
 
     """
     
-    def __init__(self, *vals):
-        super(type(self), self).__init__(
-            'ipp-versions-supported',
-            [Value(CharacterStringTags.KEYWORD, val) for val in vals])
+    return Attribute(
+        'ipp-versions-supported',
+        [Value(CharacterStringTags.KEYWORD, val) for val in vals])
 
-class OperationsSupported(Attribute):
+def OperationsSupported(*vals):
     """4.4.15 operations-supported (1setOf type2 enum)
 
     This REQUIRED Printer attribute specifies the set of supported
@@ -285,12 +271,11 @@ class OperationsSupported(Attribute):
 
     """
     
-    def __init__(self, *vals):
-        super(type(self), self).__init__(
-            'operations-supported',
-            [Value(IntegerTags.ENUM, val) for val in vals])
+    return Attribute(
+        'operations-supported',
+        [Value(IntegerTags.ENUM, val) for val in vals])
 
-class MultipleDocumentJobsSupported(Attribute):
+def MultipleDocumentJobsSupported(val):
     """4.4.16 multiple-document-jobs-supported (boolean)
 
     This Printer attribute indicates whether or not the Printer
@@ -301,12 +286,11 @@ class MultipleDocumentJobsSupported(Attribute):
 
     """
     
-    def __init__(self, val):
-        super(type(self), self).__init__(
-            'multiple-document-jobs-supported',
-            [Value(IntegerTags.BOOLEAN, val)])
+    return Attribute(
+        'multiple-document-jobs-supported',
+        [Value(IntegerTags.BOOLEAN, val)])
 
-class CharsetConfigured(Attribute):
+def CharsetConfigured(val):
     """4.4.17 charset-configured (charset)
 
     This REQUIRED Printer attribute identifies the charset that the
@@ -320,12 +304,11 @@ class CharsetConfigured(Attribute):
 
     """
     
-    def __init__(self, val):
-        super(type(self), self).__init__(
-            'charset-configured',
-            [Value(CharacterStringTags.CHARSET, val)])
+    return Attribute(
+        'charset-configured',
+        [Value(CharacterStringTags.CHARSET, val)])
 
-class CharsetSupported(Attribute):
+def CharsetSupported(*vals):
     """4.4.18 charset-supported (1setOf charset)
 
     This REQUIRED Printer attribute identifies the set of charsets
@@ -343,12 +326,11 @@ class CharsetSupported(Attribute):
 
     """
     
-    def __init__(self, *vals):
-        super(type(self), self).__init__(
-            'charset-supported',
-            [Value(CharacterStringTags.CHARSET, val) for val in vals])
+    return Attribute(
+        'charset-supported',
+        [Value(CharacterStringTags.CHARSET, val) for val in vals])
 
-class NaturalLanguageConfigured(Attribute):
+def NaturalLanguageConfigured(val):
     """4.4.19 natural-language-configured (naturalLanguage)
 
     This REQUIRED Printer attribute identifies the natural language
@@ -369,12 +351,11 @@ class NaturalLanguageConfigured(Attribute):
 
     """
     
-    def __init__(self, val):
-        super(type(self), self).__init__(
-            'natural-language-configured',
-            [Value(CharacterStringTags.NATURAL_LANGUAGE, val)])
+    return Attribute(
+        'natural-language-configured',
+        [Value(CharacterStringTags.NATURAL_LANGUAGE, val)])
 
-class GeneratedNaturalLanguageSupported(Attribute):
+def GeneratedNaturalLanguageSupported(*vals):
     """4.4.20 generated-natural-language-supported (1setOf naturalLanguage)
 
     This REQUIRED Printer attribute identifies the natural language(s)
@@ -401,12 +382,11 @@ class GeneratedNaturalLanguageSupported(Attribute):
 
     """
     
-    def __init__(self, *vals):
-        super(type(self), self).__init__(
-            'generated-natural-language-supported',
-            [Value(CharacterStringTags.NATURAL_LANGUAGE, val) for val in vals])
+    return Attribute(
+        'generated-natural-language-supported',
+        [Value(CharacterStringTags.NATURAL_LANGUAGE, val) for val in vals])
 
-class DocumentFormatDefault(Attribute):
+def DocumentFormatDefault(val):
     """4.4.21 document-format-default (mimeMediaType)
 
     This REQUIRED Printer attribute identifies the document format
@@ -420,12 +400,11 @@ class DocumentFormatDefault(Attribute):
 
     """
     
-    def __init__(self, val):
-        super(type(self), self).__init__(
-            'document-format-default',
-            [Value(CharacterStringTags.MIME_MEDIA_TYPE, val)])
+    return Attribute(
+        'document-format-default',
+        [Value(CharacterStringTags.MIME_MEDIA_TYPE, val)])
 
-class DocumentFormatSupported(Attribute):
+def DocumentFormatSupported(*vals):
     """4.4.22 document-format-supported (1setOf mimeMediaType)
 
     This REQUIRED Printer attribute identifies the set of document
@@ -435,12 +414,11 @@ class DocumentFormatSupported(Attribute):
 
     """
     
-    def __init__(self, *vals):
-        super(type(self), self).__init__(
-            'document-format-supported',
-            [Value(CharacterStringTags.MIME_MEDIA_TYPE, val) for val in vals])
+    return Attribute(
+        'document-format-supported',
+        [Value(CharacterStringTags.MIME_MEDIA_TYPE, val) for val in vals])
 
-class PrinterIsAcceptingJobs(Attribute):
+def PrinterIsAcceptingJobs(val):
     """4.4.23 printer-is-accepting-jobs (boolean)
 
     This REQUIRED Printer attribute indicates whether the printer is
@@ -461,12 +439,11 @@ class PrinterIsAcceptingJobs(Attribute):
 
     """
     
-    def __init__(self, val):
-        super(type(self), self).__init__(
-            'printer-is-accepting-jobs',
-            [Value(IntegerTags.BOOLEAN, val)])
+    return Attribute(
+        'printer-is-accepting-jobs',
+        [Value(IntegerTags.BOOLEAN, val)])
 
-class QueuedJobCount(Attribute):
+def QueuedJobCount(val):
     """4.4.24 queued-job-count (integer(0:MAX))
 
     This REQUIRED Printer attribute contains a count of the number of
@@ -475,36 +452,32 @@ class QueuedJobCount(Attribute):
 
     """
     
-    def __init__(self, val):
-        super(type(self), self).__init__(
-            'queued-job-count',
-            [Value(IntegerTags.INTEGER, val)])
+    return Attribute(
+        'queued-job-count',
+        [Value(IntegerTags.INTEGER, val)])
 
-class PrinterMessageFromOperator(Attribute):
+def PrinterMessageFromOperator(val):
     """4.4.25 printer-message-from-operator (text(127))
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "printer-message-from-operator"
+    raise ClientErrorAttributes, "printer-message-from-operator"
 
-class ColorSupported(Attribute):
+def ColorSupported(val):
     """4.4.26 color-supported (boolean)
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "color-supported"
-
-class ReferenceUriSchemeSupported(Attribute):
+    raise ClientErrorAttributes, "color-supported"
+    
+def ReferenceUriSchemeSupported(val):
     """4.4.27 reference-uri-schemes-supported (1setOf uriScheme)
 
     """
 
-    def __init__(self, *vals):
-        raise ClientErrorAttributes, "reference-uri-scheme-supported"
+    raise ClientErrorAttributes, "reference-uri-scheme-supported"
 
-class PdlOverrideSupported(Attribute):
+def PdlOverrideSupported(val):
     """4.4.28 pdl-override-supported (type2 keyword)
 
     This REQUIRED Printer attribute expresses the ability for a
@@ -527,12 +500,11 @@ class PdlOverrideSupported(Attribute):
 
     """
     
-    def __init__(self, val):
-        super(type(self), self).__init__(
-            'pdl-override-supported',
-            [Value(CharacterStringTags.KEYWORD, val)])
+    return Attribute(
+        'pdl-override-supported',
+        [Value(CharacterStringTags.KEYWORD, val)])
 
-class PrinterUpTime(Attribute):
+def PrinterUpTime(val):
     """4.4.29 printer-up-time (integer(1:MAX))
 
     This REQUIRED Printer attribute indicates the amount of time (in
@@ -565,20 +537,18 @@ class PrinterUpTime(Attribute):
 
     """
     
-    def __init__(self, val):
-        super(type(self), self).__init__(
-            'printer-up-time',
-            [Value(IntegerTags.INTEGER, val)])
+    return Attribute(
+        'printer-up-time',
+        [Value(IntegerTags.INTEGER, val)])
 
-class PrinterCurrentTime(Attribute):
+def PrinterCurrentTime(val):
     """4.4.30 printer-current-time (dateTime)
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "printer-current-time"
+    raise ClientErrorAttributes, "printer-current-time"
 
-class MultipleOperationTimeOut(Attribute):
+def MultipleOperationTimeOut(val):
     """4.4.31 multiple-operation-time-out (integer(1:MAX))
 
     This Printer attributes identifies the minimum time (in seconds)
@@ -597,12 +567,11 @@ class MultipleOperationTimeOut(Attribute):
 
     """
     
-    def __init__(self, val):
-        super(type(self), self).__init__(
-            'multiple-operation-time-out',
-            [Value(IntegerTags.INTEGER, val)])
+    return Attribute(
+        'multiple-operation-time-out',
+        [Value(IntegerTags.INTEGER, val)])
 
-class CompressionSupported(Attribute):
+def CompressionSupported(*vals):
     """4.4.32 compression-supported (1setOf type3 keyword)
 
     This REQUIRED Printer attribute identifies the set of supported
@@ -622,48 +591,42 @@ class CompressionSupported(Attribute):
 
     """
     
-    def __init__(self, *vals):
-        super(type(self), self).__init__(
-            'compression-supported',
-            [Value(CharacterStringTags.KEYWORD, val) for val in vals])
+    return Attribute(
+        'compression-supported',
+        [Value(CharacterStringTags.KEYWORD, val) for val in vals])
 
-class JobKOctetsSupported(Attribute):
+def JobKOctetsSupported(val):
     """4.4.33 job-k-octets-supported (rangeOfInteger(0:MAX))
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "job-k-octets-supported"
+    raise ClientErrorAttributes, "job-k-octets-supported"
 
-class JobImpressionsSupported(Attribute):
+def JobImpressionsSupported(val):
     """4.4.34 job-impressions-supported (rangeOfInteger(0:MAX))
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "job-impressions-supported"
+    raise ClientErrorAttributes, "job-impressions-supported"
 
-class JobMediaSheetsSupported(Attribute):
+def JobMediaSheetsSupported(val):
     """4.4.35 job-media-sheets-supported (rangeOfInteger(0:MAX))
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "job-media-sheets-supported"
+    raise ClientErrorAttributes, "job-media-sheets-supported"
 
-class PagesPerMinute(Attribute):
+def PagesPerMinute(val):
     """4.4.36 pages-per-minute (integer(0:MAX))
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "pages-per-minute"
+    raise ClientErrorAttributes, "pages-per-minute"
 
-class PagesPerMinuteColor(Attribute):
+def PagesPerMinuteColor(val):
     """4.4.37 pages-per-minute-color (integer(0:MAX))
 
     """
 
-    def __init__(self, val):
-        raise ClientErrorAttributes, "pages-per-minute-color"
+    raise ClientErrorAttributes, "pages-per-minute-color"
     

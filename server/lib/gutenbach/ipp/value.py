@@ -54,6 +54,10 @@ class Value(object):
         self.tag = tag # one byte, the type of value
         self.value     = value     # non-binary value of self.value
 
+    def __cmp__(self, other):
+        eq = (self.value == other.value) and (self.tag == other.tag)
+        return 0 if eq else 1
+
     @classmethod
     def unpack(cls, tag, packed_value):
         """Unpack a binary IPP value into a Value object.
