@@ -1,3 +1,47 @@
+__all__ = [
+    'IPPException',
+    'IPPClientException',
+    'IPPServerException',
+
+    'ClientErrorBadRequest',
+    'ClientErrorForbidden',
+    'ClientErrorNotAuthenticated',
+    'ClientErrorNotAuthorized',
+    'ClientErrorNotPossible',
+    'ClientErrorTimeout',
+    'ClientErrorNotFound',
+    'ClientErrorGone',
+    'ClientErrorRequestEntity',
+    'ClientErrorRequestValue',
+    'ClientErrorDocumentFormatNotSupported',
+    'ClientErrorAttributes',
+    'ClientErrorUriSchemeNotSupported',
+    'ClientErrorCharsetNotSupported',
+    'ClientErrorConflict',
+    'ClientErrorCompressionNotSupported',
+    'ClientErrorCompressionError',
+    'ClientErrorDocumentFormatError',
+    'ClientErrorDocumentAccessError',
+    'ClientErrorAttributesNotSettable',
+    'ClientErrorIgnoredAllSubscriptions',
+    'ClientErrorTooManySubscriptions',
+    'ClientErrorIgnoredAllNotifications',
+    'ClientErrorPrintSupportFileNotFound',
+
+    'ServerErrorInternalError',
+    'ServerErrorOperationNotSupported',
+    'ServerErrorServiceUnavailable',
+    'ServerErrorVersionNotSupported',
+    'ServerErrorDeviceError',
+    'ServerErrorTemporaryError',
+    'ServerErrorNotAccepting',
+    'ServerErrorPrinterBusy',
+    'ServerErrorJobCancelled',
+    'ServerErrorMultipleJobsNotSupported',
+    'ServerErrorPrinterIsDeactivated',
+]
+    
+
 from .constants import ErrorCodes
 
 class IPPException(Exception):
@@ -128,7 +172,7 @@ class ServerErrorNotAccepting(IPPServerException):
 class ServerErrorPrinterBusy(IPPServerException):
     ipp_error_code = ErrorCodes.PRINTER_BUSY
 
-class ServerErrorErrorJobCancelled(IPPServerException):
+class ServerErrorJobCancelled(IPPServerException):
     ipp_error_code = ErrorCodes.ERROR_JOB_CANCELLED
 
 class ServerErrorMultipleJobsNotSupported(IPPServerException):

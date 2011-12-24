@@ -10,4 +10,6 @@ __all__.append('constants')
 __all__.extend(constants.__all__)
 
 import errors
+from errors import *
 __all__.append('errors')
+__all__.extend(errors.__all__)
