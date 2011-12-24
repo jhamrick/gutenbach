@@ -3,6 +3,7 @@ from .exceptions import InvalidJobException, InvalidPrinterStateException
 from gutenbach.ipp.attribute import Attribute
 import gutenbach.ipp as ipp
 import gutenbach.ipp.constants as const
+import gutenbach.ipp.object_attributes.printer_description_attributes as pda
 import logging
 import time
 
@@ -87,93 +88,91 @@ class GutenbachPrinter(object):
 
     @property
     def printer_uri_supported(self):
-        return self.uri
+        return pda.PrinterUriSupported(self.uri)
 
     @property
     def uri_authentication_supported(self):
-        return "none"
+        return pda.UriAuthenticationSupported("none")
 
     @property
     def uri_security_supported(self):
-        return "none"
+        return pda.UriSecuritySupported("none")
 
     @property
     def printer_name(self):
-        return self.name
+        return pda.PrinterName(self.name)
 
     @property
     def printer_state(self):
-        return 3 # idle
+        return pda.PrinterState(ipp.constants.PrinterStates.IDLE)
 
     @property
     def printer_state_reasons(self):
-        return "none"
+        return pda.PrinterStateReasons("none")
 
     @property
     def ipp_versions_supported(self):
-        return ("1.0", "1.1")
+        return pda.IppVersionsSupported("1.0", "1.1")
 
     # XXX: We should query ourself for the supported operations
     @property
     def operations_supported(self):
-        return ipp.Operations.GET_JOBS # get-jobs
+        return pda.OperationsSupported(ipp.Operations.GET_JOBS)
 
     @property
     def charset_configured(self):
-        return "utf-8"
+        return pda.CharsetConfigured("utf-8")
 
     @property
     def charset_supported(self):
-        return "utf-8"
+        return pda.CharsetSupported("utf-8")
 
     @property
     def natural_language_configured(self):
-        return "en-us"
+        return pda.NaturalLanguageConfigured("en-us")
 
     @property
     def generated_natural_language_supported(self):
-        return "en-us"
+        return pda.GeneratedNaturalLanguageSupported("en-us")
 
     @property
     def document_format_default(self):
-        return "application/octet-stream"
+        return pda.DocumentFormatDefault("application/octet-stream")
 
     @property
     def document_format_supported(self):
-        return ("application/octet-stream", "audio/mp3")
+        return pda.DocumentFormatSupported("application/octet-stream", "audio/mp3")
 
     @property
     def printer_is_accepting_jobs(self):
-        return True
+        return pda.PrinterIsAcceptingJobs(True)
 
     @property
     def queued_job_count(self):
-        return len(self.active_jobs)
+        return pda.QueuedJobCount(len(self.active_jobs))
 
     @property
     def pdl_override_supported(self):
-        return "not-attempted"
+        return pda.PdlOverrideSupported("not-attempted")
 
     @property
     def printer_up_time(self):
-        return int(time.time()) - self.time_created
+        return pda.PrinterUpTime(int(time.time()) - self.time_created)
 
     @property
     def compression_supported(self):
-        return "none"
+        return pda.CompressionSupported("none")
 
     @property
     def multiple_operation_time_out(self):
-        return 240
+        return pda.MultipleOperationTimeOut(240)
 
     @property
     def multiple_document_jobs_supported(self):
-        return False
+        return pda.MultipleDocumentJobsSupported(False)
 
     def get_printer_attributes(self, request):
-        attributes = [(attr, getattr(self, attr)) for attr in self.attributes]
-        attributes = map(lambda x: x if isinstance(x[1], (tuple, list)) else (x[0], [x[1]]),
-                         attributes)
+        attributes = [getattr(self, attr) for attr in self.attributes]
         return attributes
 
     ## Printer operations

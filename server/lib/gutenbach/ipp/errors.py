@@ -1,7 +1,7 @@
 from .constants import ErrorCodes
 
 class IPPException(Exception):
-    def __init__(self, message):
+    def __init__(self, message=""):
         self.message = message
 
     def __str__(self):
@@ -23,40 +23,40 @@ class IPPServerException(IPPException):
     
 ### Client error codes
 
-class BadRequest(IPPClientException):
+class ClientErrorBadRequest(IPPClientException):
     ipp_error_code = ErrorCodes.BAD_REQUEST
 
-class Forbidden(IPPClientException):
+class ClientErrorForbidden(IPPClientException):
     ipp_error_code = ErrorCodes.FORBIDDEN
 
-class NotAuthenticated(IPPClientException):
+class ClientErrorNotAuthenticated(IPPClientException):
     ipp_error_code = ErrorCodes.NOT_AUTHENTICATED
 
-class NotAuthorized(IPPClientException):
+class ClientErrorNotAuthorized(IPPClientException):
     ipp_error_code = ErrorCodes.NOT_AUTHORIZED
 
-class NotPossible(IPPClientException):
+class ClientErrorNotPossible(IPPClientException):
     ipp_error_code = ErrorCodes.NOT_POSSIBLE
 
-class Timeout(IPPClientException):
+class ClientErrorTimeout(IPPClientException):
     ipp_error_code = ErrorCodes.TIMEOUT
 
-class NotFound(IPPClientException):
+class ClientErrorNotFound(IPPClientException):
     ipp_error_code = ErrorCodes.NOT_FOUND
 
-class Gone(IPPClientException):
+class ClientErrorGone(IPPClientException):
     ipp_error_code = ErrorCodes.GONE
 
-class RequestEntity(IPPClientException):
+class ClientErrorRequestEntity(IPPClientException):
     ipp_error_code = ErrorCodes.REQUEST_ENTITY
 
-class RequestValue(IPPClientException):
+class ClientErrorRequestValue(IPPClientException):
     ipp_error_code = ErrorCodes.REQUEST_VALUE
 
-class DocumentFormatNotSupported(IPPClientException):
+class ClientErrorDocumentFormatNotSupported(IPPClientException):
     ipp_error_code = ErrorCodes.DOCUMENT_FORMAT
 
-class Attributes(IPPClientException):
+class ClientErrorAttributes(IPPClientException):
     ipp_error_code = ErrorCodes.ATTRIBUTES
 
     def __init__(self, message, attrs):
@@ -66,73 +66,73 @@ class Attributes(IPPClientException):
     def update_response(self, response):
         pass
 
-class UriSchemeNotSupported(IPPClientException):
+class ClientErrorUriSchemeNotSupported(IPPClientException):
     ipp_error_code = ErrorCodes.URI_SCHEME
 
-class CharsetNotSupported(IPPClientException):
+class ClientErrorCharsetNotSupported(IPPClientException):
     ipp_error_code = ErrorCodes.CHARSET
 
-class Conflict(IPPClientException):
+class ClientErrorConflict(IPPClientException):
     ipp_error_code = ErrorCodes.CONFLICT
 
-class CompressionNotSupported(IPPClientException):
+class ClientErrorCompressionNotSupported(IPPClientException):
     ipp_error_code = ErrorCodes.COMPRESSION_NOT_SUPPORTED
 
-class CompressionError(IPPClientException):
+class ClientErrorCompressionError(IPPClientException):
     ipp_error_code = ErrorCodes.COMPRESSION_ERROR
 
-class DocumentFormatError(IPPClientException):
+class ClientErrorDocumentFormatError(IPPClientException):
     ipp_error_code = ErrorCodes.DOCUMENT_FORMAT_ERROR
 
-class DocumentAccessError(IPPClientException):
+class ClientErrorDocumentAccessError(IPPClientException):
     ipp_error_code = ErrorCodes.DOCUMENT_ACCESS_ERROR
 
-class AttributesNotSettable(IPPClientException):
+class ClientErrorAttributesNotSettable(IPPClientException):
     ipp_error_code = ErrorCodes.ATTRIBUTES_NOT_SETTABLE
 
-class IgnoredAllSubscriptions(IPPClientException):
+class ClientErrorIgnoredAllSubscriptions(IPPClientException):
     ipp_error_code = ErrorCodes.IGNORED_ALL_SUBSCRIPTIONS
 
-class TooManySubscriptions(IPPClientException):
+class ClientErrorTooManySubscriptions(IPPClientException):
     ipp_error_code = ErrorCodes.TOO_MANY_SUBSCRIPTIONS
 
-class IgnoredAllNotifications(IPPClientException):
+class ClientErrorIgnoredAllNotifications(IPPClientException):
     ipp_error_code = ErrorCodes.IGNORED_ALL_NOTIFICATIONS
 
-class PrintSupportFileNotFound(IPPClientException):
+class ClientErrorPrintSupportFileNotFound(IPPClientException):
     ipp_error_code = ErrorCodes.PRINT_SUPPORT_FILE_NOT_FOUND
 
 ### Server error codes
 
-class InternalError(IPPServerException):
+class ServerErrorInternalError(IPPServerException):
     ipp_error_code = ErrorCodes.INTERNAL_ERROR
 
-class OperationNotSupported(IPPServerException):
+class ServerErrorOperationNotSupported(IPPServerException):
     ipp_error_code = ErrorCodes.OPERATION_NOT_SUPPORTED
 
-class ServiceUnavailable(IPPServerException):
+class ServerErrorServiceUnavailable(IPPServerException):
     ipp_error_code = ErrorCodes.SERVICE_UNAVAILABLE
 
-class VersionNotSupported(IPPServerException):
+class ServerErrorVersionNotSupported(IPPServerException):
     ipp_error_code = ErrorCodes.VERSION_NOT_SUPPORTED
 
-class DeviceError(IPPServerException):
+class ServerErrorDeviceError(IPPServerException):
     ipp_error_code = ErrorCodes.DEVICE_ERROR
 
-class TemporaryError(IPPServerException):
+class ServerErrorTemporaryError(IPPServerException):
     ipp_error_code = ErrorCodes.TEMPORARY_ERROR
 
-class NotAccepting(IPPServerException):
+class ServerErrorNotAccepting(IPPServerException):
     ipp_error_code = ErrorCodes.NOT_ACCEPTING
 
-class PrinterBusy(IPPServerException):
+class ServerErrorPrinterBusy(IPPServerException):
     ipp_error_code = ErrorCodes.PRINTER_BUSY
 
-class ErrorJobCancelled(IPPServerException):
+class ServerErrorErrorJobCancelled(IPPServerException):
     ipp_error_code = ErrorCodes.ERROR_JOB_CANCELLED
 
-class MultipleJobsNotSupported(IPPServerException):
+class ServerErrorMultipleJobsNotSupported(IPPServerException):
     ipp_error_code = ErrorCodes.MULTIPLE_JOBS_NOT_SUPPORTED
 
-class PrinterIsDeactivated(IPPServerException):
+class ServerErrorPrinterIsDeactivated(IPPServerException):
     ipp_error_code = ErrorCodes.PRINTER_IS_DEACTIVATED

@@ -3,6 +3,7 @@ import gutenbach.ipp as ipp
 import gutenbach.ipp.constants as consts
 import logging
 import traceback
+import sys
 
 # initialize logger
 logger = logging.getLogger(__name__)
@@ -113,7 +114,7 @@ class GutenbachRequestHandler(object):
         # lookup printer name
         printer_name = req_dict['printer-uri']
         if printer_name not in self.printers:
-            raise ipp.errors.Attributes(
+            raise ipp.errors.ClientErrorAttributes(
                 "Invalid printer uri: %s" % printer_name,
                 [request.attribute_groups[0].attributes[2]])
 
@@ -239,7 +240,7 @@ class GutenbachRequestHandler(object):
         # lookup the printer name
         printer_name = req_dict['printer-uri']
         if printer_name not in self.printers:
-            raise ipp.errors.Attributes(
+            raise ipp.errors.ClientErrorAttributes(
                 "Invalid printer uri: %s" % printer_name,
                 [request.attribute_groups[0].attributes[2]])
 
@@ -275,7 +276,7 @@ class GutenbachRequestHandler(object):
         # lookup the printer name
         printer_name = req_dict['printer-uri']
         if printer_name not in self.printers:
-            raise ipp.errors.Attributes(
+            raise ipp.errors.ClientErrorAttributes(
                 "Invalid printer uri: %s" % printer_name,
                 [request.attribute_groups[0].attributes[2]])
 
@@ -283,7 +284,7 @@ class GutenbachRequestHandler(object):
         job_id = req_dict['job-id']
         try: job = self.printers[printer_name].get_job(job_id)
         except InvalidJobException:
-            raise ipp.errors.Attributes(
+            raise ipp.errors.ClientErrorAttributes(
                 "Invalid job id: %d" % job_id,
                 [request.attribute_groups[0].attributes[2]]) # XXX: this is wrong
 

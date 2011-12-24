@@ -14,9 +14,6 @@ __all__ = [
     'IntegerTags',
     'OctetStringTags',
     'CharacterStringTags',
-    'operations_attribute_value_tags',
-    'job_attribute_value_tags',
-    'printer_attribute_value_tags',
 ]
 
 class Misc():
@@ -330,44 +327,3 @@ class CharacterStringTags():
     NATURAL_LANGUAGE      = 0x48
     MIME_MEDIA_TYPE       = 0x49                                    
     MEMBER_ATTR_NAME      = 0x4a
-
-operations_attribute_value_tags = {
-    'attributes-charset': CharacterStringTags.CHARSET,
-    'attributes-natural-language': CharacterStringTags.NATURAL_LANGUAGE,
-    'printer-uri': CharacterStringTags.URI,
-    'requesting-user-name': CharacterStringTags.NAME_WITHOUT_LANGUAGE
-    }
-
-job_attribute_value_tags = {
-    'job-id': IntegerTags.INTEGER,
-    'job-name': CharacterStringTags.NAME_WITHOUT_LANGUAGE,
-    'job-originating-user-name': CharacterStringTags.NAME_WITHOUT_LANGUAGE,
-    'job-k-octets': IntegerTags.INTEGER,
-    'job-state': IntegerTags.ENUM,
-    'job-printer-uri': CharacterStringTags.URI
-    }
-
-printer_attribute_value_tags = {
-    "printer-uri-supported": CharacterStringTags.URI,
-    "uri-authentication-supported": CharacterStringTags.KEYWORD,
-    "uri-security-supported": CharacterStringTags.KEYWORD,
-    "printer-name": CharacterStringTags.NAME_WITHOUT_LANGUAGE,
-    "printer-state": IntegerTags.ENUM,
-    "printer-state-reasons": CharacterStringTags.KEYWORD,
-    "ipp-versions-supported": CharacterStringTags.KEYWORD,
-    "operations-supported": IntegerTags.ENUM,
-    "charset-configured": CharacterStringTags.CHARSET,
-    "charset-supported": CharacterStringTags.CHARSET,
-    "natural-language-configured": CharacterStringTags.NATURAL_LANGUAGE,
-    "generated-natural-language-supported": CharacterStringTags.NATURAL_LANGUAGE,
-    "document-format-default": CharacterStringTags.MIME_MEDIA_TYPE,
-    "document-format-supported": CharacterStringTags.MIME_MEDIA_TYPE,
-    "printer-is-accepting-jobs": IntegerTags.BOOLEAN,
-    "queued-job-count": IntegerTags.INTEGER,
-    "pdl-override-supported": CharacterStringTags.KEYWORD,
-    "printer-up-time": IntegerTags.INTEGER,
-    "compression-supported": CharacterStringTags.KEYWORD,
-    "multiple-operation-time-out": IntegerTags.INTEGER,
-    "multiple-document-jobs-supported": IntegerTags.BOOLEAN
-    }
-    

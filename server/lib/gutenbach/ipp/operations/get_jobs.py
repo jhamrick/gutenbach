@@ -98,7 +98,7 @@ def verify_get_jobs_request(request):
 
     # requested printer uri
     if 'printer-uri' not in attrs:
-        raise err.BadRequest("Missing 'printer-uri' attribute")
+        raise err.ClientErrorBadRequest("Missing 'printer-uri' attribute")
     out['printer-uri'] = verify_printer_uri(attrs['printer-uri'])
     
     # requesting username
