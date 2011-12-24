@@ -1,10 +1,10 @@
-from ..attribute import Attribute
-from ..attributegroup import AttributeGroup
-from ..request import Request
-from ..value import Value
+from .. import Attribute
+from .. import AttributeGroup
+from .. import Request
+from .. import Value
 from .. import errors
-from .. import constants as consts
-from .. import object_attributes
+from .. import constants
+from .. import attributes
 
 def verify_operations(request):
     """Pretty much all requests have the first attribute group for
@@ -24,7 +24,7 @@ def verify_operations(request):
 
     # check operation attributes tag
     op_attrs = request.attribute_groups[0]
-    if op_attrs.tag != consts.AttributeTags.OPERATION:
+    if op_attrs.tag != constants.AttributeTags.OPERATION:
         raise errors.ClientErrorBadRequest(
             "Attribute group does not have OPERATION tag: 0x%x" % op_attrs.tag)
 
@@ -44,20 +44,20 @@ def verify_operations(request):
 
     # check charset
     charset_attr = op_attrs.attributes[0]
-    expected = object_attributes.AttributesCharset('utf-8')
+    expected = attributes.AttributesCharset('utf-8')
     if charset_attr != expected:
         raise errors.ClientErrorBadRequest("%s != %s" % (charset_attr, expected))
 
     # check for attributes-natural-language
     natlang_attr = op_attrs.attributes[1]
-    expected = object_attributes.AttributesNaturalLanguage('en-us')
+    expected = attributes.AttributesNaturalLanguage('en-us')
     if natlang_attr != expected:
         raise errors.ClientErrorBadRequest("%s != %s" % (natlang_attr, expected))
 
     return dict([(attr.name, attr) for attr in op_attrs.attributes])
 
 def verify_printer_uri(uri_attr):
-    expected = object_attributes.PrinterUri(uri_attr.values[0].value)
+    expected = attributes.PrinterUri(uri_attr.values[0].value)
     if uri_attr != expected:
         raise errors.ClientErrorBadRequest("%s != %s" % (uri_attr, expected))
     
@@ -69,36 +69,36 @@ def verify_printer_uri(uri_attr):
     return uri
 
 def verify_requesting_username(username_attr):
-    expected = object_attributes.RequestingUserName(username_attr.values[0].value)
+    expected = attributes.RequestingUserName(username_attr.values[0].value)
     if username_attr != expected:
         raise errors.ClientErrorBadRequest("%s != %s" % (username_attr, expected))
     return username_attr.values[0].value
 
 def make_empty_response(request):
     # Operation attributes -- typically the same for any request
-    attributes = AttributeGroup(
-        consts.AttributeTags.OPERATION,
-        [object_attributes.AttributesCharset('utf-8'),
-         object_attributes.AttributesNaturalLanguage('en-us')])
+    attribute_group = AttributeGroup(
+        constants.AttributeTags.OPERATION,
+        [attributes.AttributesCharset('utf-8'),
+         attributes.AttributesNaturalLanguage('en-us')])
 
     # Set up the default response -- handlers will override these
     # values if they need to
     response_kwargs = {}
     response_kwargs['version']          = request.version
-    response_kwargs['operation_id']     = consts.StatusCodes.OK
+    response_kwargs['operation_id']     = constants.StatusCodes.OK
     response_kwargs['request_id']       = request.request_id
-    response_kwargs['attribute_groups'] = [attributes]
+    response_kwargs['attribute_groups'] = [attribute_group]
     response = Request(**response_kwargs)
 
     return response
 
 def make_job_attributes(attrs, request, response):
     response.attribute_groups.append(AttributeGroup(
-        consts.AttributeTags.JOB, attrs))
+        constants.AttributeTags.JOB, attrs))
 
 def make_printer_attributes(attrs, request, response):
     response.attribute_groups.append(AttributeGroup(
-        consts.AttributeTags.PRINTER, attrs))
+        constants.AttributeTags.PRINTER, attrs))
 
 from cups_get_classes import verify_cups_get_classes_request, make_cups_get_classes_response
 from cups_get_default import verify_cups_get_default_request, make_cups_get_default_response
@@ -124,29 +124,29 @@ from set_printer_attributes import make_set_printer_attributes_response
 from set_printer_attributes import verify_set_printer_attributes_request
 from validate_job import verify_validate_job_request, make_validate_job_response
 
-__all__ = ['verify_cups_get_classes_request', 'make_cups_get_classes_response'
-           'verify_cups_get_default_request', 'make_cups_get_default_response'
-           'verify_cups_get_document_request', 'make_cups_get_document_response'
-           'verify_cups_get_printers_request', 'make_cups_get_printers_response'
+__all__ = ['verify_cups_get_classes_request', 'make_cups_get_classes_response',
+           'verify_cups_get_default_request', 'make_cups_get_default_response',
+           'verify_cups_get_document_request', 'make_cups_get_document_response',
+           'verify_cups_get_printers_request', 'make_cups_get_printers_response',
 
-           'verify_cancel_job_request', 'make_cancel_job_response'
-           'verify_create_job_request', 'make_create_job_response'
-           'verify_get_jobs_request', 'make_get_jobs_response'
-           'make_get_printer_attributes_response'
-           'verify_get_printer_attributes_request'
-           'verify_pause_printer_request', 'make_pause_printer_response'
-           'verify_print_job_request', 'make_print_job_response'
-           'verify_print_uri_request', 'make_print_uri_response'
-           'verify_promote_job_request', 'make_promote_job_response'
-           'verify_restart_job_request', 'make_restart_job_response'
-           'verify_resume_printer_request', 'make_resume_printer_response'
-           'verify_send_document_request', 'make_send_document_response'
-           'verify_send_uri_request', 'make_send_uri_response'
-           'make_set_job_attributes_response'
-           'verify_set_job_attributes_request'
-           'make_set_printer_attributes_response'
-           'verify_set_printer_attributes_request'
-           'verify_validate_job_request', 'make_validate_job_response'
+           'verify_cancel_job_request', 'make_cancel_job_response',
+           'verify_create_job_request', 'make_create_job_response',
+           'verify_get_jobs_request', 'make_get_jobs_response',
+           'make_get_printer_attributes_response',
+           'verify_get_printer_attributes_request',
+           'verify_pause_printer_request', 'make_pause_printer_response',
+           'verify_print_job_request', 'make_print_job_response',
+           'verify_print_uri_request', 'make_print_uri_response',
+           'verify_promote_job_request', 'make_promote_job_response',
+           'verify_restart_job_request', 'make_restart_job_response',
+           'verify_resume_printer_request', 'make_resume_printer_response',
+           'verify_send_document_request', 'make_send_document_response',
+           'verify_send_uri_request', 'make_send_uri_response',
+           'make_set_job_attributes_response',
+           'verify_set_job_attributes_request',
+           'make_set_printer_attributes_response',
+           'verify_set_printer_attributes_request',
+           'verify_validate_job_request', 'make_validate_job_response',
 
            'verify_operations',
            'verify_printer_uri',

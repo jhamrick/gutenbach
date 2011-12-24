@@ -1,6 +1,5 @@
 from gutenbach.server.printer import GutenbachPrinter
 import gutenbach.ipp as ipp
-import gutenbach.ipp.constants as consts
 import logging
 import traceback
 import sys
@@ -53,27 +52,27 @@ class GutenbachRequestHandler(object):
         except ipp.errors.IPPException:
             exctype, excval, exctb = sys.exc_info()
             logger.error("%s: %s" % (exctype.__name__, excval.message))
-            response = ipp.ops.make_empty_response(request)
+            response = ipp.operations.make_empty_response(request)
             excval.update_response(response)
 
         # If it wasn't an IPP error, then it's our fault, so mark it
         # as an internal server error
         except Exception:
             logger.error(traceback.format_exc())
-            response = ipp.ops.make_empty_response(request)
+            response = ipp.operations.make_empty_response(request)
             response.operation_id = ipp.StatusCodes.INTERNAL_ERROR
 
         return response
 
     def unknown_operation(self, request):
         logger.warning("Received unknown operation 0x%x" % request.operation_id)
-        response = ipp.ops.make_empty_response(request)
-        response.operation_id = consts.StatusCodes.OPERATION_NOT_SUPPORTED
+        response = ipp.operations.make_empty_response(request)
+        response.operation_id = ipp.StatusCodes.OPERATION_NOT_SUPPORTED
         return response
         
     ##### Printer Commands
 
-    @handler_for(consts.Operations.PRINT_JOB)
+    @handler_for(ipp.OperationCodes.PRINT_JOB)
     def print_job(self, request):
         """RFC 2911: 3.2.1 Print-Job Operation
 
@@ -87,12 +86,12 @@ class GutenbachRequestHandler(object):
         
         raise ipp.errors.ServerErrorOperationNotSupported
 
-    @handler_for(consts.Operations.VALIDATE_JOB)
+    @handler_for(ipp.OperationCodes.VALIDATE_JOB)
     def validate_job(self, request):
 
         raise ipp.errors.ServerErrorOperationNotSupported
 
-    @handler_for(consts.Operations.GET_JOBS)
+    @handler_for(ipp.OperationCodes.GET_JOBS)
     def get_jobs(self, request):
         """RFC 2911: 3.2.6 Get-Jobs Operation
         
@@ -109,7 +108,7 @@ class GutenbachRequestHandler(object):
         """
 
         # verify the request and get an attribute dictionary
-        req_dict = ipp.ops.verify_get_jobs_request(request)
+        req_dict = ipp.operations.verify_get_jobs_request(request)
 
         # lookup printer name
         printer_name = req_dict['printer-uri']
@@ -123,14 +122,14 @@ class GutenbachRequestHandler(object):
                 self.printers[printer_name].get_jobs()]
 
         # build the response
-        response = ipp.ops.make_get_jobs_response(jobs, request)
+        response = ipp.operations.make_get_jobs_response(jobs, request)
         return response
 
-    @handler_for(consts.Operations.PRINT_URI)
+    @handler_for(ipp.OperationCodes.PRINT_URI)
     def print_uri(self, request):
         raise ipp.errors.ServerErrorOperationNotSupported
 
-    @handler_for(consts.Operations.CREATE_JOB)
+    @handler_for(ipp.OperationCodes.CREATE_JOB)
     def create_job(self, request):
         """RFC 2911: 3.2.4 Create-Job Operation
 
@@ -182,15 +181,15 @@ class GutenbachRequestHandler(object):
 
         raise ipp.errors.ServerErrorOperationNotSupported
     
-    @handler_for(consts.Operations.PAUSE_PRINTER)
+    @handler_for(ipp.OperationCodes.PAUSE_PRINTER)
     def pause_printer(self, request):
         raise ipp.errors.ServerErrorOperationNotSupported
 
-    @handler_for(consts.Operations.RESUME_PRINTER)
+    @handler_for(ipp.OperationCodes.RESUME_PRINTER)
     def resume_printer(self, request):
         raise ipp.errors.ServerErrorOperationNotSupported
 
-    @handler_for(consts.Operations.GET_PRINTER_ATTRIBUTES)
+    @handler_for(ipp.OperationCodes.GET_PRINTER_ATTRIBUTES)
     def get_printer_attributes(self, request):
         """RFC 2911: 3.2.5 Get-Printer-Attributes Operation
 
@@ -235,7 +234,7 @@ class GutenbachRequestHandler(object):
         """
 
         # verify the request and get the attributes dictionary
-        req_dict = ipp.ops.verify_get_printer_attributes_request(request)
+        req_dict = ipp.operations.verify_get_printer_attributes_request(request)
 
         # lookup the printer name
         printer_name = req_dict['printer-uri']
@@ -245,33 +244,33 @@ class GutenbachRequestHandler(object):
                 [request.attribute_groups[0].attributes[2]])
 
         # bulid response
-        response = ipp.ops.make_get_printer_attributes_response(
+        response = ipp.operations.make_get_printer_attributes_response(
             self.printers[printer_name].get_printer_attributes(request), request)
         return response
 
-    @handler_for(consts.Operations.SET_PRINTER_ATTRIBUTES)
+    @handler_for(ipp.OperationCodes.SET_PRINTER_ATTRIBUTES)
     def set_printer_attributes(self, request):
         raise ipp.errors.ServerErrorOperationNotSupported
 
     ##### Job Commands
 
-    @handler_for(consts.Operations.CANCEL_JOB)
+    @handler_for(ipp.OperationCodes.CANCEL_JOB)
     def cancel_job(self, request):
         raise ipp.errors.ServerErrorOperationNotSupported
 
-    @handler_for(consts.Operations.SEND_DOCUMENT)
+    @handler_for(ipp.OperationCodes.SEND_DOCUMENT)
     def send_document(self, request):
         raise ipp.errors.ServerErrorOperationNotSupported
 
-    @handler_for(consts.Operations.SEND_URI)
+    @handler_for(ipp.OperationCodes.SEND_URI)
     def send_uri(self, request):
         raise ipp.errors.ServerErrorOperationNotSupported
 
-    @handler_for(consts.Operations.GET_JOB_ATTRIBUTES)
+    @handler_for(ipp.OperationCodes.GET_JOB_ATTRIBUTES)
     def get_job_attributes(self, request):
         
         # verify the request and get the attributes dictionary
-        req_dict = ipp.ops.verify_get_jobs_request(request)
+        req_dict = ipp.operations.verify_get_jobs_request(request)
         
         # lookup the printer name
         printer_name = req_dict['printer-uri']
@@ -290,29 +289,29 @@ class GutenbachRequestHandler(object):
 
         # XXX: we need to honor the things that the request actually asks for
         # build the response
-        response = ipp.ops.make_get_job_attributes_response(
+        response = ipp.operations.make_get_job_attributes_response(
             job.get_job_attributes(request), request)
         return response
 
-    @handler_for(consts.Operations.SET_JOB_ATTRIBUTES)
+    @handler_for(ipp.OperationCodes.SET_JOB_ATTRIBUTES)
     def set_job_attributes(self, request):
         raise ipp.errors.ServerErrorOperationNotSupported
 
-    @handler_for(consts.Operations.RESTART_JOB)
+    @handler_for(ipp.OperationCodes.RESTART_JOB)
     def restart_job(self, request):
         raise ipp.errors.ServerErrorOperationNotSupported
 
-    @handler_for(consts.Operations.PROMOTE_JOB)
+    @handler_for(ipp.OperationCodes.PROMOTE_JOB)
     def promote_job(self, request):
         raise ipp.errors.ServerErrorOperationNotSupported
 
     ##### CUPS Specific Commands
 
-    @handler_for(consts.Operations.CUPS_GET_DOCUMENT)
+    @handler_for(ipp.OperationCodes.CUPS_GET_DOCUMENT)
     def cups_get_document(self, request):
         raise ipp.errors.ServerErrorOperationNotSupported
 
-    @handler_for(consts.Operations.CUPS_GET_DEFAULT)
+    @handler_for(ipp.OperationCodes.CUPS_GET_DEFAULT)
     def cups_get_default(self, request):
         """The CUPS-Get-Default operation (0x4001) returns the default
         printer URI and attributes.
@@ -322,13 +321,13 @@ class GutenbachRequestHandler(object):
         """
 
         # verify the request and get the attributes dictionary
-        req_dict = ipp.ops.verify_cups_get_default_request(request)
+        req_dict = ipp.operations.verify_cups_get_default_request(request)
         # build the response
-        response = ipp.ops.make_get_printer_attributes_response(
+        response = ipp.operations.make_get_printer_attributes_response(
             self.printers[self.default].get_printer_attributes(request), request)
         return response
 
-    @handler_for(consts.Operations.CUPS_GET_PRINTERS)
+    @handler_for(ipp.OperationCodes.CUPS_GET_PRINTERS)
     def cups_get_printers(self, request):
         """The CUPS-Get-Printers operation (0x4002) returns the
         printer attributes for every printer known to the system. This
@@ -340,15 +339,15 @@ class GutenbachRequestHandler(object):
         """
 
         # verify the request and get the attributes dictionary
-        req_dict = ipp.ops.verify_cups_get_printers_request(request)
+        req_dict = ipp.operations.verify_cups_get_printers_request(request)
         # get the printer attributes
         attrs = [self.printers[printer].get_printer_attributes(request) \
                  for printer in self.printers]
         # build the response
-        response = ipp.ops.make_cups_get_printers_response(attrs, request)
+        response = ipp.operations.make_cups_get_printers_response(attrs, request)
         return response
 
-    @handler_for(consts.Operations.CUPS_GET_CLASSES)
+    @handler_for(ipp.OperationCodes.CUPS_GET_CLASSES)
     def cups_get_classes(self, request):
         """The CUPS-Get-Classes operation (0x4005) returns the printer
         attributes for every printer class known to the system. This
@@ -360,7 +359,7 @@ class GutenbachRequestHandler(object):
         """
 
         # verify the request and get the attributes dictionaryu
-        req_dict = ipp.ops.verify_cups_get_classes_request(request)
+        req_dict = ipp.operations.verify_cups_get_classes_request(request)
         # build the response
-        response = ipp.ops.make_cups_get_classes_response(request)
+        response = ipp.operations.make_cups_get_classes_response(request)
         return response

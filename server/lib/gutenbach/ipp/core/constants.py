@@ -1,8 +1,8 @@
 __all__ = [
-    'Misc',
+    'MiscConstants',
     'JobStates',
     'PrinterStates',
-    'Operations',
+    'OperationCodes',
     'SuccessCodes',
     'ClientErrorCodes',
     'ServerErrorCodes',
@@ -16,7 +16,7 @@ __all__ = [
     'CharacterStringTags',
 ]
 
-class Misc():
+class MiscConstants():
     """Miscellaneous config options for the IPP server.
     
     """
@@ -52,7 +52,7 @@ class PrinterStates():
 
     def __init__(self): pass
 
-class Operations():
+class OperationCodes():
     """IPP and CUPS IPP Operations, as defined in various RFCs:
 
         0x0002 - 0x0012      RFC 2911 (Section 4.4.15)

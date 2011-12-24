@@ -1,9 +1,6 @@
 #import alsaaudio as aa
 from .exceptions import InvalidJobException, InvalidPrinterStateException
-from gutenbach.ipp.attribute import Attribute
 import gutenbach.ipp as ipp
-import gutenbach.ipp.constants as const
-import gutenbach.ipp.object_attributes.printer_description_attributes as pda
 import logging
 import time
 
@@ -88,88 +85,88 @@ class GutenbachPrinter(object):
 
     @property
     def printer_uri_supported(self):
-        return pda.PrinterUriSupported(self.uri)
+        return ipp.PrinterUriSupported(self.uri)
 
     @property
     def uri_authentication_supported(self):
-        return pda.UriAuthenticationSupported("none")
+        return ipp.UriAuthenticationSupported("none")
 
     @property
     def uri_security_supported(self):
-        return pda.UriSecuritySupported("none")
+        return ipp.UriSecuritySupported("none")
 
     @property
     def printer_name(self):
-        return pda.PrinterName(self.name)
+        return ipp.PrinterName(self.name)
 
     @property
     def printer_state(self):
-        return pda.PrinterState(ipp.constants.PrinterStates.IDLE)
+        return ipp.PrinterState(ipp.constants.PrinterStates.IDLE)
 
     @property
     def printer_state_reasons(self):
-        return pda.PrinterStateReasons("none")
+        return ipp.PrinterStateReasons("none")
 
     @property
     def ipp_versions_supported(self):
-        return pda.IppVersionsSupported("1.0", "1.1")
+        return ipp.IppVersionsSupported("1.0", "1.1")
 
     # XXX: We should query ourself for the supported operations
     @property
     def operations_supported(self):
-        return pda.OperationsSupported(ipp.Operations.GET_JOBS)
+        return ipp.OperationsSupported(ipp.OperationCodes.GET_JOBS)
 
     @property
     def charset_configured(self):
-        return pda.CharsetConfigured("utf-8")
+        return ipp.CharsetConfigured("utf-8")
 
     @property
     def charset_supported(self):
-        return pda.CharsetSupported("utf-8")
+        return ipp.CharsetSupported("utf-8")
 
     @property
     def natural_language_configured(self):
-        return pda.NaturalLanguageConfigured("en-us")
+        return ipp.NaturalLanguageConfigured("en-us")
 
     @property
     def generated_natural_language_supported(self):
-        return pda.GeneratedNaturalLanguageSupported("en-us")
+        return ipp.GeneratedNaturalLanguageSupported("en-us")
 
     @property
     def document_format_default(self):
-        return pda.DocumentFormatDefault("application/octet-stream")
+        return ipp.DocumentFormatDefault("application/octet-stream")
 
     @property
     def document_format_supported(self):
-        return pda.DocumentFormatSupported("application/octet-stream", "audio/mp3")
+        return ipp.DocumentFormatSupported("application/octet-stream", "audio/mp3")
 
     @property
     def printer_is_accepting_jobs(self):
-        return pda.PrinterIsAcceptingJobs(True)
+        return ipp.PrinterIsAcceptingJobs(True)
 
     @property
     def queued_job_count(self):
-        return pda.QueuedJobCount(len(self.active_jobs))
+        return ipp.QueuedJobCount(len(self.active_jobs))
 
     @property
     def pdl_override_supported(self):
-        return pda.PdlOverrideSupported("not-attempted")
+        return ipp.PdlOverrideSupported("not-attempted")
 
     @property
     def printer_up_time(self):
-        return pda.PrinterUpTime(int(time.time()) - self.time_created)
+        return ipp.PrinterUpTime(int(time.time()) - self.time_created)
 
     @property
     def compression_supported(self):
-        return pda.CompressionSupported("none")
+        return ipp.CompressionSupported("none")
 
     @property
     def multiple_operation_time_out(self):
-        return pda.MultipleOperationTimeOut(240)
+        return ipp.MultipleOperationTimeOut(240)
 
     @property
     def multiple_document_jobs_supported(self):
-        return pda.MultipleDocumentJobsSupported(False)
+        return ipp.MultipleDocumentJobsSupported(False)
 
     def get_printer_attributes(self, request):
         attributes = [getattr(self, attr) for attr in self.attributes]

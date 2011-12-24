@@ -3,10 +3,10 @@ __all__ = [
     'RequestingUserName',
 ]
 
-from ..attribute import Attribute
-from ..value import Value
-from ..exceptions import ClientErrorAttributes
-from ..constants import *
+from .. import Attribute
+from .. import Value
+from .. import errors
+from .. import CharacterStringTags
 
 def PrinterUri(val):
     return Attribute(

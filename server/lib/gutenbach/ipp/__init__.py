@@ -1,30 +1,16 @@
-__all__ = []
+import core
+from core import *
+__all__ = ['core']
+__all__.extend(core.__all__)
+print __all__
 
-from attribute import Attribute
-__all__.append('Attribute')
-
-from attributegroup import AttributeGroup
-__all__.append('AttributeGroup')
-
-from request import Request
-__all__.append('Request')
-
-from value import Value
-__all__.append('Value')
-
-import constants
-from constants import *
-__all__.append('constants')
-__all__.extend(constants.__all__)
-
-import errors
-__all__.append('errors')
-
-import object_attributes
-from object_attributes import *
-__all__.append('object_attributes')
-__all__.extend(object_attributes.__all__)
+import attributes
+from attributes import *
+__all__.append('attributes')
+__all__.extend(attributes.__all__)
 
 # this import needs to come last
-import operations as ops
-__all__.append('ops')
+import operations
+from operations import *
+__all__.append('operations')
+__all__.extend(operations.__all__)

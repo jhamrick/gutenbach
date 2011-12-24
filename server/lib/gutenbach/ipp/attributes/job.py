@@ -1,4 +1,18 @@
 __all__ = [
+    'JobPriority',
+    'JobHoldUntil',
+    'JobSheets',
+    'MultipleDocumentHandling',
+    'Copies',
+    'Finishings',
+    'PageRanges',
+    'Sides',
+    'NumberUp',
+    'OrientationRequested',
+    'Media',
+    'PrinterResolution',
+    'PrintQuality',
+
     'JobUri',
     'JobId',
     'JobPrinterUri',
@@ -31,10 +45,149 @@ __all__ = [
     'AttributesNaturalLanguage',
 ]
 
-from ..attribute import Attribute
-from ..value import Value
-from ..exceptions import ClientErrorAttributes
-from ..constants import *
+from .. import Attribute
+from .. import Value
+from .. import errors
+from .. import IntegerTags, CharacterStringTags
+
+def JobPriority(val):
+    """4.2.1 job-priority (integer(1:100))
+
+    This attribute specifies a priority for scheduling the Job. A
+    higher value specifies a higher priority. The value 1 indicates
+    the lowest possible priority. The value 100 indicates the highest
+    possible priority. Among those jobs that are ready to print, a
+    Printer MUST print all jobs with a priority value of n before
+    printing those with a priority value of n-1 for all n.
+
+    If the Printer object supports this attribute, it MUST always
+    support the full range from 1 to 100. No administrative
+    restrictions are permitted. This way an end-user can always make
+    full use of the entire range with any Printer object. If
+    privileged jobs are implemented outside IPP/1.1, they MUST have
+    priorities higher than 100, rather than restricting the range
+    available to end-users.
+
+    If the client does not supply this attribute and this attribute is
+    supported by the Printer object, the Printer object MUST use the
+    value of the Printer object's 'job-priority-default' at job
+    submission time (unlike most Job Template attributes that are used
+    if necessary at job processing time).
+    
+    The syntax for the 'job-priority-supported' is also
+    integer(1:100).  This single integer value indicates the number of
+    priority levels supported. The Printer object MUST take the value
+    supplied by the client and map it to the closest integer in a
+    sequence of n integers values that are evenly distributed over the
+    range from 1 to 100 using the formula:
+
+        roundToNearestInt((100x+50)/n)
+
+    where n is the value of 'job-priority-supported' and x ranges from
+    0 through n-1.
+
+    For example, if n=1 the sequence of values is 50; if n=2, the
+    sequence of values is: 25 and 75; if n = 3, the sequence of values
+    is: 17, 50 and 83; if n = 10, the sequence of values is: 5, 15,
+    25, 35, 45, 55, 65, 75, 85, and 95; if n = 100, the sequence of
+    values is: 1, 2, 3, ... 100.
+
+    If the value of the Printer object's 'job-priority-supported' is
+    10 and the client supplies values in the range 1 to 10, the
+    Printer object maps them to 5, in the range 11 to 20, the Printer
+    object maps them to 15, etc.
+
+    """
+    
+    
+    return Attribute(
+        'job-priority',
+        [Value(IntegerTags.INTEGER), val])
+
+def JobHoldUntil(val):
+    """4.2.2 job-hold-until (type3 keyword | name (MAX))
+    
+    """
+
+    raise errors.ClientErrorAttributes, "job-hold-until"
+    
+def JobSheets(val):
+    """4.2.3 job-sheets (type3 keyword | name(MAX))
+
+    """
+    
+    raise errors.ClientErrorAttributes, "job-sheets"
+
+def MultipleDocumentHandling(val):
+    """4.2.4 multiple-document-handling (type2 keyword)
+
+    """
+
+    raise errors.ClientErrorAttributes, "multiple-document-handling"
+
+def Copies(val):
+    """4.2.5 copies (integer(1:MAX))
+
+    """
+    
+    raise errors.ClientErrorAttributes, "copies"
+
+def Finishings(*vals):
+    """4.2.6 finishings (1setOf type2 enum)
+
+    """
+
+    raise errors.ClientErrorAttributes, "finishings"
+
+def PageRanges(*vals):
+    """4.2.7 page-ranges (1setOf rangeOfInteger (1:MAX))
+
+    """
+
+    raise errors.ClientErrorAttributes, "page-ranges"
+
+def Sides(val):
+    """4.2.8 sides (type2 keyword)
+
+    """
+
+    raise errors.ClientErrorAttributes, "sides"
+
+def NumberUp(val):
+    """4.2.9 number-up (integer(1:MAX))
+
+    """
+
+    raise errors.ClientErrorAttributes, "number-up"
+
+def OrientationRequested(val):
+    """4.2.10 orientation-requested (type2 enum)
+
+    """
+
+    raise errors.ClientErrorAttributes, "orientation-requested"
+
+def Media(val):
+    """4.2.11 media (type3 keyword | name(MAX))
+
+    """
+
+    raise errors.ClientErrorAttributes, "media"
+
+### XXX: we may want to repurpose this for bitrate?
+def PrinterResolution(val):
+    """4.2.12 printer-resolution (resolution)
+
+    """
+
+    raise errors.ClientErrorAttributes, "printer-resolution"
+
+def PrintQuality(val):
+    """4.2.13 print-quality (type2 enum)
+
+    """
+
+    raise errors.ClientErrorAttributes, "print-quality"
 
 def JobUri(val):
     """4.3.1 job-uri (uri)
@@ -111,7 +264,7 @@ def JobMoreInfo(val):
 
     """
 
-    raise ClientErrorAttributes, "job-more-info"
+    raise errors.ClientErrorAttributes, "job-more-info"
 
 def JobName(val):
     """4.3.5 job-name (name(MAX))
@@ -213,35 +366,35 @@ def JobStateMessage(val):
 
     """
 
-    raise ClientErrorAttributes, "job-state-message"
+    raise errors.ClientErrorAttributes, "job-state-message"
 
 def JobDetailedStatusMessages(val):
     """4.3.10 job-detailed-status-messages (1setOf text(MAX))
 
     """
 
-    raise ClientErrorAttributes, "job-detailed-status-messages"
+    raise errors.ClientErrorAttributes, "job-detailed-status-messages"
 
 def JobDocumentAccessErrors(val):
     """4.3.11 job-document-access-errors (1setOf text(MAX))
 
     """
 
-    raise ClientErrorAttributes, "job-document-access-errors"
+    raise errors.ClientErrorAttributes, "job-document-access-errors"
 
 def NumberOfDocuments(val):
     """4.3.12 number-of-documents (integer(0:MAX))
 
     """
 
-    raise ClientErrorAttributes, "number-of-documents"
+    raise errors.ClientErrorAttributes, "number-of-documents"
 
 def OutputDeviceAssigned(val):
     """4.3.13 output-device-assigned (name(127))
 
     """
 
-    raise ClientErrorAttributes, "output-device-assigned"
+    raise errors.ClientErrorAttributes, "output-device-assigned"
 
 def TimeAtCreation(val):
     """4.3.14.1 time-at-creation (integer(MIN:MAX))
@@ -314,35 +467,35 @@ def DateTimeAtCreation(val):
 
     """
 
-    raise ClientErrorAttributes, "date-time-at-creation"
+    raise errors.ClientErrorAttributes, "date-time-at-creation"
 
 def DateTimeAtProcessing(val):
     """4.3.14.6 date-time-at-processing (dateTime)
 
     """
 
-    raise ClientErrorAttributes, "date-time-at-processing"
+    raise errors.ClientErrorAttributes, "date-time-at-processing"
 
 def DateTimeAtCompletion(val):
     """4.3.14.7 date-time-at-completed (dateTime)
 
     """
 
-    raise ClientErrorAttributes, "date-time-at-completion"
+    raise errors.ClientErrorAttributes, "date-time-at-completion"
 
 def NumberOfInterveningJobs(val):
     """4.3.15 number-of-intervening-jobs (integer(0:MAX))
 
     """
 
-    raise ClientErrorAttributes, "number-of-intervening-jobs"
+    raise errors.ClientErrorAttributes, "number-of-intervening-jobs"
 
 def JobMessageFromOperator(val):
     """4.3.16 job-message-from-operator (text(127))
 
     """
 
-    raise ClientErrorAttributes, "job-message-from-operator"
+    raise errors.ClientErrorAttributes, "job-message-from-operator"
 
 def JobKOctets(val):
     """4.3.17.1 job-k-octets (integer(0:MAX))
@@ -378,35 +531,35 @@ def JobImpressions(val):
 
     """
 
-    raise ClientErrorAttributes, "job-impressions"
+    raise errors.ClientErrorAttributes, "job-impressions"
 
 def JobMediaSheets(val):
     """4.3.17.3 job-media-sheets (integer(0:MAX))
 
     """
 
-    raise ClientErrorAttributes, "job-media-sheets"
+    raise errors.ClientErrorAttributes, "job-media-sheets"
 
 def JobKOctetsProcessed(val):
     """4.3.18.1 job-k-octets-processed (integer(0:MAX))
 
     """
 
-    raise ClientErrorAttributes, "job-k-octets-processed"
+    raise errors.ClientErrorAttributes, "job-k-octets-processed"
 
 def JobImpressionsCompleted(val):
     """4.3.18.2 job-impressions-completed (integer(0:MAX))
 
     """
 
-    raise ClientErrorAttributes, "job-impressions-completed"
+    raise errors.ClientErrorAttributes, "job-impressions-completed"
 
 def JobMediaSheetsCompleted(val):
     """4.3.18.3 job-media-sheets-completed (integer(0:MAX))
 
     """
 
-    raise ClientErrorAttributes, "job-media-sheets-completed"
+    raise errors.ClientErrorAttributes, "job-media-sheets-completed"
 
 def AttributesCharset(val):
     """4.3.19 attributes-charset (charset)

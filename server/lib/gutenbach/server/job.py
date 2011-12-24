@@ -1,6 +1,6 @@
 from exceptions import InvalidJobException, InvalidPrinterStateException
 import os
-import gutenbach.ipp.object_attributes.job_description_attributes as jda
+import gutenbach.ipp as ipp
 
 # initialize logger
 logger = logging.getLogger(__name__)
@@ -50,29 +50,29 @@ class Job(object):
 
     @property
     def job_id(self):
-        return jda.JobId(self.jid)
+        return ipp.JobId(self.jid)
 
     @property
     def job_name(self):
-        return jda.JobName(self.name)
+        return ipp.JobName(self.name)
 
     # XXX: we need to actually calculate this!
     @property
     def job_originating_user_name(self):
-        return jda.JobOriginatingUserName("jhamrick")
+        return ipp.JobOriginatingUserName("jhamrick")
 
     # XXX: we need to actually calculate this!
     @property
     def job_k_octets(self):
-        return jda.JobKOctets(1)
+        return ipp.JobKOctets(1)
 
     @property
     def job_state(self):
-        return jda.JobState(self.status)
+        return ipp.JobState(self.status)
 
     @property
     def job_printer_uri(self):
-        return jda.JobPrinterUri(self.printer.uri)
+        return ipp.JobPrinterUri(self.printer.uri)
 
     def get_job_attributes(self, request):
         attributes = [getattr(self, attr) for attr in self.attributes]

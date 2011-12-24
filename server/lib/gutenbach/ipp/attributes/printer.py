@@ -38,10 +38,10 @@ __all__ = [
     'PagesPerMinuteColor'
 ]
 
-from ..attribute import Attribute
-from ..value import Value
-from ..exceptions import ClientErrorAttributes
-from ..constants import *
+from .. import Attribute
+from .. import Value
+from .. import errors
+from .. import IntegerTags, CharacterStringTags
 
 def PrinterUriSupported(*vals):
     """4.4.1 printer-uri-supported (1setOf uri)
@@ -139,42 +139,42 @@ def PrinterLocation(val):
 
     """
 
-    raise ClientErrorAttributes, "printer-location"
+    raise errors.ClientErrorAttributes, "printer-location"
 
 def PrinterInfo(val):
     """4.4.6 printer-info (text(127))
 
     """
 
-    raise ClientErrorAttributes, "printer-info"
+    raise errors.ClientErrorAttributes, "printer-info"
 
 def PrinterMoreInfo(val):
     """4.4.7 printer-more-info (uri)
 
     """
 
-    raise ClientErrorAttributes, "printer-more-info"
+    raise errors.ClientErrorAttributes, "printer-more-info"
 
 def PrinterDriverInstaller(val):
     """4.4.8 printer-driver-installer (uri)
 
     """
 
-    raise ClientErrorAttributes, "printer-driver-installer"
+    raise errors.ClientErrorAttributes, "printer-driver-installer"
 
 def PrinterMakeAndModel(val):
     """4.4.9 printer-make-and-model (text(127))
 
     """
 
-    raise ClientErrorAttributes, "printer-make-and-model"
+    raise errors.ClientErrorAttributes, "printer-make-and-model"
 
 def PrinterMoreInfoManufacturer(val):
     """4.4.10 printer-more-info-manufacturer (uri)
 
     """
 
-    raise ClientErrorAttributes, "printer-more-info-manufacturer"
+    raise errors.ClientErrorAttributes, "printer-more-info-manufacturer"
 
 def PrinterState(val):
     """4.4.11 printer-state (type1 enum)
@@ -218,7 +218,7 @@ def PrinterStateMessage(val):
 
     """
 
-    raise ClientErrorAttributes, "printer-state-message"
+    raise errors.ClientErrorAttributes, "printer-state-message"
 
 def IppVersionsSupported(*vals):
     """4.4.14 ipp-versions-supported (1setOf type2 keyword)
@@ -461,21 +461,21 @@ def PrinterMessageFromOperator(val):
 
     """
 
-    raise ClientErrorAttributes, "printer-message-from-operator"
+    raise errors.ClientErrorAttributes, "printer-message-from-operator"
 
 def ColorSupported(val):
     """4.4.26 color-supported (boolean)
 
     """
 
-    raise ClientErrorAttributes, "color-supported"
+    raise errors.ClientErrorAttributes, "color-supported"
     
 def ReferenceUriSchemeSupported(val):
     """4.4.27 reference-uri-schemes-supported (1setOf uriScheme)
 
     """
 
-    raise ClientErrorAttributes, "reference-uri-scheme-supported"
+    raise errors.ClientErrorAttributes, "reference-uri-scheme-supported"
 
 def PdlOverrideSupported(val):
     """4.4.28 pdl-override-supported (type2 keyword)
@@ -546,7 +546,7 @@ def PrinterCurrentTime(val):
 
     """
 
-    raise ClientErrorAttributes, "printer-current-time"
+    raise errors.ClientErrorAttributes, "printer-current-time"
 
 def MultipleOperationTimeOut(val):
     """4.4.31 multiple-operation-time-out (integer(1:MAX))
@@ -600,33 +600,33 @@ def JobKOctetsSupported(val):
 
     """
 
-    raise ClientErrorAttributes, "job-k-octets-supported"
+    raise errors.ClientErrorAttributes, "job-k-octets-supported"
 
 def JobImpressionsSupported(val):
     """4.4.34 job-impressions-supported (rangeOfInteger(0:MAX))
 
     """
 
-    raise ClientErrorAttributes, "job-impressions-supported"
+    raise errors.ClientErrorAttributes, "job-impressions-supported"
 
 def JobMediaSheetsSupported(val):
     """4.4.35 job-media-sheets-supported (rangeOfInteger(0:MAX))
 
     """
 
-    raise ClientErrorAttributes, "job-media-sheets-supported"
+    raise errors.ClientErrorAttributes, "job-media-sheets-supported"
 
 def PagesPerMinute(val):
     """4.4.36 pages-per-minute (integer(0:MAX))
 
     """
 
-    raise ClientErrorAttributes, "pages-per-minute"
+    raise errors.ClientErrorAttributes, "pages-per-minute"
 
 def PagesPerMinuteColor(val):
     """4.4.37 pages-per-minute-color (integer(0:MAX))
 
     """
 
-    raise ClientErrorAttributes, "pages-per-minute-color"
+    raise errors.ClientErrorAttributes, "pages-per-minute-color"
     
