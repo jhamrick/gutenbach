@@ -1,3 +1,8 @@
+__all__ = [
+    'InvalidJobException',
+    'InvalidPrinterStateException'
+    ]
+
 class InvalidJobException(Exception):
     def __init__(self, jobid):
 	self.jobid = jobid

@@ -1,12 +1,14 @@
 __all__ = [
     'PrinterUri',
     'RequestingUserName',
+    'IppAttributeFidelity',
+    'LastDocument'
 ]
 
 from .. import Attribute
 from .. import Value
 from .. import errors
-from .. import CharacterStringTags
+from .. import CharacterStringTags, IntegerTags
 
 def PrinterUri(val):
     return Attribute(
@@ -20,3 +22,8 @@ def RequestingUserName(val):
 
 def IppAttributeFidelity(val):
     raise errors.ClientErrorAttributes, 'ipp-attribute-fidelity'
+
+def LastDocument(val):
+    return Attribute(
+        'last-document',
+        [Value(IntegerTags.BOOLEAN, val)])

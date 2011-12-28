@@ -1,6 +1,6 @@
 #import alsaaudio as aa
-from .exceptions import InvalidJobException, InvalidPrinterStateException
-from .job import Job
+from . import InvalidJobException, InvalidPrinterStateException
+from . import Job
 import gutenbach.ipp as ipp
 import logging
 import time
@@ -220,33 +220,37 @@ class GutenbachPrinter(object):
         self.active_jobs.append(job_id)
         return job
 
+    def send_document(self, jobid, document):
+        job = self.jobs[jobid]
+        if job.status != ipp.JobStates.HELD:
+            raise InvalidPrinterStateException(
+                "Invalid job state: %d" % job.status)
+        job.document = document
+        job.status = ipp.JobStates.PENDING
+
     def print_job(self, job):
         pass
 
     def complete_job(self, jobid):
 	job = self.jobs[self.active_jobs.pop(0)]
-	if job.jobid != jobid:
-	    raise InvalidJobException(
-		"Completed job %d has unexpected job id %d!" % \
-		(job.jobid, jobid))
-	
 	self.finished_jobs.append(job)
 	job.finish()
-	return job.jobid
+	return job.jid
 
     def start_job(self, jobid):
 	job = self.jobs[self.active_jobs[0]]
-	if job.jobid != jobid:
-	    raise InvalidJobException(
-		"Completed job %d has unexpected job id %d!" % \
-		(job.jobid, jobid))
-
-	if job.status == 'playing':
+	if job.status != ipp.JobStates.PENDING:
 	    raise InvalidPrinterStateException(
-		"Next job in queue (id %d) is " + \
-		"already playing!" % jobid)
-
+                "Invalid job state: %s" % job.status)
 	job.play()
+
+    @property
+    def next_job(self):
+        if len(self.active_jobs) == 0:
+            job = None
+        else:
+            job = self.active_jobs[0]
+        return job        
 
     def get_job(self, jobid):
 	if jobid not in self.jobs:

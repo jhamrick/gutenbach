@@ -1,24 +1,50 @@
-from server import GutenbachIPPServer
+import errors
+from errors import *
+__all__ = ['errors']
+__all__.extend(errors.__all__)
+
+from job import Job
+__all__.append('Job')
+
+from printer import GutenbachPrinter
+__all__.append('GutenbachPrinter')
+
+from requests import make_empty_response, GutenbachRequestHandler
+__all__.append('make_empty_response')
+__all__.append('GutenbachRequestHandler')
+
+from server import GutenbachServer, IPPServer
+__all__.append('GutenbachServer')
+__all__.append('IPPServer')
+
 import BaseHTTPServer
 import logging
 import sys
 import traceback
 
-# configure logging
+# configure and initialize logging
 logging.basicConfig(level=logging.DEBUG)
-
-# initialize logger
 logger = logging.getLogger(__name__)
 
-def error(self, request, client_address):
+def error(self, request=None, client_address=None):
     logger.fatal(traceback.format_exc())
+    self.gutenbach_server.request_stop = True
     sys.exit(1)
 
 def start():
-    server_address = ('', 8000)
-    httpd = BaseHTTPServer.HTTPServer(server_address, GutenbachIPPServer)
-    httpd.handle_error = error.__get__(httpd)
-    httpd.serve_forever()
+    logger.info("Starting Gutenbach server...")
+    gutenbach = GutenbachServer()
+    gutenbach.start()
 
-if __name__ == "__main__":
-    start()
+    logger.info("Starting IPP server...")
+    server_address = ('', 8000)
+    httpd = BaseHTTPServer.HTTPServer(server_address, IPPServer)
+    httpd.handle_error = error.__get__(httpd)
+    httpd.gutenbach_server = gutenbach
+    while gutenbach.isAlive():
+        try:
+            httpd.handle_request()
+        except:
+            error(httpd)
+
+__all__.append('start')

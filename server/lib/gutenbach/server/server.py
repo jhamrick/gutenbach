@@ -1,18 +1,40 @@
-from gutenbach.server.requests import GutenbachRequestHandler
-import BaseHTTPServer
 import gutenbach.ipp as ipp
+
+from . import InvalidPrinterStateException, InvalidJobException
+from . import GutenbachPrinter
+from . import GutenbachRequestHandler
+
+import BaseHTTPServer
 import logging
 import sys
 import traceback
 import tempfile
+import threading
+import time
 
 # initialize logger
 logger = logging.getLogger(__name__)
 
-# initialize handler
-handler = GutenbachRequestHandler()
+class GutenbachServer(threading.Thread):
 
-class GutenbachIPPServer(BaseHTTPServer.BaseHTTPRequestHandler):
+    def run(self):
+        self.printer = GutenbachPrinter(name="test")
+        self.request_stop = False
+
+        while not self.request_stop:
+            job = self.printer.next_job
+            if job is not None:
+                try:
+                    self.printer.start_job(job)
+                except InvalidPrinterStateException:
+                    pass
+                except:
+                    logger.fatal(traceback.format_exc())
+                    sys.exit(1)
+            time.sleep(0.1)
+
+class IPPServer(BaseHTTPServer.BaseHTTPRequestHandler):
+    
     def send_continue(self):
         self.send_response(100, "continue")
         self.send_header("Content-Type", "application/ipp")
@@ -82,5 +104,5 @@ class GutenbachIPPServer(BaseHTTPServer.BaseHTTPRequestHandler):
         # objects.  It will fill in values for the response object or
         # throw a fatal error.
         logger.debug("request: %s" % repr(request))
-        response = handler.handle(request)
+        response = GutenbachRequestHandler(self.server.gutenbach_server).handle(request)
         self.send_ok(response)

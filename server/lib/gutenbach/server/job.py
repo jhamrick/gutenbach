@@ -1,4 +1,4 @@
-from exceptions import InvalidJobException, InvalidPrinterStateException
+from . import InvalidJobException, InvalidPrinterStateException
 import os
 import gutenbach.ipp as ipp
 import logging
@@ -23,6 +23,7 @@ class Job(object):
 
 	This sets the status to 'initializing' and optionally sets the
 	document to print to the value of document.
+
 	"""
 
 	self.jid      = jid
@@ -32,7 +33,10 @@ class Job(object):
         self.name     = name
         self.size     = size
 
-	self.status   = ipp.JobStates.PENDING
+        self.document = None
+        self.document_name = None
+
+	self.status   = ipp.JobStates.HELD
 
     def __getattr__(self, attr):
         try:
@@ -91,17 +95,14 @@ class Job(object):
     #######
 
     def play(self):
-	if self.status != 'active':
-	    raise InvalidJobException(
-		"Cannot play an inactive job!")
-	
-	self.status = const.JobStates.PROCESSING
+        logger.info("playing job %s" % str(self))
 	# TODO: add external call to music player
-        print "Playing job %s" % str(self)
+	self.status = ipp.JobStates.PROCESSING
 	self.printer.complete_job(self.jid)
 
     def finish(self):
-	self.status = const.JobStates.COMPLETE
+        logger.info("finished job %s" % str(self))
+	self.status = ipp.JobStates.COMPLETE
 
     def __repr__(self):
 	return str(self)
