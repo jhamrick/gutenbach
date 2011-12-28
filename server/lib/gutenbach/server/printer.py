@@ -66,7 +66,8 @@ class GutenbachPrinter(object):
 	self.active_jobs = []
 	self.jobs = {}
 
-	self._next_jobid = 0
+        # cups ignores jobs with id 0, so we have to start at 1
+	self._next_jobid = 1 
 
     def __getattr__(self, attr):
         try:
@@ -217,7 +218,6 @@ class GutenbachPrinter(object):
         job = Job(job_id, self, **kwargs)
         self.jobs[job_id] = job
         self.active_jobs.append(job_id)
-        print self.active_jobs
         return job
 
     def print_job(self, job):

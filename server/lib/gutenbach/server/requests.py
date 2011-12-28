@@ -40,7 +40,6 @@ def make_empty_response(request):
 class GutenbachRequestHandler(object):
 
     def __init__(self):
-        print "init"
         self.printers = {
             "test": GutenbachPrinter(name="test")
             }
@@ -88,7 +87,7 @@ class GutenbachRequestHandler(object):
 
         # actually get the handler
         handler = getattr(self, handler_name)
-        logger.info("Handling request of type '%s'" % handler_name)
+        logger.info("request is '%s'" % handler_name)
 
         # try to handle the request
         try:
@@ -115,7 +114,7 @@ class GutenbachRequestHandler(object):
         return response
 
     def unknown_operation(self, request, response):
-        logger.warning("Received unknown operation 0x%x" % request.operation_id)
+        logger.warning("unknown operation 0x%x" % request.operation_id)
         response = make_empty_response(request)
         response.operation_id = ipp.StatusCodes.OPERATION_NOT_SUPPORTED
         return response

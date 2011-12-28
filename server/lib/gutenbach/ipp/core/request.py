@@ -2,9 +2,11 @@ from .attribute import Attribute
 from .attributegroup import AttributeGroup
 from .constants import AttributeTags
 from .value import Value
+from .errors import ClientErrorBadRequest
 import sys
 import struct
 import logging
+import tempfile
 
 # initialize logger
 logger = logging.getLogger(__name__)
@@ -82,6 +84,10 @@ class Request():
         # if the request isn't None, then we'll read directly from
         # that file handle
         if request is not None:
+            # minimum length is
+            if length < 9:
+                raise ClientErrorBadRequest("length (%d) < 9" % length)
+            
             # read the version-number (two signed chars)
             self.version        = struct.unpack('>bb', request.read(2))
             length -= 2
@@ -104,7 +110,7 @@ class Request():
 
             # read in the next byte
             next_byte = struct.unpack('>b', request.read(1))[0]
-            length -=1
+            length -= 1
             logger.debug("next byte : 0x%X" % next_byte)
 
             # as long as the next byte isn't signaling the end of the
@@ -178,9 +184,14 @@ class Request():
 
             # once we hit the end-of-attributes tag, the only thing
             # left is the data, so go ahead and read all of it
-            assert length >= 0
-            self.data = request.read(length)
-            logger.debug("data : %s" % self.data)
+            if length < 0:
+                raise ClientErrorBadRequest("length (%d) < 0" % length)
+            
+            self.data = tempfile.TemporaryFile()
+            self.data.write(request.read(length))
+            self.data.seek(0)
+            
+            logger.debug("data : %d bytes" % length)
 
         # otherwise, just set the class variables to the keyword
         # arguments passed in
@@ -227,14 +238,8 @@ class Request():
         # conver the end-of-attributes-tag to binary
         end_of_attributes_tag = struct.pack('>b', AttributeTags.END)
 
-        # convert the data to binary
-        if self.data is not None:
-            data = ''.join([struct.pack('>b', x) for x in self.data])
-        else:
-            data = ''
-
         # append everything together and return it
-        return preattributes + attribute_groups + end_of_attributes_tag + data
+        return preattributes + attribute_groups + end_of_attributes_tag, self.data
 
     def __repr__(self):
         val = '<IPPRequest (version=%r, ' % [self.version]
