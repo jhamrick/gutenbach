@@ -30,7 +30,7 @@ class JobStates():
     """Job state codes, as defined by RFC 2911, Section 4.3.7
     
     """
-    
+
     PENDING    = 3
     HELD       = 4
     PROCESSING = 5

@@ -40,6 +40,7 @@ def make_empty_response(request):
 class GutenbachRequestHandler(object):
 
     def __init__(self):
+        print "init"
         self.printers = {
             "test": GutenbachPrinter(name="test")
             }
@@ -226,16 +227,9 @@ class GutenbachRequestHandler(object):
             raise ipp.errors.ClientErrorAttributes(str(uri_attr), uri_attr)
         jobs = self.printers[printer_name].get_jobs()
 
-        # requesting username
-        if 'requesting-user-name' in operation:
-            username_attr = operation['requesting-user-name']
-            username = username_attr.values[0].value
-            if username_attr != ipp.RequestingUserName(username):
-                raise ipp.errors.ClientErrorBadRequest(str(username_attr))
-
         # get the job attributes and add them to the response
         for job in self.printers[printer_name].get_jobs():
-            attrs = job.get_job_attributes(request)
+            attrs = job.get_job_attributes(operation)
             response.attribute_groups.append(ipp.AttributeGroup(
                 ipp.AttributeTags.JOB, attrs))
 
@@ -259,11 +253,55 @@ class GutenbachRequestHandler(object):
         and 'document-natural-language' attributes for each document
         in the multi-document Job object.
 
+        Request
+        -------
         Group 1: Operation Attributes
+            REQUIRED 'attributes-charset' 
+            REQUIRED 'attributes-natural-language' 
+            REQUIRED 'printer-uri' (uri) 
+            OPTIONAL 'requesting-user-name' (name(MAX))
+            OPTIONAL 'job-name' (name(MAX))
+            OPTIONAL 'ipp-attribute-fidelity' (boolean)
+            OPTIONAL 'job-k-octets' (integer(0:MAX))
+            OPTIONAL 'job-impressions' (integer(0:MAX))
+            OPTIONAL 'job-media-sheets' (integer(0:MAX))
+        Group 2: Job Template Attributes
+
+        Response
+        --------
+        Group 1: Operation Attributes
+            OPTIONAL 'status-message' (text(255))
+            OPTIONAL 'detailed-status-message' (text(MAX))
+            REQUIRED 'attributes-charset'
+            REQUIRED 'attributes-natural-language'
+        Group 2: Unsupported Attributes
+        Group 3: Job Object Attributes
+            REQUIRED 'job-uri' (uri)
+            REQUIRED 'job-id' (integer(1:MAX))
+            REQUIRED 'job-state' (type1 enum)
+            REQUIRED 'job-state-reasons' (1setOf type2 keyword)
+            OPTIONAL 'job-state-message' (text(MAX))
+            OPTIONAL 'number-of-intervening-jobs' (integer(0:MAX))
         
         """
 
-        raise ipp.errors.ServerErrorOperationNotSupported
+
+        operation = request.attribute_groups[0]
+
+        # requested printer uri
+        if 'printer-uri' not in operation:
+            raise ipp.errors.ClientErrorBadRequest("Missing 'printer-uri' attribute")
+        uri_attr = operation['printer-uri']
+        printer_name = uri_attr.values[0].value.split("/")[-1]
+        if uri_attr != ipp.PrinterUri(uri_attr.values[0].value):
+            raise ipp.errors.ClientErrorBadRequest(str(uri_attr))
+        if printer_name not in self.printers:
+            raise ipp.errors.ClientErrorAttributes(str(uri_attr), uri_attr)
+
+        # get attributes from the printer and add to response
+        job = self.printers[printer_name].create_job(request)
+        response.attribute_groups.append(ipp.AttributeGroup(
+            ipp.AttributeTags.JOB, job.get_job_attributes(operation)))
     
     @handler_for(ipp.OperationCodes.PAUSE_PRINTER)
     def pause_printer(self, request, response):
@@ -295,8 +333,8 @@ class GutenbachRequestHandler(object):
             REQUIRED 'printer-uri' (uri)
             OPTIONAL 'requesting-user-name' (name(MAX))
             OPTIONAL 'requested-attributes' (1setOf type2 keyword) 
-            OPTIONAL 'document-format' (mimeMediaType):
-
+            OPTIONAL 'document-format' (mimeMediaType)
+            
         Response
         --------
 
@@ -323,16 +361,9 @@ class GutenbachRequestHandler(object):
             raise ipp.errors.ClientErrorAttributes(str(uri_attr), uri_attr)
         printer = self.printers[printer_name]
 
-        # requesting username
-        if 'requesting-user-name' in operation:
-            username_attr = operation['requesting-user-name']
-            username = username_attr.values[0].value
-            if username_attr != ipp.RequestingUserName(username):
-                raise ipp.errors.ClientErrorBadRequest(str(username_attr))
-
         # get attributes from the printer and add to response
         response.attribute_groups.append(ipp.AttributeGroup(
-            ipp.AttributeTags.PRINTER, printer.get_printer_attributes(request)))
+            ipp.AttributeTags.PRINTER, printer.get_printer_attributes(operation)))
 
     @handler_for(ipp.OperationCodes.SET_PRINTER_ATTRIBUTES)
     def set_printer_attributes(self, request, response):
@@ -378,15 +409,8 @@ class GutenbachRequestHandler(object):
             raise ipp.errors.ClientErrorAttributes(str(job_id_attr))
         job = printer.get_job(job_id)
 
-        # requesting username
-        if 'requesting-user-name' in operation:
-            username_attr = operation['requesting-user-name']
-            username = username_attr.values[0].value
-            if username_attr != ipp.RequestingUserName(username):
-                raise ipp.errors.ClientErrorBadRequest(str(username_attr))
-
         # get the job attributes and add them to the response
-        attrs = job.get_job_attributes(request)
+        attrs = job.get_job_attributes(operation)
         response.attribute_groups.append(ipp.AttributeGroup(
             ipp.AttributeTags.JOB, attrs))
 
@@ -437,16 +461,9 @@ class GutenbachRequestHandler(object):
         operation = request.attribute_groups[0]
         printer = self.printers[self.default]
 
-        # requesting username
-        if 'requesting-user-name' in operation:
-            username_attr = operation['requesting-user-name']
-            username = username_attr.values[0].value
-            if username_attr != ipp.RequestingUserName(username):
-                raise ipp.errors.ClientErrorBadRequest(str(username_attr))
-
         # get attributes from the printer and add to response
         response.attribute_groups.append(ipp.AttributeGroup(
-            ipp.AttributeTags.PRINTER, printer.get_printer_attributes(request)))
+            ipp.AttributeTags.PRINTER, printer.get_printer_attributes(operation)))
 
     @handler_for(ipp.OperationCodes.CUPS_GET_PRINTERS)
     def cups_get_printers(self, request, response):
@@ -461,17 +478,10 @@ class GutenbachRequestHandler(object):
 
         operation = request.attribute_groups[0]
 
-        # requesting username
-        if 'requesting-user-name' in operation:
-            username_attr = operation['requesting-user-name']
-            username = username_attr.values[0].value
-            if username_attr != ipp.RequestingUserName(username):
-                raise ipp.errors.ClientErrorBadRequest(str(username_attr))
-
         # get attributes from the printer and add to response
         for printer in self.printers.values():
             response.attribute_groups.append(ipp.AttributeGroup(
-                ipp.AttributeTags.PRINTER, printer.get_printer_attributes(request)))
+                ipp.AttributeTags.PRINTER, printer.get_printer_attributes(operation)))
 
     @handler_for(ipp.OperationCodes.CUPS_GET_CLASSES)
     def cups_get_classes(self, request, response):

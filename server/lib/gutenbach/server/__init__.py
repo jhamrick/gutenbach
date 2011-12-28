@@ -2,11 +2,16 @@ from server import GutenbachIPPServer
 import BaseHTTPServer
 import logging
 import sys
+import traceback
 
 # configure logging
 logging.basicConfig(level=logging.DEBUG)
 
+# initialize logger
+logger = logging.getLogger(__name__)
+
 def error(self, request, client_address):
+    logger.fatal(traceback.format_exc())
     sys.exit(1)
 
 def start():

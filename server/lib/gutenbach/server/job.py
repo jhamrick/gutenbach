@@ -1,6 +1,7 @@
 from exceptions import InvalidJobException, InvalidPrinterStateException
 import os
 import gutenbach.ipp as ipp
+import logging
 
 # initialize logger
 logger = logging.getLogger(__name__)
@@ -17,34 +18,35 @@ class Job(object):
         "job-printer-uri"
     ]
 
-    def __init__(self, document=None):
+    def __init__(self, jid, printer, creator="", name="", size=0):
 	"""Initialize a Gutenbach job.
 
 	This sets the status to 'initializing' and optionally sets the
 	document to print to the value of document.
 	"""
-	 
-	self.jid = None
-        self.name = document
-	self.status = None
-	self.document = document
-	self.printer = None
+
+	self.jid      = jid
+	self.printer  = printer
+
+        self.creator  = creator
+        self.name     = name
+        self.size     = size
+
+	self.status   = ipp.JobStates.PENDING
 
     def __getattr__(self, attr):
         try:
-            return super(Job, self).__getattr__(attr)
+            return self.__getattribute__(attr)
         except AttributeError:
             pass
-
-        return super(Job, self).__getattr__(
-            attr.replace("-", "_"))
+        return self.__getattribute__(attr.replace("-", "_"))
 
     def __hasattr__(self, attr):
-        has = super(Job, self).__hasattr__(attr)
-        if not has:
-            has = super(Job, self).__hasattr__(
-                attr.replace("-", "_"))
-        return has
+        try:
+            getattr(self, attr)
+            return True
+        except AttributeError:
+            return False
 
     #### Job attributes
 
@@ -59,12 +61,12 @@ class Job(object):
     # XXX: we need to actually calculate this!
     @property
     def job_originating_user_name(self):
-        return ipp.JobOriginatingUserName("jhamrick")
+        return ipp.JobOriginatingUserName(self.creator)
 
     # XXX: we need to actually calculate this!
     @property
     def job_k_octets(self):
-        return ipp.JobKOctets(1)
+        return ipp.JobKOctets(self.size)
 
     @property
     def job_state(self):
@@ -74,20 +76,19 @@ class Job(object):
     def job_printer_uri(self):
         return ipp.JobPrinterUri(self.printer.uri)
 
-    def get_job_attributes(self, request):
-        attributes = [getattr(self, attr) for attr in self.attributes]
+    def get_job_attributes(self, request=None):
+        if request and 'requested-attributes' in request:
+            requested = []
+            for value in request['requested-attributes'].values:
+                if value.value in self.attributes:
+                    requested.append(value.value)
+        else:
+            requested = self.attributes
+            
+        attributes = [getattr(self, attr) for attr in requested]
         return attributes
     
     #######
-
-    def enqueue(self, printer, job_id):
-	if self.status != None:
-	    raise InvalidJobException(
-		"Cannot enqueue a job that has " + \
-		"already been initialized!")
-	self.printer = printer
-        self.jid = job_id
-	self.status = const.JobStates.PENDING
 
     def play(self):
 	if self.status != 'active':
@@ -106,6 +107,4 @@ class Job(object):
 	return str(self)
 
     def __str__(self):
-        return "<Job %d '%s'>" % \
-               (self.jid if self.jid is not None else -1, \
-                self.document)
+        return "<Job %d '%s'>" % (self.jid if self.jid is not None else -1, self.name)

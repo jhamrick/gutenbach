@@ -8,23 +8,16 @@ import traceback
 # initialize logger
 logger = logging.getLogger(__name__)
 
+# initialize handler
+handler = GutenbachRequestHandler()
+
 class GutenbachIPPServer(BaseHTTPServer.BaseHTTPRequestHandler):
-    def setup(self):
-        self.root = GutenbachRequestHandler()
-        BaseHTTPServer.BaseHTTPRequestHandler.setup(self)
-
-    def handle_one_request(self):
-        self.raw_requestline = self.rfile.readline()
-        if not self.raw_requestline:
-            self.close_connection = 1
-            return
-        if not self.parse_request(): # An error code has been sent, just exit
-            return
-        self.handle_ipp()
-
-    def handle_ipp(self):
+    def do_POST(self):
         # Receive a request
         length = int(self.headers.getheader('content-length', 0))
+        if length == 0:
+            logger.warning("content-length == 0")
+            return
         request = ipp.Request(request=self.rfile, length=length)
 
         # Get the handler and pass it the request and response
@@ -32,7 +25,7 @@ class GutenbachIPPServer(BaseHTTPServer.BaseHTTPRequestHandler):
         # throw a fatal error.
         logger.debug("Received request: %s" % repr(request))
         try:
-            response = self.root.handle(request)
+            response = handler.handle(request)
         except:
             logger.fatal(traceback.format_exc())
             sys.exit(1)

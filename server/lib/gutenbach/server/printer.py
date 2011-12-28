@@ -1,5 +1,6 @@
 #import alsaaudio as aa
 from .exceptions import InvalidJobException, InvalidPrinterStateException
+from .job import Job
 import gutenbach.ipp as ipp
 import logging
 import time
@@ -168,19 +169,59 @@ class GutenbachPrinter(object):
     def multiple_document_jobs_supported(self):
         return ipp.MultipleDocumentJobsSupported(False)
 
-    def get_printer_attributes(self, request):
-        attributes = [getattr(self, attr) for attr in self.attributes]
-        return attributes
-
     ## Printer operations
 
-    def print_job(self, job):
-	jobid = self._next_jobid
+    def get_printer_attributes(self, request=None):
+        if request and 'requested-attributes' in request:
+            requested = []
+            for value in request['requested-attributes'].values:
+                if value.value in self.attributes:
+                    requested.append(value.value)
+        else:
+            requested = self.attributes
+            
+        attributes = [getattr(self, attr) for attr in requested]
+        return attributes
+
+    def create_job(self, request):
+        operation = request.attribute_groups[0]
+        kwargs = {}
+        
+        # requesting username
+        if 'requesting-user-name' in operation:
+            username_attr = operation['requesting-user-name']
+            username = username_attr.values[0].value
+            if username_attr != ipp.RequestingUserName(username):
+                raise ipp.errors.ClientErrorBadRequest(str(username_attr))
+            kwargs['creator'] = username
+
+        # job name
+        if 'job-name' in operation:
+            job_name_attr = operation['job-name']
+            job_name = job_name_attr.values[0].value
+            if job_name_attr != ipp.JobName(job_name):
+                raise ipp.errors.ClientErrorBadRequest(str(job_name_attr))
+            kwargs['name'] = job_name
+
+        # job size
+        if 'job-k-octets' in operation:
+            job_k_octets_attr = operation['job-k-octets']
+            job_k_octets = job_k_octets_attr.values[0].value
+            if job_k_octets_attr != ipp.JobKOctets(job_k_octets):
+                raise ipp.errors.ClientErrorBadRequest(str(job_k_octets_attr))
+            kwargs['size'] = job_k_octets
+
+        job_id = self._next_jobid
         self._next_jobid += 1
-	self.active_jobs.append(jobid)
-	self.jobs[jobid] = job
-	job.enqueue(self, jobid)
-	return jobid
+        
+        job = Job(job_id, self, **kwargs)
+        self.jobs[job_id] = job
+        self.active_jobs.append(job_id)
+        print self.active_jobs
+        return job
+
+    def print_job(self, job):
+        pass
 
     def complete_job(self, jobid):
 	job = self.jobs[self.active_jobs.pop(0)]
@@ -213,11 +254,12 @@ class GutenbachPrinter(object):
 	return self.jobs[jobid]
 
     def get_jobs(self):
+        print self.active_jobs
         jobs = [self.jobs[job_id] for job_id in self.active_jobs]
-        return jobs            
+        return jobs
 
-    def __repr__(self):
-	return str(self)
+    # def __repr__(self):
+    #     return str(self)
 
-    def __str__(self):
-	return "<Printer '%s'>" % self.name
+    # def __str__(self):
+    #     return "<Printer '%s'>" % self.name
