@@ -187,7 +187,7 @@ class Request():
             if length < 0:
                 raise ClientErrorBadRequest("length (%d) < 0" % length)
             
-            self.data = tempfile.TemporaryFile()
+            self.data = tempfile.NamedTemporaryFile()
             self.data.write(request.read(length))
             self.data.seek(0)
             

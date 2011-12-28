@@ -226,6 +226,7 @@ class GutenbachPrinter(object):
             raise InvalidPrinterStateException(
                 "Invalid job state: %d" % job.status)
         job.document = document
+        logger.debug("document for job %d is '%s'" % (jobid, job.document.name))
         job.status = ipp.JobStates.PENDING
 
     def print_job(self, job):
@@ -250,7 +251,15 @@ class GutenbachPrinter(object):
             job = None
         else:
             job = self.active_jobs[0]
-        return job        
+        return job
+
+    def stop(self):
+        if len(self.active_jobs) == 0:
+            return
+        job = self.jobs[self.active_jobs[0]]
+        if job.player is not None:
+            logger.info("stopping printer %s" % self.name)
+            job.player.terminate()
 
     def get_job(self, jobid):
 	if jobid not in self.jobs:

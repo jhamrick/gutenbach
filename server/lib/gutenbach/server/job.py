@@ -2,6 +2,8 @@ from . import InvalidJobException, InvalidPrinterStateException
 import os
 import gutenbach.ipp as ipp
 import logging
+import subprocess
+import time
 
 # initialize logger
 logger = logging.getLogger(__name__)
@@ -35,6 +37,7 @@ class Job(object):
 
         self.document = None
         self.document_name = None
+        self.player = None
 
 	self.status   = ipp.JobStates.HELD
 
@@ -98,6 +101,18 @@ class Job(object):
         logger.info("playing job %s" % str(self))
 	# TODO: add external call to music player
 	self.status = ipp.JobStates.PROCESSING
+        self.player = subprocess.Popen(
+            "/usr/bin/mplayer -quiet %s" % self.document.name,
+            shell=True)
+            #stderr=subprocess.PIPE,
+            #stdout=subprocess.PIPE)
+        while self.player.poll() is None:
+            time.sleep(0.1)
+        logger.info("mplayer finished with code %d" % self.player.returncode)
+        #if self.player.returncode < 0:
+        #    logger.error(self.player.stderr)
+        #logger.debug(self.player.stdout)
+        self.player = None
 	self.printer.complete_job(self.jid)
 
     def finish(self):
