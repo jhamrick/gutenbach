@@ -49,24 +49,23 @@ class GutenbachPrinter(threading.Thread):
     ]
         
     def __init__(self, name, *args, **kwargs):
+
+        super(GutenbachPrinter, self).__init__(*args, **kwargs)
+        
+        self.name = name
+        self.time_created = int(time.time())
+
+        self.finished_jobs = []
+        self.pending_jobs = []
+        self.current_job = None
+        self.jobs = {}
+
         self.lock = threading.RLock()
+        self.running = False
+        self.paused = False
 
-        with self.lock:
-            super(GutenbachPrinter, self).__init__(*args, **kwargs)
-            
-            self.name = name
-            self.time_created = int(time.time())
-
-            self.finished_jobs = []
-            self.pending_jobs = []
-            self.current_job = None
-            self.jobs = {}
-
-            self.running = False
-            self.paused = False
-
-            # CUPS ignores jobs with id 0, so we have to start at 1
-            self._next_job_id = 1
+        # CUPS ignores jobs with id 0, so we have to start at 1
+        self._next_job_id = 1
 
     def __repr__(self):
         return str(self)
@@ -131,12 +130,13 @@ class GutenbachPrinter(threading.Thread):
                 try:
                     job_id = heapq.heappop(self.pending_jobs)
                     self.current_job = self.get_job(job_id)
+                    print "before play"
                     self.current_job.play()
+                    print "after play"
                 except IndexError:
-                    pass
+                    self.current_job = None
                 except InvalidJobStateException:
                     heapq.heappush(self.pending_jobs, self.current_job.id)
-                finally:
                     self.current_job = None
                     
     def complete_job(self):

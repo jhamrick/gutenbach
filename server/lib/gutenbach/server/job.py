@@ -137,7 +137,7 @@ class Job(object):
         logger.info("playing job %s" % str(self))
 	self.state = States.PROCESSING
         self.player.callback = self._completed
-        self.player.run()
+        self.player.start()
 
     def pause(self):
         if self.player:

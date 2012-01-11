@@ -22,7 +22,7 @@ import sys
 import traceback
 
 # configure and initialize logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 def error(self, request=None, client_address=None):
