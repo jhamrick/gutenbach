@@ -2,6 +2,7 @@ __all__ = [
     'InvalidJobException',
     'InvalidPrinterStateException',
     'InvalidJobStateException',
+    'MissingDataException'
     ]
 
 class InvalidJobException(Exception):
@@ -17,7 +18,21 @@ class InvalidPrinterStateException(Exception):
         return "Invalid printer state: %s" % self.state
 
 class InvalidJobStateException(Exception):
+    errstr = {
+        3: "pending",
+        4: "held",
+        5: "processing",
+        6: "stopped",
+        7: "cancelled",
+        8: "aborted",
+        9: "complete"
+        }
+    
     def __init__(self, state):
-        self.state = hex(state)
+        self.state = int(state)
     def __str__(self):
-        return "Invalid job state: %s" % self.state
+        return "Invalid job state: %s (%s)" % \
+               (self.errstr[self.state], hex(self.state))
+
+class MissingDataException(Exception):
+    pass

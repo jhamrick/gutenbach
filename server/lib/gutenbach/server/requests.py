@@ -46,9 +46,8 @@ def verify_attribute(attr, cls, length=1):
 
 class GutenbachRequestHandler(object):
 
-    def __init__(self, gutenbach_server):
-        self.gutenbach_server = gutenbach_server
-        self.printer = gutenbach_server.printer
+    def __init__(self, gutenbach_printer):
+        self.printer = gutenbach_printer
 
     def generic_handle(self, request):
         # check the IPP version number

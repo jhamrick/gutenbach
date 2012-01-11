@@ -1,14 +1,19 @@
-from . import InvalidJobException, InvalidPrinterStateException
+from . import InvalidJobException, InvalidPrinterStateException, InvalidJobStateException
 from . import Job
 from gutenbach.ipp import PrinterStates as States
 import gutenbach.ipp as ipp
 import logging
 import time
+import threading
+import heapq
+import traceback
+import sys
+
 
 # initialize logger
 logger = logging.getLogger(__name__)
 
-class GutenbachPrinter(object):
+class GutenbachPrinter(threading.Thread):
 
     # for IPP
     attributes = [
@@ -43,18 +48,25 @@ class GutenbachPrinter(object):
         "get-jobs",
     ]
         
-    def __init__(self, name):
+    def __init__(self, name, *args, **kwargs):
+        self.lock = threading.RLock()
 
-	self.name = name
-        self.time_created = int(time.time())
-        self.state = States.IDLE
+        with self.lock:
+            super(GutenbachPrinter, self).__init__(*args, **kwargs)
+            
+            self.name = name
+            self.time_created = int(time.time())
 
-	self.finished_jobs = []
-	self.active_jobs = []
-	self.jobs = {}
+            self.finished_jobs = []
+            self.pending_jobs = []
+            self.current_job = None
+            self.jobs = {}
 
-        # cups ignores jobs with id 0, so we have to start at 1
-	self._next_jobid = 1
+            self.running = False
+            self.paused = False
+
+            # CUPS ignores jobs with id 0, so we have to start at 1
+            self._next_job_id = 1
 
     def __repr__(self):
         return str(self)
@@ -77,41 +89,77 @@ class GutenbachPrinter(object):
         return self.uris[0]
 
     @property
-    def next_job(self):
-        if len(self.active_jobs) == 0:
-            job = None
-        else:
-            job = self.active_jobs[0]
-        return job
+    def state(self):
+        with self.lock:
+            if self.current_job is not None:
+                val = States.PROCESSING
+            elif len(self.pending_jobs) == 0:
+                val = States.IDLE
+            else:
+                val = States.STOPPED
+        return val
+
+    @property
+    def active_jobs(self):
+        with self.lock:
+            jobs = self.pending_jobs[:]
+            if self.current_job is not None:
+                jobs.insert(0, self.current_job.id)
+        return jobs
 
     ######################################################################
     ###                            Methods                             ###
     ######################################################################
 
-    def complete_job(self, jobid):
-	job = self.jobs[self.active_jobs.pop(0)]
-	self.finished_jobs.append(job)
-	job.finish()
-	return job.id
+    def run(self):
+        self.running = True
+        while self.running:
+            with self.lock:
+                try:
+                    if self.current_job is None:
+                        self.start_job()
+                    elif self.current_job.is_finished:
+                        self.complete_job()
+                except:
+                    logger.fatal(traceback.format_exc())
+                    sys.exit(1)
+            time.sleep(0.1)
 
-    def start_job(self, jobid):
-	job = self.jobs[self.active_jobs[0]]
-	if job.status != ipp.JobStates.PENDING:
-	    raise InvalidPrinterStateException(job.status)
-	job.play()
+    def start_job(self):
+        with self.lock:
+            if self.current_job is None:
+                try:
+                    job_id = heapq.heappop(self.pending_jobs)
+                    self.current_job = self.get_job(job_id)
+                    self.current_job.play()
+                except IndexError:
+                    pass
+                except InvalidJobStateException:
+                    heapq.heappush(self.pending_jobs, self.current_job.id)
+                finally:
+                    self.current_job = None
+                    
+    def complete_job(self):
+        with self.lock:
+            if self.current_job is None:
+                return
+
+            try:
+                if not self.current_job.is_finished:
+                    self.current_job.stop()
+            finally:
+                self.finished_jobs.append(self.current_job)
+                self.current_job = None
 
     def stop(self):
-        if len(self.active_jobs) == 0:
-            return
-        job = self.jobs[self.active_jobs[0]]
-        if job.player is not None:
-            logger.info("stopping printer %s" % self.name)
-            job.player.terminate()
+        pass
 
-    def get_job(self, jobid):
-	if jobid not in self.jobs:
-	    raise InvalidJobException(jobid)
-	return self.jobs[jobid]
+    def get_job(self, job_id):
+        with self.lock:
+            if job_id not in self.jobs:
+                raise InvalidJobException(job_id)
+            job = self.jobs[job_id]
+        return job
 
     ######################################################################
     ###                        IPP Attributes                          ###
@@ -237,8 +285,8 @@ class GutenbachPrinter(object):
         pass
 
     def create_job(self, requesting_user_name="", job_name="", job_k_octets=0):
-        job_id = self._next_jobid
-        self._next_jobid += 1
+        job_id = self._next_job_id
+        self._next_job_id += 1
         
         job = Job(job_id,
                   self,
@@ -247,8 +295,7 @@ class GutenbachPrinter(object):
                   size=job_k_octets)
         
         self.jobs[job_id] = job
-        self.active_jobs.append(job_id)
-        self.state = States.PROCESSING
+        self.pending_jobs.append(job_id)
         
         return job
 

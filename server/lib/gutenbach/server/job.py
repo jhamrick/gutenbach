@@ -1,10 +1,9 @@
-from . import InvalidJobException, InvalidPrinterStateException
+from . import InvalidJobStateException, MissingDataException
+from .player import Player
 from gutenbach.ipp import JobStates as States
 import os
 import gutenbach.ipp as ipp
 import logging
-import subprocess
-import time
 
 # initialize logger
 logger = logging.getLogger(__name__)
@@ -33,9 +32,9 @@ class Job(object):
         self.creator = creator
         self.name = name
         self.size = size
-	self.status = States.HELD
+	self.state = States.HELD
+        self.priority = 1
 
-        self.document = None
         self.document_name = None
         self.document_format = None
         self.document_natural_language = None
@@ -46,6 +45,9 @@ class Job(object):
 
     def __str__(self):
         return "<Job %d '%s'>" % (self.id, self.name)
+
+    def __cmp__(self, other):
+        return cmp(self.priority, other.priority)
 
     ######################################################################
     ###                          Properties                            ###
@@ -97,11 +99,7 @@ class Job(object):
         """The size of the job in bytes.
 
         """
-        if self.document:
-            size = os.path.getsize(self.document.name)
-        else:
-            size = self._size
-        return size
+        return self._size
     @size.setter
     def size(self, val):
         try:
@@ -109,32 +107,74 @@ class Job(object):
         except TypeError:
             self._size = 0
 
+    @property
+    def is_playing(self):
+        return self.state == States.PROCESSING
+
+    @property
+    def is_ready(self):
+        return self.state == States.PENDING
+
+    @property
+    def is_finished(self):
+        return self.state != States.PENDING and self.state != States.PROCESSING
+        
     ######################################################################
     ###                            Methods                             ###
     ######################################################################
 
     def play(self):
-        logger.info("playing job %s" % str(self))
-	self.status = States.PROCESSING
-        self.player = subprocess.Popen(
-            "/usr/bin/mplayer -really-quiet -slave %s" % self.document.name,
-            shell=True,
-            stderr=subprocess.PIPE,
-            stdout=subprocess.PIPE)
-        while self.player.poll() is None:
-            time.sleep(0.1)
-        logger.info("mplayer finished with code %d" % self.player.returncode)
-        stderr = self.player.stderr.read()
-        stdout = self.player.stdout.read()
-        if stderr.strip() != "":
-            logger.error(stderr)
-        logger.debug(stdout)
-        self.player = None
-	self.printer.complete_job(self.id)
+        """Non-blocking play function.
 
-    def finish(self):
-        logger.info("finished job %s" % str(self))
-	self.status = States.COMPLETE
+        """
+        
+        # make sure the job is waiting to be played and that it's
+        # valid
+        if self.state != States.PENDING:
+            raise InvalidJobStateException(self.state)
+        
+        # and set the state to processing if we're good to go
+        logger.info("playing job %s" % str(self))
+	self.state = States.PROCESSING
+        self.player.callback = self._completed
+        self.player.run()
+
+    def pause(self):
+        if self.player:
+            self.player.mplayer_pause()
+
+    def stop(self):
+        if self.player:
+            self.player.callback = self._stopped
+            self.player.mplayer_stop()
+
+    def _completed(self):
+        if self.state != States.PROCESSING:
+            raise InvalidJobStateException(self.state)
+        logger.info("completed job %s" % str(self))
+	self.state = States.COMPLETE
+        self.player = None
+
+    def _canceled(self):
+        if self.state != States.PROCESSING:
+            raise InvalidJobStateException(self.state)
+        logger.info("canceled job %s" % str(self))
+        self.state = States.CANCELLED
+        self.player = None
+
+    def _stopped(self):
+        if self.state != States.PROCESSING:
+            raise InvalidJobStateException(self.state)
+        logger.info("stopped job %s" % str(self))
+        self.state = States.STOPPED
+        self.player = None
+
+    def _aborted(self):
+        if self.state != States.PROCESSING:
+            raise InvalidJobStateException(self.state)
+        logger.info("aborted job %s" % str(self))
+        self.state = States.ABORTED
+        self.player = None
 
     ######################################################################
     ###                        IPP Attributes                          ###
@@ -148,19 +188,17 @@ class Job(object):
     def job_name(self):
         return ipp.JobName(self.name)
 
-    # XXX: we need to actually calculate this!
     @property
     def job_originating_user_name(self):
         return ipp.JobOriginatingUserName(self.creator)
 
-    # XXX: we need to actually calculate this!
     @property
     def job_k_octets(self):
         return ipp.JobKOctets(self.size)
 
     @property
     def job_state(self):
-        return ipp.JobState(self.status)
+        return ipp.JobState(self.state)
 
     @property
     def job_printer_uri(self):
@@ -174,25 +212,25 @@ class Job(object):
     def cancel_job(self):
         pass
 
-    def send_document(self,
-                      document,
-                      document_name=None,
-                      document_format=None,
-                      document_natural_language=None,
-                      requesting_user_name=None,
-                      compression=None,
+    def send_document(self, document, document_name=None,
+                      document_format=None, document_natural_language=None,
+                      requesting_user_name=None, compression=None,
                       last_document=None):
 
-        if self.status != States.HELD:
-            raise InvalidJobStateException(self.status)
+        if self.state != States.HELD:
+            raise InvalidJobStateException(self.state)
+
+        self.player = Player(document)
+
+        if self.size == 0:
+            self.size = os.path.getsize(document.name)
         
-        self.document = document
         self.document_name = str(document_name)
         self.document_format = str(document_format)
         self.document_natural_language = str(document_natural_language)
         self.creator = str(requesting_user_name)
         self.compression = str(compression)
-        self.status = States.PENDING
+        self.state = States.PENDING
 
         logger.debug("document for job %d is '%s'" % (self.id, self.document_name))
 
