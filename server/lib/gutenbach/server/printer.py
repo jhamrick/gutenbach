@@ -130,9 +130,7 @@ class GutenbachPrinter(threading.Thread):
                 try:
                     job_id = heapq.heappop(self.pending_jobs)
                     self.current_job = self.get_job(job_id)
-                    print "before play"
                     self.current_job.play()
-                    print "after play"
                 except IndexError:
                     self.current_job = None
                 except InvalidJobStateException:
@@ -264,8 +262,9 @@ class GutenbachPrinter(threading.Thread):
     def get_jobs(self, requesting_user_name="", which_jobs=None):
         # Filter by the which-jobs attribute
         if which_jobs is None:
-            jobs = self.jobs.values()
-        elif which_jobs == "completed":
+            which_jobs = "not-completed"
+
+        if which_jobs == "completed":
             jobs = [self.jobs[job_id] for job_id in self.finished_jobs]
         elif which_jobs == "not-completed":
             jobs = [self.jobs[job_id] for job_id in self.active_jobs]

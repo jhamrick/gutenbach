@@ -1,3 +1,4 @@
+from . import InvalidJobException, InvalidPrinterStateException, InvalidJobStateException
 import gutenbach.ipp as ipp
 import logging
 import traceback
@@ -445,7 +446,103 @@ class GutenbachRequestHandler(object):
 
     @handler_for(ipp.OperationCodes.CANCEL_JOB)
     def cancel_job(self, request, response):
-        raise ipp.errors.ServerErrorOperationNotSupported
+        """3.3.3 Cancel-Job Operation
+
+        This REQUIRED operation allows a client to cancel a Print Job from
+        the time the job is created up to the time it is completed, canceled,
+        or aborted. Since a Job might already be printing by the time a
+        Cancel-Job is received, some media sheet pages might be printed
+        before the job is actually terminated.
+
+        The IPP object MUST accept or reject the request based on the job's
+        current state and transition the job to the indicated new state as
+        follows:
+
+        Current State       New State           Response
+        -----------------------------------------------------------------
+        pending             canceled            successful-ok
+        pending-held        canceled            successful-ok
+        processing          canceled            successful-ok
+        processing          processing          successful-ok               See Rule 1
+        processing          processing          client-error-not-possible   See Rule 2
+        processing-stopped  canceled            successful-ok
+        processing-stopped  processing-stopped  successful-ok               See Rule 1
+        processing-stopped  processing-stopped  client-error-not-possible   See Rule 2
+        completed           completed           client-error-not-possible
+        canceled            canceled            client-error-not-possible
+        aborted             aborted             client-error-not-possible
+
+        Rule 1: If the implementation requires some measurable time to
+        cancel the job in the 'processing' or 'processing-stopped' job
+        states, the IPP object MUST add the 'processing-to-stop-point'
+        value to the job's 'job-state-reasons' attribute and then
+        transition the job to the 'canceled' state when the processing
+        ceases (see section 4.3.8).
+
+        Rule 2: If the Job object already has the
+        'processing-to-stop-point' value in its 'job-state-reasons'
+        attribute, then the Printer object MUST reject a Cancel-Job
+        operation.
+
+        Access Rights: The authenticated user (see section 8.3)
+        performing this operation must either be the job owner or an
+        operator or administrator of the Printer object (see Sections
+        1 and 8.5).  Otherwise, the IPP object MUST reject the
+        operation and return: 'client-error-forbidden',
+        'client-error-not-authenticated', or
+        'client-error-not-authorized' as appropriate.
+
+        Request
+        -------
+
+        Group 1: Operation Attributes
+            REQUIRED 'attributes-charset' 
+            REQUIRED 'attributes-natural-language' 
+            REQUIRED 'job-id' (integer(1:MAX)) and 'printer-uri' (uri)
+              -or-   'job-uri' (uri)
+            OPTIONAL 'requesting-user-name' (name(MAX))
+            OPTIONAL 'message' (text(127))
+            
+        Response
+        --------
+
+        Group 1: Operation Attributes
+            OPTIONAL 'status-message' (text(255))
+            OPTIONAL 'detailed-status-message' (text(MAX))
+            REQUIRED 'attributes-charset'
+            REQUIRED 'attributes-natural-language'
+        Group 2: Unsupported Attributes
+
+        """
+
+        operation = request.attribute_groups[0]
+
+        job_id = None
+        printer_uri = None
+        requesting_user_name = None
+        message = None
+
+        # required attributes
+        if 'job-id' in operation and 'printer-uri' in operation:
+            job_id = verify_attribute(operation['job-id'], ipp.JobId)[0]
+            printer_uri = verify_attribute(operation['printer-uri'], ipp.PrinterUri)[0]
+            if printer_uri not in self.printer.uris:
+                raise ipp.errors.ClientErrorAttributes(
+                    str(operation['printer-uri']), operation['printer-uri'])
+
+        elif 'job-uri' in operation:
+            job_uri = verify_attribute(operation['job-uri'], ipp.JobUri)[0]
+            job_id = int(job_uri.split("/")[-1])
+
+        if 'requesting-user-name' in operation:
+            user_name = verify_attribute(
+                operation['requesting-user-name'], ipp.RequestingUserName)[0]
+
+        try:
+            job = self.printer.get_job(job_id)
+            job.cancel()
+        except InvalidJobException:
+            raise ipp.errors.ClientErrorNotFound("bad job: %d" % job_id)
 
     @handler_for(ipp.OperationCodes.SEND_DOCUMENT)
     def send_document(self, request, response):
@@ -503,8 +600,8 @@ class GutenbachRequestHandler(object):
         Group 1: Operation Attributes
             REQUIRED 'attributes-charset' 
             REQUIRED 'attributes-natural-language' 
-            REQUIRED 'job-id' (uri)
-            OPTIONAL 'printer-uri' (uri)
+            REQUIRED 'job-id' (integer(1:MAX)) and 'printer-uri' (uri)
+              -or-   'job-uri' (uri)
             OPTIONAL 'requesting-user-name' (name(MAX))
             OPTIONAL 'document-name' (name(MAX))
             OPTIONAL 'compression' (type3 keyword)
@@ -582,18 +679,22 @@ class GutenbachRequestHandler(object):
                 operation['document_natural_language'],
                 ipp.DocumentNaturalLanguage)[0]
 
-        job = self.printer.get_job(job_id)
-        job.send_document(
-            request.data,
-            requesting_user_name=user_name,
-            document_name=document_name,
-            compression=compression,
-            document_format=document_format,
-            document_natural_language=document_natural_language,
-            last_document=last_document)
+        try:
+            job = self.printer.get_job(job_id)
+            job.send_document(
+                request.data,
+                requesting_user_name=user_name,
+                document_name=document_name,
+                compression=compression,
+                document_format=document_format,
+                document_natural_language=document_natural_language,
+                last_document=last_document)
+            attrs = job.get_job_attributes()
+        except InvalidJobException:
+            raise ipp.errors.ClientErrorNotFound("bad job: %d" % job_id)
 
         response.attribute_groups.append(ipp.AttributeGroup(
-            ipp.AttributeTags.JOB, job.get_job_attributes()))
+            ipp.AttributeTags.JOB, attrs))
 
     @handler_for(ipp.OperationCodes.SEND_URI)
     def send_uri(self, request, response):
@@ -646,8 +747,8 @@ class GutenbachRequestHandler(object):
         Group 1: Operation Attributes
             REQUIRED 'attributes-charset' 
             REQUIRED 'attributes-natural-language' 
-            REQUIRED 'job-id' (uri)
-            OPTIONAL 'printer-uri' (uri)
+            REQUIRED 'job-id' (integer(1:MAX)) and 'printer-uri' (uri)
+              -or-   'job-uri' (uri)
             OPTIONAL 'requesting-user-name' (name(MAX))
             OPTIONAL 'requested-attributes' (1setOf keyword)
             
@@ -693,8 +794,12 @@ class GutenbachRequestHandler(object):
                 operation['requested-attributes'], ipp.RequestedAttributes, length=None)
 
         # get the job attributes and add them to the response
-        job = self.printer.get_job(job_id)
-        attrs = job.get_job_attributes(requested_attributes=requested_attributes)
+        try:
+            job = self.printer.get_job(job_id)
+            attrs = job.get_job_attributes(requested_attributes=requested_attributes)
+        except InvalidJobException:
+            raise ipp.errors.ClientErrorNotFound("bad job: %d" % job_id)
+
         response.attribute_groups.append(ipp.AttributeGroup(
             ipp.AttributeTags.JOB, attrs))
 

@@ -68,6 +68,15 @@ class Job(object):
             self._id = -1
 
     @property
+    def uri(self):
+        return self.uris[0]
+
+    @property
+    def uris(self):
+        return ["ipp://localhost/jobs/%d" % self.id,
+                "ipp://localhost:8000/jobs/%d" % self.id]
+
+    @property
     def creator(self):
         """The user who created the job; analogous to the IPP
         requesting-user-name.
@@ -117,7 +126,9 @@ class Job(object):
 
     @property
     def is_finished(self):
-        return self.state != States.PENDING and self.state != States.PROCESSING
+        return self.state != States.PENDING and \
+               self.state != States.PROCESSING and \
+               self.state != States.HELD
         
     ######################################################################
     ###                            Methods                             ###
@@ -140,38 +151,33 @@ class Job(object):
         self.player.start()
 
     def pause(self):
-        if self.player:
+        if self.is_playing:
             self.player.mplayer_pause()
+            self.state = States.STOPPED
 
-    def stop(self):
-        if self.player:
-            self.player.callback = self._stopped
+    def cancel(self):
+        if self.is_playing:
+            self.player.callback = self._canceled
             self.player.mplayer_stop()
+        self.state = States.CANCELLED
+
+    def abort(self):
+        if self.is_playing:
+            self.player.callback = self._aborted
+            self.player.mplayer_stop()
+        self.state = states.ABORTED
 
     def _completed(self):
-        if self.state != States.PROCESSING:
-            raise InvalidJobStateException(self.state)
         logger.info("completed job %s" % str(self))
 	self.state = States.COMPLETE
         self.player = None
 
     def _canceled(self):
-        if self.state != States.PROCESSING:
-            raise InvalidJobStateException(self.state)
         logger.info("canceled job %s" % str(self))
         self.state = States.CANCELLED
         self.player = None
 
-    def _stopped(self):
-        if self.state != States.PROCESSING:
-            raise InvalidJobStateException(self.state)
-        logger.info("stopped job %s" % str(self))
-        self.state = States.STOPPED
-        self.player = None
-
     def _aborted(self):
-        if self.state != States.PROCESSING:
-            raise InvalidJobStateException(self.state)
         logger.info("aborted job %s" % str(self))
         self.state = States.ABORTED
         self.player = None
