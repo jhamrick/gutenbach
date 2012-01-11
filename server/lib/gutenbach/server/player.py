@@ -40,6 +40,9 @@ class Player(threading.Thread):
             if self.callback:
                 self.callback()
 
+        self.fh.close()
+        self.fh = None
+
     def mplayer_play(self):
         logger.info("playing file '%s'" % self.fh.name)
         

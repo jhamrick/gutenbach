@@ -257,11 +257,11 @@ class GutenbachRequestHandler(object):
                 user = None
             
         # get the job attributes and add them to the response
-        jobs = self.printer.get_jobs(
+        job_attrs = self.printer.get_jobs(
             which_jobs=which_jobs,
-            requesting_user_name=user)
-        for job in jobs:
-            attrs = job.get_job_attributes(requested_attributes=attributes)
+            requesting_user_name=user,
+            requested_attributes=attributes)
+        for attrs in job_attrs:
             response.attribute_groups.append(ipp.AttributeGroup(
                 ipp.AttributeTags.JOB, attrs))
 
@@ -353,12 +353,13 @@ class GutenbachRequestHandler(object):
             pass # don't care
 
         # get attributes from the printer and add to response
-        job = self.printer.create_job(
+        job_id = self.printer.create_job(
             requesting_user_name=requesting_user_name,
             job_name=job_name,
             job_k_octets=job_k_octets)
+        attrs = self.printer.get_job_attributes(job_id)
         response.attribute_groups.append(ipp.AttributeGroup(
-            ipp.AttributeTags.JOB, job.get_job_attributes()))
+            ipp.AttributeTags.JOB, attrs))
     
     @handler_for(ipp.OperationCodes.PAUSE_PRINTER)
     def pause_printer(self, request, response):
@@ -535,12 +536,11 @@ class GutenbachRequestHandler(object):
             job_id = int(job_uri.split("/")[-1])
 
         if 'requesting-user-name' in operation:
-            user_name = verify_attribute(
+            requesting_user_name = verify_attribute(
                 operation['requesting-user-name'], ipp.RequestingUserName)[0]
 
         try:
-            job = self.printer.get_job(job_id)
-            job.cancel()
+            self.printer.cancel_job(job_id, requesting_user_name=requesting_user_name)
         except InvalidJobException:
             raise ipp.errors.ClientErrorNotFound("bad job: %d" % job_id)
 
@@ -680,16 +680,16 @@ class GutenbachRequestHandler(object):
                 ipp.DocumentNaturalLanguage)[0]
 
         try:
-            job = self.printer.get_job(job_id)
-            job.send_document(
+            self.printer.send_document(
+                job_id,
                 request.data,
-                requesting_user_name=user_name,
                 document_name=document_name,
-                compression=compression,
                 document_format=document_format,
                 document_natural_language=document_natural_language,
+                requesting_user_name=user_name,
+                compression=compression,
                 last_document=last_document)
-            attrs = job.get_job_attributes()
+            attrs = self.printer.get_job_attributes(job_id)
         except InvalidJobException:
             raise ipp.errors.ClientErrorNotFound("bad job: %d" % job_id)
 
@@ -795,8 +795,9 @@ class GutenbachRequestHandler(object):
 
         # get the job attributes and add them to the response
         try:
-            job = self.printer.get_job(job_id)
-            attrs = job.get_job_attributes(requested_attributes=requested_attributes)
+            attrs = self.printer.get_job_attributes(
+                job_id,
+                requested_attributes=requested_attributes)
         except InvalidJobException:
             raise ipp.errors.ClientErrorNotFound("bad job: %d" % job_id)
 

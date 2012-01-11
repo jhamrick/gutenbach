@@ -3,8 +3,8 @@ from errors import *
 __all__ = ['errors']
 __all__.extend(errors.__all__)
 
-from job import Job
-__all__.append('Job')
+from job import GutenbachJob
+__all__.append('GutenbachJob')
 
 from printer import GutenbachPrinter
 __all__.append('GutenbachPrinter')

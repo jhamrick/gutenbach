@@ -1,5 +1,5 @@
-from . import InvalidJobException, InvalidPrinterStateException, InvalidJobStateException
-from . import Job
+from .errors import InvalidJobException, InvalidPrinterStateException, InvalidJobStateException
+from .job import GutenbachJob
 from gutenbach.ipp import PrinterStates as States
 import gutenbach.ipp as ipp
 import logging
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class GutenbachPrinter(threading.Thread):
 
     # for IPP
-    attributes = [
+    printer_attributes = [
         "printer-uri-supported",
         "uri-authentication-supported",
         "uri-security-supported",
@@ -40,12 +40,32 @@ class GutenbachPrinter(threading.Thread):
         "multiple-document-jobs-supported",
     ]
 
+    job_attributes = [
+        "job-id",
+        "job-name",
+        "job-originating-user-name",
+        "job-k-octets",
+        "job-state",
+        "job-printer-uri"
+    ]
+
     operations = [
         "print-job",
-        "complete-job",
-        "start-job",
-        "get-job",
+        "validate-job",
         "get-jobs",
+        "print-uri",
+        "create-job",
+        "pause-printer",
+        "resume-printer",
+        "get-printer-attributes",
+        "set-printer-attributes",
+        "cancel-job",
+        "send-document",
+        "send-uri",
+        "get-job-attributes",
+        "set-job-attributes",
+        "restart-job",
+        "promote-job"
     ]
         
     def __init__(self, name, *args, **kwargs):
@@ -72,6 +92,20 @@ class GutenbachPrinter(threading.Thread):
 
     def __str__(self):
         return "<Printer '%s'>" % self.name 
+
+    def run(self):
+        self.running = True
+        while self.running:
+            with self.lock:
+                try:
+                    if self.current_job is None:
+                        self.start_job()
+                    elif self.current_job.is_finished:
+                        self.complete_job()
+                except:
+                    logger.fatal(traceback.format_exc())
+                    sys.exit(1)
+            time.sleep(0.1)
 
     ######################################################################
     ###                          Properties                            ###
@@ -110,20 +144,6 @@ class GutenbachPrinter(threading.Thread):
     ###                            Methods                             ###
     ######################################################################
 
-    def run(self):
-        self.running = True
-        while self.running:
-            with self.lock:
-                try:
-                    if self.current_job is None:
-                        self.start_job()
-                    elif self.current_job.is_finished:
-                        self.complete_job()
-                except:
-                    logger.fatal(traceback.format_exc())
-                    sys.exit(1)
-            time.sleep(0.1)
-
     def start_job(self):
         with self.lock:
             if self.current_job is None:
@@ -148,9 +168,6 @@ class GutenbachPrinter(threading.Thread):
             finally:
                 self.finished_jobs.append(self.current_job)
                 self.current_job = None
-
-    def stop(self):
-        pass
 
     def get_job(self, job_id):
         with self.lock:
@@ -248,6 +265,33 @@ class GutenbachPrinter(threading.Thread):
     def multiple_document_jobs_supported(self):
         return ipp.MultipleDocumentJobsSupported(False)
 
+    ######################################################################
+    ###                      Job IPP Attributes                        ###
+    ######################################################################
+
+    def job_id(self, job_id):
+        job = self.get_job(job_id)
+        return ipp.JobId(job.id)
+
+    def job_name(self, job_id):
+        job = self.get_job(job_id)
+        return ipp.JobName(job.name)
+
+    def job_originating_user_name(self, job_id):
+        job = self.get_job(job_id)
+        return ipp.JobOriginatingUserName(job.creator)
+
+    def job_k_octets(self, job_id):
+        job = self.get_job(job_id)
+        return ipp.JobKOctets(job.size)
+
+    def job_state(self, job_id):
+        job = self.get_job(job_id)
+        return ipp.JobState(job.state)
+
+    def job_printer_uri(self, job_id):
+        job = self.get_job(job_id)
+        return ipp.JobPrinterUri(self.uri)
 
     ######################################################################
     ###                        IPP Operations                          ###
@@ -259,7 +303,9 @@ class GutenbachPrinter(threading.Thread):
     def validate_job(self):
         pass
 
-    def get_jobs(self, requesting_user_name="", which_jobs=None):
+    def get_jobs(self, requesting_user_name=None, which_jobs=None,
+                 requested_attributes=None):
+        
         # Filter by the which-jobs attribute
         if which_jobs is None:
             which_jobs = "not-completed"
@@ -277,8 +323,12 @@ class GutenbachPrinter(threading.Thread):
             user_jobs = jobs
         else:
             user_jobs = [job for job in jobs if job.creator == requesting_user_name]
+
+        # Get the attributes of each job
+        job_attrs = [self.get_job_attributes(
+            job.id, requested_attributes=requested_attributes) for job in user_jobs]
         
-        return user_jobs
+        return job_attrs
 
     def print_uri(self):
         pass
@@ -287,16 +337,15 @@ class GutenbachPrinter(threading.Thread):
         job_id = self._next_job_id
         self._next_job_id += 1
         
-        job = Job(job_id,
-                  self,
-                  creator=requesting_user_name,
-                  name=job_name,
-                  size=job_k_octets)
+        job = GutenbachJob(
+            job_id,
+            creator=requesting_user_name,
+            name=job_name)
         
         self.jobs[job_id] = job
         self.pending_jobs.append(job_id)
         
-        return job
+        return job_id
 
     def pause_printer(self):
         pass
@@ -306,13 +355,53 @@ class GutenbachPrinter(threading.Thread):
 
     def get_printer_attributes(self, requested_attributes=None):
         if requested_attributes is None:
-            requested = self.attributes
+            requested = self.printer_attributes
         else:
-            requested = [a for a in self.attributes if a in requested_attributes]
+            requested = [a for a in self.printer_attributes \
+                         if a in requested_attributes]
 
         _attributes = [attr.replace("-", "_") for attr in requested]
         attributes = [getattr(self, attr) for attr in _attributes]
         return attributes
 
     def set_printer_attributes(self):
+        pass
+
+    def cancel_job(self, job_id, requesting_user_name=None):
+        job = self.get_job(job_id)
+        try:
+            job.cancel()
+        except InvalidJobStateException:
+            # XXX
+            raise
+
+    def send_document(self, job_id, document, document_name=None,
+                      document_format=None, document_natural_language=None,
+                      requesting_user_name=None, compression=None,
+                      last_document=None):
+
+        job = self.get_job(job_id)
+        job.spool(document, username=requesting_user_name)
+
+    def send_uri(self):
+        pass
+
+    def get_job_attributes(self, job_id, requested_attributes=None):
+        if requested_attributes is None:
+            requested = self.job_attributes
+        else:
+            requested = [a for a in self.job_attributes \
+                         if a in requested_attributes]
+
+        _attributes = [attr.replace("-", "_") for attr in requested]
+        attributes = [getattr(self, attr)(job_id) for attr in _attributes]
+        return attributes
+
+    def set_job_attributes(self):
+        pass
+
+    def restart_job(self):
+        pass
+
+    def promote_job(self):
         pass
