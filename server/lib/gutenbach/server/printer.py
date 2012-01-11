@@ -1,5 +1,6 @@
 from . import InvalidJobException, InvalidPrinterStateException
 from . import Job
+from gutenbach.ipp import PrinterStates as States
 import gutenbach.ipp as ipp
 import logging
 import time
@@ -42,36 +43,79 @@ class GutenbachPrinter(object):
         "get-jobs",
     ]
         
-
     def __init__(self, name):
 
 	self.name = name
-        self.uri = "ipp://localhost:8000/printers/" + self.name
         self.time_created = int(time.time())
-        self.state = "idle"
+        self.state = States.IDLE
 
 	self.finished_jobs = []
 	self.active_jobs = []
 	self.jobs = {}
 
         # cups ignores jobs with id 0, so we have to start at 1
-	self._next_jobid = 1 
+	self._next_jobid = 1
 
-    def __getattr__(self, attr):
-        try:
-            return self.__getattribute__(attr)
-        except AttributeError:
-            pass
-        return self.__getattribute__(attr.replace("-", "_"))
+    def __repr__(self):
+        return str(self)
 
-    def __hasattr__(self, attr):
-        try:
-            getattr(self, attr)
-            return True
-        except AttributeError:
-            return False
+    def __str__(self):
+        return "<Printer '%s'>" % self.name 
 
-    ## Printer attributes
+    ######################################################################
+    ###                          Properties                            ###
+    ######################################################################
+
+    @property
+    def uris(self):
+        uris = ["ipp://localhost:8000/printers/" + self.name,
+                "ipp://localhost/printers/" + self.name]
+        return uris
+    
+    @property
+    def uri(self):
+        return self.uris[0]
+
+    @property
+    def next_job(self):
+        if len(self.active_jobs) == 0:
+            job = None
+        else:
+            job = self.active_jobs[0]
+        return job
+
+    ######################################################################
+    ###                            Methods                             ###
+    ######################################################################
+
+    def complete_job(self, jobid):
+	job = self.jobs[self.active_jobs.pop(0)]
+	self.finished_jobs.append(job)
+	job.finish()
+	return job.id
+
+    def start_job(self, jobid):
+	job = self.jobs[self.active_jobs[0]]
+	if job.status != ipp.JobStates.PENDING:
+	    raise InvalidPrinterStateException(job.status)
+	job.play()
+
+    def stop(self):
+        if len(self.active_jobs) == 0:
+            return
+        job = self.jobs[self.active_jobs[0]]
+        if job.player is not None:
+            logger.info("stopping printer %s" % self.name)
+            job.player.terminate()
+
+    def get_job(self, jobid):
+	if jobid not in self.jobs:
+	    raise InvalidJobException(jobid)
+	return self.jobs[jobid]
+
+    ######################################################################
+    ###                        IPP Attributes                          ###
+    ######################################################################
 
     @property
     def printer_uri_supported(self):
@@ -91,7 +135,7 @@ class GutenbachPrinter(object):
 
     @property
     def printer_state(self):
-        return ipp.PrinterState(ipp.constants.PrinterStates.IDLE)
+        return ipp.PrinterState(self.state)
 
     @property
     def printer_state_reasons(self):
@@ -158,109 +202,71 @@ class GutenbachPrinter(object):
     def multiple_document_jobs_supported(self):
         return ipp.MultipleDocumentJobsSupported(False)
 
-    ## Printer operations
 
-    def get_printer_attributes(self, request=None):
-        if request and 'requested-attributes' in request:
-            requested = []
-            for value in request['requested-attributes'].values:
-                if value.value in self.attributes:
-                    requested.append(value.value)
+    ######################################################################
+    ###                        IPP Operations                          ###
+    ######################################################################
+
+    def print_job(self):
+        pass
+
+    def validate_job(self):
+        pass
+
+    def get_jobs(self, requesting_user_name="", which_jobs=None):
+        # Filter by the which-jobs attribute
+        if which_jobs is None:
+            jobs = self.jobs.values()
+        elif which_jobs == "completed":
+            jobs = [self.jobs[job_id] for job_id in self.finished_jobs]
+        elif which_jobs == "not-completed":
+            jobs = [self.jobs[job_id] for job_id in self.active_jobs]
         else:
-            requested = self.attributes
-            
-        attributes = [getattr(self, attr) for attr in requested]
-        return attributes
+            raise ipp.errors.ClientErrorAttributes(
+                which_jobs, ipp.WhichJobs(which_jobs))
 
-    def create_job(self, request):
-        operation = request.attribute_groups[0]
-        kwargs = {}
+        # Filter by username
+        if requesting_user_name is None:
+            user_jobs = jobs
+        else:
+            user_jobs = [job for job in jobs if job.creator == requesting_user_name]
         
-        # requesting username
-        if 'requesting-user-name' in operation:
-            username_attr = operation['requesting-user-name']
-            username = username_attr.values[0].value
-            if username_attr != ipp.RequestingUserName(username):
-                raise ipp.errors.ClientErrorBadRequest(str(username_attr))
-            kwargs['creator'] = username
+        return user_jobs
 
-        # job name
-        if 'job-name' in operation:
-            job_name_attr = operation['job-name']
-            job_name = job_name_attr.values[0].value
-            if job_name_attr != ipp.JobName(job_name):
-                raise ipp.errors.ClientErrorBadRequest(str(job_name_attr))
-            kwargs['name'] = job_name
+    def print_uri(self):
+        pass
 
-        # job size
-        if 'job-k-octets' in operation:
-            job_k_octets_attr = operation['job-k-octets']
-            job_k_octets = job_k_octets_attr.values[0].value
-            if job_k_octets_attr != ipp.JobKOctets(job_k_octets):
-                raise ipp.errors.ClientErrorBadRequest(str(job_k_octets_attr))
-            kwargs['size'] = job_k_octets
-
+    def create_job(self, requesting_user_name="", job_name="", job_k_octets=0):
         job_id = self._next_jobid
         self._next_jobid += 1
         
-        job = Job(job_id, self, **kwargs)
+        job = Job(job_id,
+                  self,
+                  creator=requesting_user_name,
+                  name=job_name,
+                  size=job_k_octets)
+        
         self.jobs[job_id] = job
         self.active_jobs.append(job_id)
+        self.state = States.PROCESSING
+        
         return job
 
-    def send_document(self, jobid, document):
-        job = self.jobs[jobid]
-        if job.status != ipp.JobStates.HELD:
-            raise InvalidPrinterStateException(
-                "Invalid job state: %d" % job.status)
-        job.document = document
-        logger.debug("document for job %d is '%s'" % (jobid, job.document.name))
-        job.status = ipp.JobStates.PENDING
-
-    def print_job(self, job):
+    def pause_printer(self):
         pass
 
-    def complete_job(self, jobid):
-	job = self.jobs[self.active_jobs.pop(0)]
-	self.finished_jobs.append(job)
-	job.finish()
-	return job.jid
+    def resume_printer(self):
+        pass
 
-    def start_job(self, jobid):
-	job = self.jobs[self.active_jobs[0]]
-	if job.status != ipp.JobStates.PENDING:
-	    raise InvalidPrinterStateException(
-                "Invalid job state: %s" % job.status)
-	job.play()
-
-    @property
-    def next_job(self):
-        if len(self.active_jobs) == 0:
-            job = None
+    def get_printer_attributes(self, requested_attributes=None):
+        if requested_attributes is None:
+            requested = self.attributes
         else:
-            job = self.active_jobs[0]
-        return job
+            requested = [a for a in self.attributes if a in requested_attributes]
 
-    def stop(self):
-        if len(self.active_jobs) == 0:
-            return
-        job = self.jobs[self.active_jobs[0]]
-        if job.player is not None:
-            logger.info("stopping printer %s" % self.name)
-            job.player.terminate()
+        _attributes = [attr.replace("-", "_") for attr in requested]
+        attributes = [getattr(self, attr) for attr in _attributes]
+        return attributes
 
-    def get_job(self, jobid):
-	if jobid not in self.jobs:
-	    raise InvalidJobException(jobid)
-	return self.jobs[jobid]
-
-    def get_jobs(self):
-        print self.active_jobs
-        jobs = [self.jobs[job_id] for job_id in self.active_jobs]
-        return jobs
-
-    # def __repr__(self):
-    #     return str(self)
-
-    # def __str__(self):
-    #     return "<Printer '%s'>" % self.name
+    def set_printer_attributes(self):
+        pass

@@ -42,7 +42,8 @@ __all__ = [
 ]
     
 
-from .constants import ErrorCodes
+from .constants import ErrorCodes, AttributeTags
+from .attributegroup import AttributeGroup
 
 class IPPException(Exception):
     def __init__(self, message=""):
@@ -105,10 +106,17 @@ class ClientErrorAttributes(IPPClientException):
 
     def __init__(self, message, attrs):
         self.message = message
-        self.bad_attrs = attrs
+        if hasattr(attrs, '__iter__'):
+            self.bad_attrs = attrs
+        else:
+            self.bad_attrs = [attrs]
 
     def update_response(self, response):
-        pass
+        super(ClientErrorAttributes, self).update_response(response)
+        response.attribute_groups.append(
+            AttributeGroup(
+                AttributeTags.UNSUPPORTED,
+                self.bad_attrs))
 
 class ClientErrorUriSchemeNotSupported(IPPClientException):
     ipp_error_code = ErrorCodes.URI_SCHEME

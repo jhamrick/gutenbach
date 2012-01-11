@@ -1,4 +1,5 @@
 from . import InvalidJobException, InvalidPrinterStateException
+from gutenbach.ipp import JobStates as States
 import os
 import gutenbach.ipp as ipp
 import logging
@@ -20,46 +21,127 @@ class Job(object):
         "job-printer-uri"
     ]
 
-    def __init__(self, jid, printer, creator="", name="", size=0):
-	"""Initialize a Gutenbach job.
-
-	This sets the status to 'initializing' and optionally sets the
-	document to print to the value of document.
+    def __init__(self, job_id=-1, printer=None, creator=None, name=None, size=None):
+	"""Create an empty Gutenbach job.
 
 	"""
 
-	self.jid      = jid
-	self.printer  = printer
+	self.printer = printer
+        self.player = None
 
-        self.creator  = creator
-        self.name     = name
-        self.size     = size
+	self.id = job_id
+        self.creator = creator
+        self.name = name
+        self.size = size
+	self.status = States.HELD
 
         self.document = None
         self.document_name = None
+        self.document_format = None
+        self.document_natural_language = None
+        self.compression = None
+    
+    def __repr__(self):
+	return str(self)
+
+    def __str__(self):
+        return "<Job %d '%s'>" % (self.id, self.name)
+
+    ######################################################################
+    ###                          Properties                            ###
+    ######################################################################
+
+    @property
+    def id(self):
+        """Unique job identifier.  Should be a positive integer,
+        except when unassigned, when it defaults to -1.
+        
+        """
+        return self._id
+    @id.setter
+    def id(self, val):
+        try:
+            self._id = int(val)
+        except TypeError:
+            self._id = -1
+
+    @property
+    def creator(self):
+        """The user who created the job; analogous to the IPP
+        requesting-user-name.
+
+        """
+        return self._creator
+    @creator.setter
+    def creator(self, val):
+        if val is None:
+            self._creator = ""
+        else:
+            self._creator = str(val)
+
+    @property
+    def name(self):
+        """The job's name.
+
+        """
+        return self._name
+    @name.setter
+    def name(self, val):
+        if val is None:
+            self._name = ""
+        else:
+            self._name = str(val)
+
+    @property
+    def size(self):
+        """The size of the job in bytes.
+
+        """
+        if self.document:
+            size = os.path.getsize(self.document.name)
+        else:
+            size = self._size
+        return size
+    @size.setter
+    def size(self, val):
+        try:
+            self._size = int(val)
+        except TypeError:
+            self._size = 0
+
+    ######################################################################
+    ###                            Methods                             ###
+    ######################################################################
+
+    def play(self):
+        logger.info("playing job %s" % str(self))
+	# TODO: add external call to music player
+	self.status = States.PROCESSING
+        self.player = subprocess.Popen(
+            "/usr/bin/mplayer -quiet %s" % self.document.name,
+            shell=True)
+            #stderr=subprocess.PIPE,
+            #stdout=subprocess.PIPE)
+        while self.player.poll() is None:
+            time.sleep(0.1)
+        logger.info("mplayer finished with code %d" % self.player.returncode)
+        #if self.player.returncode < 0:
+        #    logger.error(self.player.stderr)
+        #logger.debug(self.player.stdout)
         self.player = None
+	self.printer.complete_job(self.id)
 
-	self.status   = ipp.JobStates.HELD
+    def finish(self):
+        logger.info("finished job %s" % str(self))
+	self.status = States.COMPLETE
 
-    def __getattr__(self, attr):
-        try:
-            return self.__getattribute__(attr)
-        except AttributeError:
-            pass
-        return self.__getattribute__(attr.replace("-", "_"))
-
-    def __hasattr__(self, attr):
-        try:
-            getattr(self, attr)
-            return True
-        except AttributeError:
-            return False
-
-    #### Job attributes
+    ######################################################################
+    ###                        IPP Attributes                          ###
+    ######################################################################
 
     @property
     def job_id(self):
-        return ipp.JobId(self.jid)
+        return ipp.JobId(self.id)
 
     @property
     def job_name(self):
@@ -83,44 +165,54 @@ class Job(object):
     def job_printer_uri(self):
         return ipp.JobPrinterUri(self.printer.uri)
 
-    def get_job_attributes(self, request=None):
-        if request and 'requested-attributes' in request:
-            requested = []
-            for value in request['requested-attributes'].values:
-                if value.value in self.attributes:
-                    requested.append(value.value)
-        else:
+
+    ######################################################################
+    ###                        IPP Operations                          ###
+    ######################################################################
+
+    def cancel_job(self):
+        pass
+
+    def send_document(self,
+                      document,
+                      document_name=None,
+                      document_format=None,
+                      document_natural_language=None,
+                      requesting_user_name=None,
+                      compression=None,
+                      last_document=None):
+
+        if self.status != States.HELD:
+            raise InvalidJobStateException(self.status)
+        
+        self.document = document
+        self.document_name = str(document_name)
+        self.document_format = str(document_format)
+        self.document_natural_language = str(document_natural_language)
+        self.creator = str(requesting_user_name)
+        self.compression = str(compression)
+        self.status = States.PENDING
+
+        logger.debug("document for job %d is '%s'" % (self.id, self.document_name))
+
+    def send_uri(self):
+        pass
+
+    def get_job_attributes(self, requested_attributes=None):
+        if requested_attributes is None:
             requested = self.attributes
-            
-        attributes = [getattr(self, attr) for attr in requested]
+        else:
+            requested = [a for a in self.attributes if a in requested_attributes]
+
+        _attributes = [attr.replace("-", "_") for attr in requested]
+        attributes = [getattr(self, attr) for attr in _attributes]
         return attributes
-    
-    #######
 
-    def play(self):
-        logger.info("playing job %s" % str(self))
-	# TODO: add external call to music player
-	self.status = ipp.JobStates.PROCESSING
-        self.player = subprocess.Popen(
-            "/usr/bin/mplayer -quiet %s" % self.document.name,
-            shell=True)
-            #stderr=subprocess.PIPE,
-            #stdout=subprocess.PIPE)
-        while self.player.poll() is None:
-            time.sleep(0.1)
-        logger.info("mplayer finished with code %d" % self.player.returncode)
-        #if self.player.returncode < 0:
-        #    logger.error(self.player.stderr)
-        #logger.debug(self.player.stdout)
-        self.player = None
-	self.printer.complete_job(self.jid)
+    def set_job_attributes(self):
+        pass
 
-    def finish(self):
-        logger.info("finished job %s" % str(self))
-	self.status = ipp.JobStates.COMPLETE
+    def restart_job(self):
+        pass
 
-    def __repr__(self):
-	return str(self)
-
-    def __str__(self):
-        return "<Job %d '%s'>" % (self.jid if self.jid is not None else -1, self.name)
+    def promote_job(self):
+        pass
