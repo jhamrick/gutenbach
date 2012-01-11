@@ -32,9 +32,8 @@ class AttributeGroup(object):
 
         """
 
-        if tag is not None:
-            assert isinstance(tag, int), \
-                   "tag must be a character!"
+        if tag is not None and not isinstance(tag, int):
+            raise ValueError("tag must be a character")
 
         self.tag = tag
         self.attributes = []
@@ -86,8 +85,8 @@ class AttributeGroup(object):
         """
 
         for a in attributes:
-            assert isinstance(a, Attribute), \
-                   "attribute must be of type Attribute!"
+            if not isinstance(a, Attribute):
+                raise ValueError("attribute must be of type Attribute")
 
         for a in attributes:
             # XXX: Instead of replacing the attribute, do we want to

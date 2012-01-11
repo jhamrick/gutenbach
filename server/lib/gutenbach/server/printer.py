@@ -1,4 +1,3 @@
-#import alsaaudio as aa
 from . import InvalidJobException, InvalidPrinterStateException
 from . import Job
 import gutenbach.ipp as ipp
@@ -44,23 +43,12 @@ class GutenbachPrinter(object):
     ]
         
 
-    #def __init__(self, name, card, mixer):
     def __init__(self, name):
 
 	self.name = name
         self.uri = "ipp://localhost:8000/printers/" + self.name
         self.time_created = int(time.time())
         self.state = "idle"
-
-	# if card >= len(aa.cards()):
-	#     raise aa.ALSAAudioError(
-	# 	"Audio card at index %d does not exist!" % card)
-	# elif mixer not in aa.mixers(card):
-	#     raise aa.ALSAAudioError(
-	# 	"Audio mixer '%s' does not exist!" % mixer)
-	
-	# self.card = card
-	# self.mixer = mixer
 
 	self.finished_jobs = []
 	self.active_jobs = []

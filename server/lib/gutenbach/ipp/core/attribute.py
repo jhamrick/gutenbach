@@ -58,14 +58,13 @@ class Attribute(object):
 
         """
 
-        if name is not None:
-            assert isinstance(name, str), \
-                   "Attribute name must be a string!"
+        if name is not None and not isinstance(name, str):
+            raise ValueError("attribute name must be a string")
         if values is None:
             values = []
         for value in values:
-            assert isinstance(value, Value), \
-                   "Value %s must be of type Value" % (value,)
+            if not isinstance(value, Value):
+                raise ValueError("value %s must be of type Value" % (value,))
 
         self.name = name
         self.values = values
@@ -82,10 +81,10 @@ class Attribute(object):
         
         """
 
-        assert self.name is not None, \
-               "cannot pack unnamed attribute!"
-        assert len(self.values) > 0, \
-               "cannot pack empty attribute!"
+        if self.name is None:
+            raise ValueError, "cannot pack unnamed attribute"
+        if len(self.values) == 0:
+            raise ValueError, "cannot pack empty attribute"
 
         # get the binary data for all the values
         values = []
@@ -93,10 +92,7 @@ class Attribute(object):
 
             # get the name length (0 for everything but the first
             # value)
-            if i == 0:
-                name_length = len(self.name)
-            else:
-                name_length = 0
+            name_length = len(self.name) if i == 0 else 0
 
             logger.debug("dumping name : %s" % self.name)
             logger.debug("dumping name_length : %i" % name_length)
@@ -112,27 +108,18 @@ class Attribute(object):
 
             # the value tag in binary
             tag_bin = struct.pack('>b', v.tag)
-
             # the name length in binary
             name_length_bin = struct.pack('>h', name_length)
-
             # the name in binary
             name_bin = self.name
-
             # the value length in binary
             value_length_bin = struct.pack('>h', value_length)
 
+            # add the binary value to the list of values
+            vlist = [tag_bin, name_length_bin, value_length_bin, value_bin]
             if i == 0:
-                values.append(''.join([tag_bin,
-                                       name_length_bin,
-                                       name_bin,
-                                       value_length_bin,
-                                       value_bin]))
-            else:
-                values.append(''.join([tag_bin,
-                                       name_length_bin,
-                                       value_length_bin,
-                                       value_bin]))
+                vlist.insert(2, name_bin)
+            values.append(''.join(vlist))
 
         # concatenate everything together and return it along with the
         # total length of the attribute

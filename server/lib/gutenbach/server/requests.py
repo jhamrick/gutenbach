@@ -280,7 +280,6 @@ class GutenbachRequestHandler(object):
         
         """
 
-
         operation = request.attribute_groups[0]
 
         # requested printer uri

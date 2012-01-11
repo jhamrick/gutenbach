@@ -78,7 +78,9 @@ class IPPServer(BaseHTTPServer.BaseHTTPRequestHandler):
                 totalsize += size
                 chunk = self.rfile.read(size)
                 clrf = self.rfile.read(2)
-                assert clrf == "\r\n"
+                if clrf != "\r\n":
+                    raise ipp.errors.ServerErrorInternalError(
+                        "clrf != \\r\\n (is '%s')" % clrf)
                 tmp.write(chunk)
 
             tmp.seek(0)

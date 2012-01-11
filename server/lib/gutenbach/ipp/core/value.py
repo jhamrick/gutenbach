@@ -45,14 +45,12 @@ class Value(object):
         """
 
         # make sure the arguments are valid
-        if value is not None:
-            assert tag is not None, \
-                   "tag must not be null because " + \
-                   "value is not null!"
+        if value is not None and tag is None:
+            raise ValueError("tag may not be None")
 
         # initialize member variables
-        self.tag = tag # one byte, the type of value
-        self.value     = value     # non-binary value of self.value
+        self.tag   = tag    # one byte, the type of value
+        self.value = value  # non-binary value of self.value
 
     def __cmp__(self, other):
         eq = (self.value == other.value) and (self.tag == other.tag)
@@ -75,10 +73,10 @@ class Value(object):
 
         """
 
-        assert tag is not None, \
-               "Cannot unpack values with unspecified value tag!"
-        assert packed_value is not None, \
-               "Cannot unpack null values!"
+        if tag is None:
+            raise ValueError("cannot unpack values with no value tag")
+        if packed_value is None:
+            raise ValueError("cannot unpack null values")
 
         value = None
 
@@ -171,11 +169,11 @@ class Value(object):
         Returns: packed_value
 
         """
-        
-        assert self.tag is not None, \
-               "cannot pack value with null value tag!"
-        assert self.value is not None, \
-               "cannot pack null value!"
+
+        if self.tag is None:
+            raise ValueError("cannot pack value with null tag")
+        if self.value is None:
+            raise ValueError("cannot pack null value")
 
         packed_value = None
 
@@ -220,7 +218,7 @@ class Value(object):
             # the value of feed direction resolution. The SIGNED-BYTE
             # contains the units
 
-            packed_value = truct.pack('>iib', *self.value)
+            packed_value = struct.pack('>iib', *self.value)
             
         elif self.tag == OctetStringTags.RANGE_OF_INTEGER:
             # Eight octets consisting of 2 SIGNED-INTEGERs.  The first
@@ -289,10 +287,6 @@ class Value(object):
 
         # 1 byte for the tag
         return self.packed_value_size + 1
-
-    @property
-    def pyobj(self):
-        return (self.tag, self.value)
 
     def __str__(self):
         return str(self.value)
