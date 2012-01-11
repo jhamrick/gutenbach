@@ -115,19 +115,20 @@ class Job(object):
 
     def play(self):
         logger.info("playing job %s" % str(self))
-	# TODO: add external call to music player
 	self.status = States.PROCESSING
         self.player = subprocess.Popen(
-            "/usr/bin/mplayer -quiet %s" % self.document.name,
-            shell=True)
-            #stderr=subprocess.PIPE,
-            #stdout=subprocess.PIPE)
+            "/usr/bin/mplayer -really-quiet -slave %s" % self.document.name,
+            shell=True,
+            stderr=subprocess.PIPE,
+            stdout=subprocess.PIPE)
         while self.player.poll() is None:
             time.sleep(0.1)
         logger.info("mplayer finished with code %d" % self.player.returncode)
-        #if self.player.returncode < 0:
-        #    logger.error(self.player.stderr)
-        #logger.debug(self.player.stdout)
+        stderr = self.player.stderr.read()
+        stdout = self.player.stdout.read()
+        if stderr.strip() != "":
+            logger.error(stderr)
+        logger.debug(stdout)
         self.player = None
 	self.printer.complete_job(self.id)
 
