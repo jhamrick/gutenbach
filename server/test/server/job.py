@@ -204,5 +204,9 @@ class TestOperations(unittest.TestCase):
         self.assertFalse(self.job.is_cancelled)
         self.assertTrue(self.job.is_aborted)
 
+    def testRestart(self):
+        # XXX: Todo
+        pass
+
 if __name__ == "__main__":
     unittest.main()

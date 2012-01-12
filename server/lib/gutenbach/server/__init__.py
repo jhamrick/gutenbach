@@ -22,21 +22,25 @@ import sys
 import traceback
 
 # configure and initialize logging
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+logger = None
 
 def error(self, request=None, client_address=None):
     logger.fatal(traceback.format_exc())
     self.gutenbach_printer.running = False
     sys.exit(1)
 
-def start():
+def start(config):
+    global logger
+    loglevel_num = getattr(logging, config['loglevel'].upper())
+    logging.basicConfig(level=loglevel_num)
+    logger = logging.getLogger(__name__)    
     logger.info("Starting Gutenbach server...")
-    gutenbach = GutenbachPrinter("test")
+    printers = sorted(config['printers'].keys())
+    gutenbach = GutenbachPrinter(printers[0], config['printers'][printers[0]])
     gutenbach.start()
 
     logger.info("Starting IPP server...")
-    server_address = ('', 8000)
+    server_address = ('', config['port'])
     httpd = BaseHTTPServer.HTTPServer(server_address, IPPServer)
     httpd.handle_error = error.__get__(httpd)
     httpd.gutenbach_printer = gutenbach

@@ -330,4 +330,6 @@ class GutenbachJob(object):
         else:
             _aborted()
 
-
+    def restart(self):
+        # XXX: Todo
+        pass

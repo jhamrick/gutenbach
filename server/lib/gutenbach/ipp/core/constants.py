@@ -1,5 +1,4 @@
 __all__ = [
-    'MiscConstants',
     'JobStates',
     'PrinterStates',
     'OperationCodes',
@@ -15,16 +14,6 @@ __all__ = [
     'OctetStringTags',
     'CharacterStringTags',
 ]
-
-class MiscConstants():
-    """Miscellaneous config options for the IPP server.
-    
-    """
-    
-    IPP_VERSION = "1.1"
-    IPP_PORT = 8000
-
-    def __init__(self): pass
 
 class JobStates():
     """Job state codes, as defined by RFC 2911, Section 4.3.7

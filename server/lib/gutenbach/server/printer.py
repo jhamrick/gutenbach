@@ -68,11 +68,12 @@ class GutenbachPrinter(threading.Thread):
         "promote-job"
     ]
         
-    def __init__(self, name, *args, **kwargs):
+    def __init__(self, name, config, *args, **kwargs):
 
         super(GutenbachPrinter, self).__init__(*args, **kwargs)
         
         self.name = name
+        self.config = config
         self.time_created = int(time.time())
 
         self.finished_jobs = []
@@ -206,7 +207,7 @@ class GutenbachPrinter(threading.Thread):
 
     @property
     def ipp_versions_supported(self):
-        return ipp.IppVersionsSupported("1.0", "1.1")
+        return ipp.IppVersionsSupported(*self.config['ipp-versions'])
 
     # XXX: We should query ourself for the supported operations
     @property

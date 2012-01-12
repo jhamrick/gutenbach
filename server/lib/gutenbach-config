@@ -1,0 +1,8 @@
+port: 8000
+loglevel: info
+
+printers:
+ test:
+  ipp-versions: 
+   - "1.0"
+   - "1.1"
