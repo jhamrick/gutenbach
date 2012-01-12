@@ -322,7 +322,7 @@ class GutenbachJob(object):
         self.player.mplayer_pause()
 
     def cancel(self):
-        """Non-blocking cancel. The job must not have been previously
+        """Blocking cancel. The job must not have been previously
         aborted or completed (though this method will succeed if it
         was previously cancelled).  This should be used to stop the
         job following an external request.
@@ -334,20 +334,18 @@ class GutenbachJob(object):
 
         """
         
-        def _cancelled():
-            logger.info("cancelled job %s" % str(self))
-            self._why_done = "cancelled"
-
         if self.is_playing:
-            self.player.callback = _cancelled
+            self.player._callback = None
             self.player.mplayer_stop()
+
         elif self.is_done and not self._why_done == "cancelled":
             raise errors.InvalidJobStateException(self.state)
-        else:
-            _cancelled()
+
+        logger.info("cancelled job %s" % str(self))
+        self._why_done = "cancelled"
 
     def abort(self):
-        """Non-blocking abort. The job must not have been previously
+        """Blocking abort. The job must not have been previously
         cancelled or completed (though this method will succeed if it
         was previously aborted).  This should be used to stop the job
         following internal errors.
@@ -359,17 +357,15 @@ class GutenbachJob(object):
 
         """
 
-        def _aborted():
-            logger.info("aborted job %s" % str(self))
-            self._why_done = "aborted"
-
         if self.is_playing:
-            self.player.callback = _aborted
+            self.player._callback = None
             self.player.mplayer_stop()
+
         elif self.is_done and not self._why_done == "aborted":
             raise errors.InvalidJobStateException(self.state)
-        else:
-            _aborted()
+
+        logger.info("aborted job %s" % str(self))
+        self._why_done = "aborted"
 
     def restart(self):
         # XXX: Todo

@@ -60,18 +60,11 @@ class Player(threading.Thread):
         if self.fh is None:
             raise ValueError, "file handler is None"
         
-        self.mplayer_play()
-        self._done = True
-        with self.lock:
-            if self.callback:
-                self.callback()
-
-    def mplayer_play(self):
-        if not self.isAlive():
-            return
-        
         logger.info("playing file '%s'" % self.fh.name)
-        self._paused = False
+
+        with self.lock:
+            self._paused = False
+            self._done = False
 
         if self._dryrun:
             step = 0.01
@@ -80,36 +73,41 @@ class Player(threading.Thread):
                 self._dryrun_time -= step
                 while self.is_paused:
                     time.sleep(0.01)
-            return
-        
-        # open mplayer
-        with self.lock:
-            self.player = subprocess.Popen(
-                "/usr/bin/mplayer -really-quiet -slave %s" % self.fh.name,
-                shell=True,
-                stdin=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                stdout=subprocess.PIPE)
 
-        # wait for mplayer to finish
-        while True:
+        else:
+            # open mplayer
             with self.lock:
-                playing = self.is_playing
-            if not playing:
-                break
-            time.sleep(0.1)
+                self.player = subprocess.Popen(
+                    "/usr/bin/mplayer -really-quiet -slave %s" % self.fh.name,
+                    shell=True,
+                    stdin=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    stdout=subprocess.PIPE)
 
-        logger.info("mplayer finished with code %d" % self.player.returncode)
+            # wait for mplayer to finish
+            while True:
+                with self.lock:
+                    playing = self.is_playing
+                if not playing:
+                    break
+                time.sleep(0.1)
+
+            logger.info("mplayer finished with code %d" % self.player.returncode)
         
-        # get output from mplayer and log it
-        with self.lock:
-            stderr = self.player.stderr.read()
-            stdout = self.player.stdout.read()
+            # get output from mplayer and log it
+            with self.lock:
+                stderr = self.player.stderr.read()
+                stdout = self.player.stdout.read()
             
-        if stderr.strip() != "":
-            logger.error(stderr)
-        if stdout.strip() != "":
-            logger.debug(stdout)
+            if stderr.strip() != "":
+                logger.error(stderr)
+            if stdout.strip() != "":
+                logger.debug(stdout)
+
+        with self.lock:
+            if self.callback:
+                self.callback()
+            self._done = True
 
     def mplayer_pause(self):
         with self.lock:
@@ -132,4 +130,4 @@ class Player(threading.Thread):
                 logger.info("stopped")
             else:
                 logger.warning("trying to stop non-playing job")
-        time.sleep(self._lag)
+        self.join()
