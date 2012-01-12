@@ -4,6 +4,7 @@ from gutenbach.ipp import JobStates as States
 import unittest
 import tempfile
 import sys
+import time
 
 def make_tempfile():
     fh = tempfile.NamedTemporaryFile()
@@ -112,26 +113,96 @@ class TestBadGutenbachJob(unittest.TestCase):
             name="test",
             priority=1)
         self.assertRaises(errors.InvalidDocument, job.spool, "hello")
-        
-class TestGoodGutenbachJob(unittest.TestCase):
+        self.assertRaises(errors.InvalidDocument, job.spool, [])
+        self.assertRaises(errors.InvalidDocument, job.spool, 12345)
+
+        fh = make_tempfile()
+        job = GutenbachJob(
+            job_id=1,
+            creator="foo",
+            name="test",
+            priority=1,
+            document=fh)
+        self.assertRaises(errors.InvalidJobStateException, job.spool, "hello")
+        self.assertRaises(errors.InvalidJobStateException, job.spool, [])
+        self.assertRaises(errors.InvalidJobStateException, job.spool, 12345)
+
+class TestOperations(unittest.TestCase):
 
     def setUp(self):
-        self.job = GutenbachJob(job_id=1, creator="foo", name="test")
-
-    def testSpool(self):
         fh = make_tempfile()
-        self.assertTrue(self.job.is_valid)
-        self.assertFalse(self.job.is_ready)
-        self.job.spool(fh)
-        self.assertTrue(self.job.is_ready)
+        self.job = GutenbachJob(
+            job_id=1,
+            creator="foo",
+            name="test",
+            priority=1,
+            document=fh)
+        self.job.player._dryrun = True
+
+    def testPlay(self):
+        self.job.play()
+        time.sleep(0.01)
+        self.assertTrue(self.job.is_playing)
+
+        while self.job.is_playing:
+            time.sleep(0.1)
+
+        self.assertTrue(self.job.is_done)
+        self.assertTrue(self.job.is_completed)
+        self.assertFalse(self.job.is_aborted)
+        self.assertFalse(self.job.is_cancelled)
+
+    def testPause(self):
+        self.job.play()
+        time.sleep(0.01)
+        self.assertTrue(self.job.is_playing)
+        self.assertFalse(self.job.is_paused)
+
+        self.job.pause()
+        self.assertTrue(self.job.is_playing)
+        self.assertTrue(self.job.is_paused)
+
+        time.sleep(0.6)
+        self.assertTrue(self.job.is_playing)
+        self.assertTrue(self.job.is_paused)
+
+        self.job.pause()
+        self.assertTrue(self.job.is_playing)
+        self.assertFalse(self.job.is_paused)
         
-        # Verify various properties
-        self.assertEqual(self.job.document, fh.name)
-        self.assertNotEqual(self.job.player, None)
-        self.assertEqual(self.job.state, States.PENDING)
+        while self.job.is_playing:
+            time.sleep(0.1)
+            
+        self.assertTrue(self.job.is_done)
+        self.assertTrue(self.job.is_completed)
+        self.assertFalse(self.job.is_aborted)
+        self.assertFalse(self.job.is_cancelled)
+
+    def testCancel(self):
+        self.job.play()
+        time.sleep(0.01)
+        self.assertTrue(self.job.is_playing)
+        self.assertFalse(self.job.is_cancelled)
+
+        self.job.cancel()
+        time.sleep(0.01)
+        self.assertFalse(self.job.is_playing)
+        self.assertTrue(self.job.is_done)
+        self.assertTrue(self.job.is_cancelled)
+        self.assertFalse(self.job.is_aborted)
+
+    def testAbort(self):
+        self.job.play()
+        time.sleep(0.01)
+        self.assertTrue(self.job.is_playing)
+        self.assertFalse(self.job.is_aborted)
 
         self.job.abort()
-
+        time.sleep(0.01)
+        self.assertFalse(self.job.is_playing)
+        self.assertTrue(self.job.is_done)
+        self.assertFalse(self.job.is_cancelled)
+        self.assertTrue(self.job.is_aborted)
 
 if __name__ == "__main__":
     unittest.main()

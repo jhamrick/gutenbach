@@ -3,6 +3,7 @@ from .player import Player
 from gutenbach.ipp import JobStates as States
 import logging
 import os
+import time
 
 # initialize logger
 logger = logging.getLogger(__name__)
@@ -22,11 +23,10 @@ class GutenbachJob(object):
         self.creator = creator
         self.name = name
         self.priority = priority
+        self._why_done = None
 
         if document is not None:
             self.spool(document)
-
-        self._why_done = None
 
     def __repr__(self):
 	return str(self)
@@ -182,13 +182,16 @@ class GutenbachJob(object):
 
     @property
     def state(self):
-        """
+        """State status codes; equivalent to the IPP job-state status
+        codes.
+        
         State transitions are as follows:
-HELD ---> PENDING ---> PROCESSING <--> STOPPED (aka paused)
-             ^              |---> CANCELLED
-             |              |---> ABORTED
-             |              |---> COMPLETE ---|
-             |--------------------------------|
+        HELD ---> PENDING ---> PROCESSING <--> STOPPED (aka paused)
+                     ^              |---> CANCELLED
+                     |              |---> ABORTED
+                     |              |---> COMPLETE ---|
+                     |--------------------------------|
+                     
         """
         if self.is_ready:
             state = States.PENDING
