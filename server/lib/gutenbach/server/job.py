@@ -152,6 +152,14 @@ class GutenbachJob(object):
 
     @property
     def state(self):
+        """
+        State transitions are as follows:
+HELD ---> PENDING ---> PROCESSING <--> STOPPED (aka paused)
+             ^              |---> CANCELLED
+             |              |---> ABORTED
+             |              |---> COMPLETE ---|
+             |--------------------------------|
+        """
         if self.is_ready:
             state = States.PENDING
         elif self.is_playing and not self.is_paused:
