@@ -166,7 +166,7 @@ class GutenbachPrinter(threading.Thread):
                 if not self.current_job.is_done:
                     self.current_job.stop()
             finally:
-                self.finished_jobs.append(self.current_job)
+                self.finished_jobs.append(self.current_job.id)
                 self.current_job = None
 
     def get_job(self, job_id):
@@ -333,7 +333,7 @@ class GutenbachPrinter(threading.Thread):
     def print_uri(self):
         pass
 
-    def create_job(self, requesting_user_name="", job_name="", job_k_octets=0):
+    def create_job(self, requesting_user_name=None, job_name=None, job_k_octets=None):
         job_id = self._next_job_id
         self._next_job_id += 1
         
