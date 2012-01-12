@@ -5,6 +5,13 @@ from gutenbach.server import errors
 from gutenbach.ipp import JobStates as States
 import unittest
 import tempfile
+import time
+
+def make_tempfile():
+    fh = tempfile.NamedTemporaryFile()
+    fh.write("test\n")
+    fh.seek(0)
+    return fh
 
 class TestGutenbachPrinter(unittest.TestCase):
 
@@ -49,11 +56,14 @@ class TestGutenbachPrinter(unittest.TestCase):
 
     def testJobPlays(self):
         job_id = self.createTestJob()
+        fh = make_tempfile()
+        self.printer.get_job(job_id).spool(fh)
         self.assertTrue(job_id in self.printer.pending_jobs)
         self.assertFalse(job_id in self.printer.finished_jobs)
         self.printer.complete_job()
         while (self.printer.get_job(job_id).state == States.PENDING):
             time.sleep(0.1)
+            continue
         
         non_pending_job = self.printer.get_job(job_id)
         self.assertTrue(non_pending_job.state == States.COMPLETE)
