@@ -1,0 +1,66 @@
+* This is a scrap todo file while the new IPP server based Gutenbach is
+* being developed.  Once this branch is released and becomes master,
+* items in this file will be merged into the Trac.
+
+- finish implementing a bunch of the IPP handlers
+     [ ] validate job
+     [ ] pause printer
+     [ ] resume printer
+     [ ] set printer attributes
+     [ ] send uri
+     [ ] set job attributes
+     [ ] restart job
+     [ ] promote job
+     [ ] cups get document
+
+- add support in printer.py for:
+     [ ] validate job
+     [ ] pause printer
+     [ ] resume printer
+     [ ] set printer attributes
+     [ ] send uri
+     [ ] set job attributes
+     [ ] restart job
+     [ ] promote job
+
+- add support in job.py for:
+     [ ] restart job
+
+- finish test cases for printer.py
+- write test cases for requests.py
+- write convenience client-side API
+- write test cases for future client API
+- all the documentation
+- deal with all the code marked 'XXX'
+- setuptools entry points for notification system (e.g. zephyr)
+- check test case coverage ( http://nedbatchelder.com/code/coverage/ )
+- deal with queue management/reordering
+- add support for volume management
+- make sure all CUPS commands are compatible
+- rewrite gbr/gbq/etc. scripts to use client API
+- rewrite server-side queue display to use API
+- support authentication/security
+- why doesn't the bug tracker work?! relatedly, figure out a
+  solution that makes it easier for non-MIT developers to contribute
+
+Ponies
+   - gapless playback
+   - display video
+   - youtube
+   - pandora
+   - last.fm
+   - local streaming
+   - generic streaming
+
+Tickets that should be fixed by this new version:
+   http://gutenbach.mit.edu/ticket/21
+   http://gutenbach.mit.edu/ticket/2
+   http://gutenbach.mit.edu/ticket/7
+   http://gutenbach.mit.edu/ticket/39
+   http://gutenbach.mit.edu/ticket/47
+   http://gutenbach.mit.edu/ticket/48
+   http://gutenbach.mit.edu/ticket/8
+   http://gutenbach.mit.edu/ticket/34
+   http://gutenbach.mit.edu/ticket/38
+   http://gutenbach.mit.edu/ticket/41
+   http://gutenbach.mit.edu/ticket/18
