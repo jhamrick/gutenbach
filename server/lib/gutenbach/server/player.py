@@ -66,6 +66,9 @@ class Player(threading.Thread):
             self._paused = False
             self._done = False
 
+        command = "/usr/bin/mplayer -really-quiet -slave".split()+[self.fh.name]
+        logger.info("Running %r", command)
+
         if self._dryrun:
             step = 0.01
             while self._dryrun_time > 0:
@@ -76,10 +79,10 @@ class Player(threading.Thread):
 
         else:
             # open mplayer
+
             with self.lock:
                 self.player = subprocess.Popen(
-                    "/usr/bin/mplayer -really-quiet -slave %s" % self.fh.name,
-                    shell=True,
+                    command,
                     stdin=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                     stdout=subprocess.PIPE)
