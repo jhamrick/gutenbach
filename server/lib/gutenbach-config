@@ -1,5 +1,6 @@
 port: 8000
-loglevel: info
+loglevel: debug
+logfile: gutenbach.log
 
 printers:
  test:

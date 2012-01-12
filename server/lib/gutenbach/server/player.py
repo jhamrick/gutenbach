@@ -66,8 +66,8 @@ class Player(threading.Thread):
             self._paused = False
             self._done = False
 
-        command = "/usr/bin/mplayer -really-quiet -slave".split()+[self.fh.name]
-        logger.info("Running %r", command)
+        command = ["mplayer", "-really-quiet", "-slave", self.fh.name]
+        logger.info("running '%s'", " ".join(command))
 
         if self._dryrun:
             step = 0.01
@@ -78,8 +78,6 @@ class Player(threading.Thread):
                     time.sleep(0.01)
 
         else:
-            # open mplayer
-
             with self.lock:
                 self.player = subprocess.Popen(
                     command,

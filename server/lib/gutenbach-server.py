@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import gutenbach.server
 import sys
 import os
