@@ -20,6 +20,7 @@ class Player(threading.Thread):
             self._done = False
             self._dryrun = False
             self._dryrun_time = 0.5
+            self._lag = 0.01
 
     @property
     def is_playing(self):
@@ -50,6 +51,10 @@ class Player(threading.Thread):
     def callback(self, val):
         with self.lock:
             self._callback = val
+
+    def start(self):
+        super(Player, self).start()
+        time.sleep(self._lag)
 
     def run(self):
         if self.fh is None:
@@ -115,6 +120,7 @@ class Player(threading.Thread):
                 logger.info("paused: %s", self.is_paused)
             else:
                 logger.warning("trying to pause non-playing job")
+        time.sleep(self._lag)
                 
     def mplayer_stop(self):
         with self.lock:
@@ -126,3 +132,4 @@ class Player(threading.Thread):
                 logger.info("stopped")
             else:
                 logger.warning("trying to stop non-playing job")
+        time.sleep(self._lag)

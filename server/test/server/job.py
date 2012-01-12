@@ -141,7 +141,6 @@ class TestOperations(unittest.TestCase):
 
     def testPlay(self):
         self.job.play()
-        time.sleep(0.01)
         self.assertTrue(self.job.is_playing)
 
         while self.job.is_playing:
@@ -154,7 +153,6 @@ class TestOperations(unittest.TestCase):
 
     def testPause(self):
         self.job.play()
-        time.sleep(0.01)
         self.assertTrue(self.job.is_playing)
         self.assertFalse(self.job.is_paused)
 
@@ -180,12 +178,10 @@ class TestOperations(unittest.TestCase):
 
     def testCancel(self):
         self.job.play()
-        time.sleep(0.01)
         self.assertTrue(self.job.is_playing)
         self.assertFalse(self.job.is_cancelled)
 
         self.job.cancel()
-        time.sleep(0.01)
         self.assertFalse(self.job.is_playing)
         self.assertTrue(self.job.is_done)
         self.assertTrue(self.job.is_cancelled)
@@ -193,12 +189,10 @@ class TestOperations(unittest.TestCase):
 
     def testAbort(self):
         self.job.play()
-        time.sleep(0.01)
         self.assertTrue(self.job.is_playing)
         self.assertFalse(self.job.is_aborted)
 
         self.job.abort()
-        time.sleep(0.01)
         self.assertFalse(self.job.is_playing)
         self.assertTrue(self.job.is_done)
         self.assertFalse(self.job.is_cancelled)

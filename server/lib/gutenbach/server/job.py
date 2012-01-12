@@ -3,7 +3,6 @@ from .player import Player
 from gutenbach.ipp import JobStates as States
 import logging
 import os
-import time
 
 # initialize logger
 logger = logging.getLogger(__name__)
