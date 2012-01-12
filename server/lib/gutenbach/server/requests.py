@@ -228,7 +228,7 @@ class GutenbachRequestHandler(object):
         if 'printer-uri' not in operation:
             raise ipp.errors.ClientErrorBadRequest("Missing 'printer-uri' attribute")
         printer_uri = verify_attribute(operation['printer-uri'], ipp.PrinterUri)[0]
-        if printer_uri not in self.printer.uris:
+        if printer_uri not in self.printer.uris and printer_uri != "ipp://localhost/":
             raise ipp.errors.ClientErrorAttributes(
                 str(operation['printer-uri']), operation['printer-uri'])
 
