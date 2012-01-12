@@ -1,4 +1,4 @@
-from .errors import InvalidJobStateException, MissingDataException
+from . import errors
 from .player import Player
 from gutenbach.ipp import JobStates as States
 import logging
@@ -22,10 +22,11 @@ class GutenbachJob(object):
         self.creator = creator
         self.name = name
         self.priority = priority
-        self._why_done = None
 
         if document is not None:
             self.spool(document)
+
+        self._why_done = None
 
     def __repr__(self):
 	return str(self)
@@ -51,7 +52,7 @@ class GutenbachJob(object):
     def id(self, val):
         try:
             self._id = max(int(val), -1)
-        except TypeError:
+        except:
             self._id = -1
 
     @property
@@ -61,7 +62,7 @@ class GutenbachJob(object):
     def priority(self, val):
         try:
             self._priority = max(int(val), 1)
-        except TypeError:
+        except:
             self._priority = 1
 
     @property
@@ -101,6 +102,10 @@ class GutenbachJob(object):
         except:
             size = 0
         return size
+
+    ######################################################################
+    ###                            State                               ###
+    ######################################################################
 
     @property
     def is_valid(self):
@@ -144,11 +149,36 @@ class GutenbachJob(object):
 
     @property
     def is_done(self):
+        """Whether the job is done playing, regardless of whether it
+        completed successfully or not.
+
+        """
         return (self.is_valid and \
                 self.player is not None and \
                 self.player.is_done) or \
                 (self._why_done == "cancelled" or \
                  self._why_done == "aborted")
+
+    @property
+    def is_completed(self):
+        """Whether the job completed successfully.
+
+        """
+        return self.is_done and self._why_done == "completed"
+
+    @property
+    def is_cancelled(self):
+        """Whether the job was cancelled.
+
+        """
+        return self.is_done and self._why_done == "cancelled"
+
+    @property
+    def is_aborted(self):
+        """Whether the job was aborted.
+
+        """
+        return self.is_done and self._why_done == "aborted"
 
     @property
     def state(self):
@@ -166,11 +196,11 @@ HELD ---> PENDING ---> PROCESSING <--> STOPPED (aka paused)
             state = States.PROCESSING
         elif self.is_playing and self.is_paused:
             state = States.STOPPED
-        elif self.is_done and self._why_done == "completed":
+        elif self.is_completed:
             state = States.COMPLETE
-        elif self.is_done and self._why_done == "cancelled":
+        elif self.is_cancelled:
             state = States.CANCELLED
-        elif self.is_done and self._why_done == "aborted":
+        elif self.is_aborted:
             state = States.ABORTED
         else:
             state = States.HELD
@@ -180,16 +210,38 @@ HELD ---> PENDING ---> PROCESSING <--> STOPPED (aka paused)
     ###                            Methods                             ###
     ######################################################################
 
-    def spool(self, document):
-        if not self.is_valid:
-            raise InvalidJobStateException(self.state)
+    @staticmethod
+    def verify_document(document):
+        if not hasattr(document, "name"):
+            raise errors.InvalidDocument, "no name attribute"
+        if not hasattr(document, "read"):
+            raise errors.InvalidDocument, "no read attribute"
+        if not hasattr(document, "close"):
+            raise errors.InvalidDocument, "no close attribute"
+
+    def spool(self, document=None):
+        """Non-blocking spool.  Job must be valid, and the document
+        must be an open file handler.
+
+        Raises
+        ------
+        InvalidDocument
+            If the document is not valid.
+        InvalidJobStateException
+            If the job is not valid or it is already
+            spooled/ready/finished.
+
+        """
+
+        if not self.is_valid or self.state != States.HELD:
+            raise errors.InvalidJobStateException(self.state)
+        self.verify_document(document)
         self.document = document.name
         self.player = Player(document)
         logger.debug("document for job %d is '%s'" % (self.id, self.document))
 
     def play(self):
-        """Non-blocking play function.  Sets the job state to
-        PROCESSING.
+        """Non-blocking play.  Job must be ready.
 
         Raises
         ------
@@ -201,7 +253,7 @@ HELD ---> PENDING ---> PROCESSING <--> STOPPED (aka paused)
         # make sure the job is waiting to be played and that it's
         # valid
         if not self.is_ready:
-            raise InvalidJobStateException(self.state)
+            raise errors.InvalidJobStateException(self.state)
         
         # and set the state to processing if we're good to go
         logger.info("playing job %s" % str(self))
@@ -213,16 +265,32 @@ HELD ---> PENDING ---> PROCESSING <--> STOPPED (aka paused)
         self.player.start()
 
     def pause(self):
-        """Non-blocking pause function.  Sets the job state to
-        STOPPED.
+        """Non-blocking pause.  Job must be playing.
+
+        Raises
+        ------
+        InvalidJobStateException
+            If the job is not playing.
 
         """
         
         if not self.is_playing:
-            raise InvalidJobStateException(self.state)
+            raise errors.InvalidJobStateException(self.state)
         self.player.mplayer_pause()
 
     def cancel(self):
+        """Non-blocking cancel. The job must not have previously
+        finished (i.e., cannot be aborted, cancelled, or completed).
+        This should be used to stop the job following an external
+        request.
+
+        Raises
+        ------
+        InvalidJobStateException
+            If the job has already finished.
+
+        """
+        
         def _cancelled():
             logger.info("cancelled job %s" % str(self))
             self._why_done = "cancelled"
@@ -231,11 +299,22 @@ HELD ---> PENDING ---> PROCESSING <--> STOPPED (aka paused)
             self.player.callback = _cancelled
             self.player.mplayer_stop()
         elif self.is_done and not self._why_done == "cancelled":
-            raise InvalidJobStateException(self.state)
+            raise errors.InvalidJobStateException(self.state)
         else:
             _cancelled()
 
     def abort(self):
+        """Non-blocking abort. The job must not have previously
+        finished (i.e., cannot be aborted, cancelled, or completed).
+        This should be used to stop the job following internal errors.
+
+        Raises
+        ------
+        InvalidJobStateException
+            If the job has already finished.
+
+        """
+
         def _aborted():
             logger.info("aborted job %s" % str(self))
             self._why_done = "aborted"
@@ -244,7 +323,7 @@ HELD ---> PENDING ---> PROCESSING <--> STOPPED (aka paused)
             self.player.callback = _aborted
             self.player.mplayer_stop()
         elif self.is_done and not self._why_done == "aborted":
-            raise InvalidJobStateException(self.state)
+            raise errors.InvalidJobStateException(self.state)
         else:
             _aborted()
 

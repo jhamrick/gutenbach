@@ -34,5 +34,7 @@ class InvalidJobStateException(Exception):
         return "Invalid job state: %s (%s)" % \
                (self.errstr[self.state], hex(self.state))
 
+class InvalidDocument(Exception):
+    pass
 class MissingDataException(Exception):
     pass
