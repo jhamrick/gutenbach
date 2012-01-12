@@ -14,6 +14,19 @@ class GutenbachJob(object):
                  priority=None, document=None):
 	"""Create an empty Gutenbach job.
 
+        Parameters
+        ----------
+        job_id : integer
+            A unique id for this job.
+        creator : string
+            The user creating the job.
+        name : string
+            The human-readable name of the job.
+        priority : integer
+            The priority of the job, used for ordering.
+        document : file object
+            A file object containing the job data.
+
 	"""
 
         self.player = None
@@ -23,6 +36,7 @@ class GutenbachJob(object):
         self.creator = creator
         self.name = name
         self.priority = priority
+        
         self._why_done = None
 
         if document is not None:
@@ -35,6 +49,9 @@ class GutenbachJob(object):
         return "<Job %d '%s'>" % (self.id, self.name)
 
     def __cmp__(self, other):
+        """Compares two GutenbachJobs based on their priorities.
+
+        """
         return cmp(self.priority, other.priority)
 
     ######################################################################
@@ -43,8 +60,8 @@ class GutenbachJob(object):
 
     @property
     def id(self):
-        """Unique job identifier.  Should be a positive integer,
-        except when unassigned, when it defaults to -1.
+        """Unique job identifier (integer).  Should be a positive
+        integer, except when unassigned, when it defaults to -1.
         
         """
         return self._id
@@ -57,6 +74,10 @@ class GutenbachJob(object):
 
     @property
     def priority(self):
+        """Job priority (integer).  Should be a nonzero positive
+        integer; defaults to 1 when unassigned.
+
+        """
         return self._priority
     @priority.setter
     def priority(self, val):
@@ -67,8 +88,8 @@ class GutenbachJob(object):
 
     @property
     def creator(self):
-        """The user who created the job; analogous to the IPP
-        requesting-user-name.
+        """The user who created the job (string).  Defaults to an
+        empty string.
 
         """
         return self._creator
@@ -81,7 +102,8 @@ class GutenbachJob(object):
 
     @property
     def name(self):
-        """The job's name.
+        """The job's human-readable name (string).  Defaults to an
+        empty string.
 
         """
         return self._name
@@ -94,7 +116,9 @@ class GutenbachJob(object):
 
     @property
     def size(self):
-        """The size of the job in bytes.
+        """The size of the job in octets/bytes (integer).  Defaults to
+        0 if no document is specified or if there is an error reading
+        the document.
 
         """
         try:
@@ -114,14 +138,17 @@ class GutenbachJob(object):
         be spooled first.
 
         """
+
         return self.id > 0 and \
                self.priority > 0
 
     @property
     def is_ready(self):
-        """Whether the job is ready to be played.
+        """Whether the job is ready to be played; i.e., it has all the
+        necessary data to actually play the audio data.
 
         """
+
         return self.is_valid and \
                self.player is not None and \
                not self.player.is_playing and \
@@ -134,6 +161,7 @@ class GutenbachJob(object):
         it's paused).
 
         """
+
         return self.is_valid and \
                self.player is not None and \
                self.player.is_playing
@@ -143,6 +171,7 @@ class GutenbachJob(object):
         """Whether the job is currently paused.
 
         """
+
         return self.is_valid and \
                self.player is not None and \
                self.player.is_paused        
@@ -153,6 +182,7 @@ class GutenbachJob(object):
         completed successfully or not.
 
         """
+
         return (self.is_valid and \
                 self.player is not None and \
                 self.player.is_done) or \
@@ -164,6 +194,7 @@ class GutenbachJob(object):
         """Whether the job completed successfully.
 
         """
+
         return self.is_done and self._why_done == "completed"
 
     @property
@@ -171,6 +202,7 @@ class GutenbachJob(object):
         """Whether the job was cancelled.
 
         """
+
         return self.is_done and self._why_done == "cancelled"
 
     @property
@@ -178,21 +210,22 @@ class GutenbachJob(object):
         """Whether the job was aborted.
 
         """
+
         return self.is_done and self._why_done == "aborted"
 
     @property
     def state(self):
-        """State status codes; equivalent to the IPP job-state status
-        codes.
+        """State status codes (these are equivalent to the IPP
+        job-state status codes).  State transitions are as follows:
         
-        State transitions are as follows:
-        HELD ---> PENDING ---> PROCESSING <--> STOPPED (aka paused)
-                     ^              |---> CANCELLED
-                     |              |---> ABORTED
-                     |              |---> COMPLETE ---|
-                     |--------------------------------|
+            HELD ---> PENDING ---> PROCESSING <--> STOPPED (aka paused)
+                         ^              |---> CANCELLED
+                         |              |---> ABORTED
+                         |              |---> COMPLETE ---|
+                         |--------------------------------|
                      
         """
+
         if self.is_ready:
             state = States.PENDING
         elif self.is_playing and not self.is_paused:
@@ -215,6 +248,11 @@ class GutenbachJob(object):
 
     @staticmethod
     def verify_document(document):
+        """Verifies that a document has the 'name', 'read', and
+        'close' attributes (i.e., it should be like a file object).
+
+        """
+        
         if not hasattr(document, "name"):
             raise errors.InvalidDocument, "no name attribute"
         if not hasattr(document, "read"):
@@ -223,8 +261,9 @@ class GutenbachJob(object):
             raise errors.InvalidDocument, "no close attribute"
 
     def spool(self, document=None):
-        """Non-blocking spool.  Job must be valid, and the document
-        must be an open file handler.
+        """Non-blocking spool.  Job must be valid (see
+        'GutenbachJob.is_valid'), and the document must be an open
+        file handler.
 
         Raises
         ------
@@ -244,7 +283,8 @@ class GutenbachJob(object):
         logger.debug("document for job %d is '%s'" % (self.id, self.document))
 
     def play(self):
-        """Non-blocking play.  Job must be ready.
+        """Non-blocking play.  Job must be ready (see
+        'GutenbachJob.is_ready').
 
         Raises
         ------
@@ -268,7 +308,8 @@ class GutenbachJob(object):
         self.player.start()
 
     def pause(self):
-        """Non-blocking pause.  Job must be playing.
+        """Non-blocking pause.  Job must be playing (see
+        'GutenbachJob.is_playing').
 
         Raises
         ------
@@ -282,10 +323,10 @@ class GutenbachJob(object):
         self.player.mplayer_pause()
 
     def cancel(self):
-        """Non-blocking cancel. The job must not have previously
-        finished (i.e., cannot be aborted, cancelled, or completed).
-        This should be used to stop the job following an external
-        request.
+        """Non-blocking cancel. The job must not have been previously
+        aborted or completed (though this method will succeed if it
+        was previously cancelled).  This should be used to stop the
+        job following an external request.
 
         Raises
         ------
@@ -307,9 +348,10 @@ class GutenbachJob(object):
             _cancelled()
 
     def abort(self):
-        """Non-blocking abort. The job must not have previously
-        finished (i.e., cannot be aborted, cancelled, or completed).
-        This should be used to stop the job following internal errors.
+        """Non-blocking abort. The job must not have been previously
+        cancelled or completed (though this method will succeed if it
+        was previously aborted).  This should be used to stop the job
+        following internal errors.
 
         Raises
         ------
