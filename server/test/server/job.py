@@ -31,20 +31,24 @@ class TestEmptyGutenbachJob(unittest.TestCase):
         self.assertEqual(self.job.priority, 1)
 
     def testStateProperties(self):
-        self.assertFalse(self.job.is_playing)
+        self.assertFalse(self.job.is_valid)
         self.assertFalse(self.job.is_ready)
-        self.assertFalse(self.job.is_finished)
+        self.assertFalse(self.job.is_playing)
+        self.assertFalse(self.job.is_paused)
+        self.assertFalse(self.job.is_done)
 
     def testSpool(self):
         fh = make_tempfile()
+        # This should fail, because the id hasn't been set
+        self.assertFalse(self.job.is_valid)
+        self.job.id = 1
+        self.assertTrue(self.job.is_valid)
+        self.assertFalse(self.job.is_ready)
         self.job.spool(fh)
         self.assertEqual(self.job.document, fh.name)
         self.assertNotEqual(self.job.player, None)
         self.assertEqual(self.job.creator, "")
         self.assertEqual(self.job.state, States.PENDING)
-        # This should fail, because the id hasn't been set
-        self.assertFalse(self.job.is_ready)
-        self.job.id = 1
         self.assertTrue(self.job.is_ready)
         self.job.abort()
     def testPlay(self):

@@ -9,19 +9,23 @@ logger = logging.getLogger(__name__)
 
 class GutenbachJob(object):
 
-    def __init__(self, job_id=None, creator=None, name=None):
+    def __init__(self, job_id=None, creator=None, name=None,
+                 priority=None, document=None):
 	"""Create an empty Gutenbach job.
 
 	"""
 
         self.player = None
+        self.document = None
 
 	self.id = job_id
         self.creator = creator
         self.name = name
-	self.state = States.HELD
-        self.priority = 1
-        self.document = None
+        self.priority = priority
+        self._why_done = None
+
+        if document is not None:
+            self.spool(document)
 
     def __repr__(self):
 	return str(self)
@@ -46,9 +50,19 @@ class GutenbachJob(object):
     @id.setter
     def id(self, val):
         try:
-            self._id = int(val)
+            self._id = max(int(val), -1)
         except TypeError:
             self._id = -1
+
+    @property
+    def priority(self):
+        return self._priority
+    @priority.setter
+    def priority(self, val):
+        try:
+            self._priority = max(int(val), 1)
+        except TypeError:
+            self._priority = 1
 
     @property
     def creator(self):
@@ -89,34 +103,81 @@ class GutenbachJob(object):
         return size
 
     @property
-    def is_playing(self):
-        return self.state == States.PROCESSING
+    def is_valid(self):
+        """Whether the job is ready to be manipulated (spooled,
+        played, etc).  Note that playing the job still requires it to
+        be spooled first.
+
+        """
+        return self.id > 0 and \
+               self.priority > 0
 
     @property
     def is_ready(self):
-        return self.state == States.PENDING
+        """Whether the job is ready to be played.
+
+        """
+        return self.is_valid and \
+               self.player is not None and \
+               not self.player.is_playing and \
+               not self._why_done == "cancelled" and \
+               not self._why_done == "aborted"
 
     @property
-    def is_finished(self):
-        return self.state != States.PENDING and \
-               self.state != States.PROCESSING and \
-               self.state != States.HELD
-        
+    def is_playing(self):
+        """Whether the job is currently playing (regardless of whether
+        it's paused).
+
+        """
+        return self.is_valid and \
+               self.player is not None and \
+               self.player.is_playing
+
+    @property
+    def is_paused(self):
+        """Whether the job is currently paused.
+
+        """
+        return self.is_valid and \
+               self.player is not None and \
+               self.player.is_paused        
+
+    @property
+    def is_done(self):
+        return (self.is_valid and \
+                self.player is not None and \
+                self.player.is_done) or \
+                (self._why_done == "cancelled" or \
+                 self._why_done == "aborted")
+
+    @property
+    def state(self):
+        if self.is_ready:
+            state = States.PENDING
+        elif self.is_playing and not self.is_paused:
+            state = States.PROCESSING
+        elif self.is_playing and self.is_paused:
+            state = States.STOPPED
+        elif self.is_done and self._why_done == "completed":
+            state = States.COMPLETE
+        elif self.is_done and self._why_done == "cancelled":
+            state = States.CANCELLED
+        elif self.is_done and self._why_done == "aborted":
+            state = States.ABORTED
+        else:
+            state = States.HELD
+        return state
+
     ######################################################################
     ###                            Methods                             ###
     ######################################################################
 
-    def spool(self, document, username=None):
-        if self.state != States.HELD:
+    def spool(self, document):
+        if not self.is_valid:
             raise InvalidJobStateException(self.state)
-
         self.document = document.name
         self.player = Player(document)
-        self.creator = username
-        self.state = States.PENDING
-
         logger.debug("document for job %d is '%s'" % (self.id, self.document))
-
 
     def play(self):
         """Non-blocking play function.  Sets the job state to
@@ -139,10 +200,7 @@ class GutenbachJob(object):
 
         def _completed():
             logger.info("completed job %s" % str(self))
-            self.state = States.COMPLETE
-            self.player = None
-
-	self.state = States.PROCESSING
+            self._why_done = "completed"
         self.player.callback = _completed
         self.player.start()
 
@@ -154,36 +212,32 @@ class GutenbachJob(object):
         
         if not self.is_playing:
             raise InvalidJobStateException(self.state)
-        
         self.player.mplayer_pause()
-        self.state = States.STOPPED
 
     def cancel(self):
-        def _canceled():
-            logger.info("canceled job %s" % str(self))
-            self.state = States.CANCELLED
-            self.player = None
+        def _cancelled():
+            logger.info("cancelled job %s" % str(self))
+            self._why_done = "cancelled"
 
         if self.is_playing:
-            self.player.callback = _canceled
+            self.player.callback = _cancelled
             self.player.mplayer_stop()
-        elif self.is_finished:
+        elif self.is_done and not self._why_done == "cancelled":
             raise InvalidJobStateException(self.state)
-        
-        self.state = States.CANCELLED
+        else:
+            _cancelled()
 
     def abort(self):
         def _aborted():
             logger.info("aborted job %s" % str(self))
-            self.state = States.ABORTED
-            self.player = None
+            self._why_done = "aborted"
 
         if self.is_playing:
             self.player.callback = _aborted
             self.player.mplayer_stop()
-        elif self.is_finished:
+        elif self.is_done and not self._why_done == "aborted":
             raise InvalidJobStateException(self.state)
-        
-        self.state = States.ABORTED
+        else:
+            _aborted()
 
 

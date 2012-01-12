@@ -100,7 +100,7 @@ class GutenbachPrinter(threading.Thread):
                 try:
                     if self.current_job is None:
                         self.start_job()
-                    elif self.current_job.is_finished:
+                    elif self.current_job.is_done:
                         self.complete_job()
                 except:
                     logger.fatal(traceback.format_exc())
@@ -163,7 +163,7 @@ class GutenbachPrinter(threading.Thread):
                 return
 
             try:
-                if not self.current_job.is_finished:
+                if not self.current_job.is_done:
                     self.current_job.stop()
             finally:
                 self.finished_jobs.append(self.current_job)
@@ -381,7 +381,7 @@ class GutenbachPrinter(threading.Thread):
                       last_document=None):
 
         job = self.get_job(job_id)
-        job.spool(document, username=requesting_user_name)
+        job.spool(document)
 
     def send_uri(self):
         pass
