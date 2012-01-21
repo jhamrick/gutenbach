@@ -6,7 +6,7 @@ fi
 
 while true; do
     time=$(date)
-    echo "This is a work in progress!  Please send bugs to jhamrick." >> /tmp/gutenbach/current_queue_temp
+    echo "This is a work in progress!  Please send bugs to gutenbach@mit.edu." >> /tmp/gutenbach/current_queue_temp
     echo "" >> /tmp/gutenbach/current_queue_temp
     echo "As of $time:" >> /tmp/gutenbach/current_queue_temp
     echo "" >> /tmp/gutenbach/current_queue_temp

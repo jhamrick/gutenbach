@@ -17,8 +17,8 @@
 - add support in printer.py for:
      [ ] print job
      [ ] validate job
-     [ ] pause printer
-     [ ] resume printer
+     [x] pause printer
+     [x] resume printer
      [\] set printer attributes
      [\] send uri
      [\] set job attributes
@@ -27,6 +27,7 @@
 
 - add support in job.py for:
      [X] restart job
+     [x] resume job
 
 - finish test cases for printer.py
 - write test cases for requests.py
@@ -56,14 +57,14 @@ Ponies
    - zephyr control (e.g. youtube link)
 
 Tickets that should be fixed by this new version:
-   http://gutenbach.mit.edu/ticket/21
-   http://gutenbach.mit.edu/ticket/2
-   http://gutenbach.mit.edu/ticket/7
-   http://gutenbach.mit.edu/ticket/39
-   http://gutenbach.mit.edu/ticket/47
-   http://gutenbach.mit.edu/ticket/48
-   http://gutenbach.mit.edu/ticket/8
-   http://gutenbach.mit.edu/ticket/34
-   http://gutenbach.mit.edu/ticket/38
-   http://gutenbach.mit.edu/ticket/41
-   http://gutenbach.mit.edu/ticket/18
+   [ ] http://gutenbach.mit.edu/ticket/21
+   [ ] http://gutenbach.mit.edu/ticket/2
+   [ ] http://gutenbach.mit.edu/ticket/7
+   [ ] http://gutenbach.mit.edu/ticket/39
+   [ ] http://gutenbach.mit.edu/ticket/47
+   [ ] http://gutenbach.mit.edu/ticket/48
+   [ ] http://gutenbach.mit.edu/ticket/8
+   [ ] http://gutenbach.mit.edu/ticket/34
+   [x] http://gutenbach.mit.edu/ticket/38
+   [ ] http://gutenbach.mit.edu/ticket/41
+   [ ] http://gutenbach.mit.edu/ticket/18
