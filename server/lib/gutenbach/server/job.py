@@ -56,11 +56,12 @@ class GutenbachJob(object):
     def __del__(self):
         if self.player:
             self.player.mplayer_stop()
+            if self.player.fh:
+                if self.player.fh.closed:
+                    self.player.fh.close()
             self.player = None
-        if self.document and not self.document.closed:
-            self.document.close()
-            self.document = None
 
+        self.document = None
         self.id = None
         self.creator = None
         self.name = None
