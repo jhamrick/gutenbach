@@ -168,9 +168,64 @@ class GutenbachRequestHandler(object):
             OPTIONAL 'number-of-intervening-jobs' (integer(0:MAX))
 
         """
-        
-        raise ipp.errors.ServerErrorOperationNotSupported
+        operation = request.attribute_groups[0]
+        # requested printer uri
+        if 'printer-uri' not in operation:
+            raise ipp.errors.ClientErrorBadRequest("Missing 'printer-uri' attribute")
+        printer_uri = verify_attribute(operation['printer-uri'], ipp.PrinterUri)[0]
+        if printer_uri not in self.printer.uris:
+            raise ipp.errors.ClientErrorAttributes(
+                str(operation['printer-uri']), operation['printer-uri'])
 
+        if 'requesting-user-name' in operation:
+            user_name = verify_attribute(
+                operation['requesting-user-name'], ipp.RequestingUserName)[0]
+
+        if 'job-name' in operation:
+            job_name = verify_attribute(
+                operation['job-name'], ipp.JobName)[0]
+
+        if 'job-k-octets' in operation:
+            job_k_octets = verify_attribute(
+                operation['job-k-octets'], ipp.JobKOctets)[0]
+
+        if 'ipp-attribute-fidelity' in operation:
+            pass # don't care
+        if 'job-impressions' in operation:
+            pass # don't care
+        if 'job-media-sheets' in operation:
+            pass # don't care
+
+        # get attributes from the printer and add to response
+        job_id = self.printer.create_job(
+            requesting_user_name=requesting_user_name,
+            job_name=job_name,
+            job_k_octets=job_k_octets)
+        attrs = self.printer.get_job_attributes(job_id)
+        response.attribute_groups.append(ipp.AttributeGroup(
+            ipp.AttributeTags.JOB, attrs))
+            #raise ipp.errors.ServerErrorOperationNotSupported
+        # Get nescessary information for calling send_document
+        # Any field being set to None here just means that we either aren't using or haven't implemented parsing it
+        document = request.attribute_groups[2]
+        #XXX
+        document_format = None
+        document_natural_language = None
+        compression = None
+        last_document = None
+
+
+        
+        # Actually put the document in the job
+        self.printer.send_document(job_id,document,
+                document_name = document_name,
+                document_format = document_format,
+                document_natural_language = document_natural_language,
+                requesting_user_name = requesting_user_name,
+                compression = compression,
+                last_document = last_document)
+        #fix this once jess pushes
+        self.print_job()
     @handler_for(ipp.OperationCodes.VALIDATE_JOB)
     def validate_job(self, request, response):
 
