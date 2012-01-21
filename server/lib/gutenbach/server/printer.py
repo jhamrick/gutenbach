@@ -100,7 +100,7 @@ class GutenbachPrinter(threading.Thread):
         while self.running:
             with self.lock:
                 try:
-                    if self.current_job is None:
+                    if not self.paused and self.current_job is None:
                         self.start_job()
                     elif self.current_job.is_done:
                         self.complete_job()
@@ -347,11 +347,35 @@ class GutenbachPrinter(threading.Thread):
         
         return job_id
 
+    @sync
     def pause_printer(self):
-        pass
+        """Pause the printer.
 
+        Does nothing if the printer is already paused.
+        """
+        if self.paused:
+            return
+
+        if self.current_job is not None and self.current_job.is_playing:
+            self.current_job.pause()
+
+        self.paused = True
+
+
+
+    @sync
     def resume_printer(self):
-        pass
+        """Resume the printer.
+
+        Does nothing if the printer is not paused.
+        """
+        if not self.paused:
+            return
+
+        if self.current_job is not None:
+            self.current_job.resume()
+
+        self.paused = False
 
     def get_printer_attributes(self, requested_attributes=None):
         if requested_attributes is None:
