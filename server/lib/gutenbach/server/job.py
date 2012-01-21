@@ -321,6 +321,20 @@ class GutenbachJob(object):
             raise errors.InvalidJobStateException(self.state)
         self.player.mplayer_pause()
 
+    def resume(self):
+        """Non-blocking resume.  Job must be paused (see
+        'GutenbachJob.is_paused').
+
+        Raises
+        ------
+        InvalidJobStateException
+            If the job is not paused.
+
+        """
+        if not self.is_paused:
+            raise errors.InvalidJobStateException(self.state)
+        self.player.mplayer_pause()
+
     def cancel(self):
         """Blocking cancel. The job must not have been previously
         aborted or completed (though this method will succeed if it

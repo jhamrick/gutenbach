@@ -8,6 +8,7 @@ import threading
 import heapq
 import traceback
 import sys
+from . import sync
 
 
 # initialize logger
@@ -99,7 +100,7 @@ class GutenbachPrinter(threading.Thread):
         while self.running:
             with self.lock:
                 try:
-                    if self.current_job is None:
+                    if not self.paused and self.current_job is None:
                         self.start_job()
                     elif self.current_job.is_done:
                         self.complete_job()
@@ -123,59 +124,57 @@ class GutenbachPrinter(threading.Thread):
         return self.uris[0]
 
     @property
+    @sync
     def state(self):
-        with self.lock:
-            if self.current_job is not None:
-                val = States.PROCESSING
-            elif len(self.pending_jobs) == 0:
-                val = States.IDLE
-            else:
-                val = States.STOPPED
-        return val
+        if self.current_job is not None:
+            return States.PROCESSING
+        elif len(self.pending_jobs) == 0:
+            return States.IDLE
+        else:
+            return States.STOPPED
 
     @property
+    @sync
     def active_jobs(self):
-        with self.lock:
-            jobs = self.pending_jobs[:]
-            if self.current_job is not None:
-                jobs.insert(0, self.current_job.id)
+        jobs = self.pending_jobs[:]
+        if self.current_job is not None:
+            jobs.insert(0, self.current_job.id)
         return jobs
 
     ######################################################################
     ###                            Methods                             ###
     ######################################################################
 
+    @sync
     def start_job(self):
-        with self.lock:
-            if self.current_job is None:
-                try:
-                    job_id = heapq.heappop(self.pending_jobs)
-                    self.current_job = self.get_job(job_id)
-                    self.current_job.play()
-                except IndexError:
-                    self.current_job = None
-                except InvalidJobStateException:
-                    heapq.heappush(self.pending_jobs, self.current_job.id)
-                    self.current_job = None
-                    
-    def complete_job(self):
-        with self.lock:
-            if self.current_job is None:
-                return
-
+        if self.current_job is None:
             try:
-                if not self.current_job.is_done:
-                    self.current_job.stop()
-            finally:
-                self.finished_jobs.append(self.current_job.id)
+                job_id = heapq.heappop(self.pending_jobs)
+                self.current_job = self.get_job(job_id)
+                self.current_job.play()
+            except IndexError:
                 self.current_job = None
+            except InvalidJobStateException:
+                heapq.heappush(self.pending_jobs, self.current_job.id)
+                self.current_job = None
+                    
+    @sync
+    def complete_job(self):
+        if self.current_job is None:
+            return
 
+        try:
+            if not self.current_job.is_done:
+                self.current_job.stop()
+        finally:
+            self.finished_jobs.append(self.current_job.id)
+            self.current_job = None
+
+    @sync
     def get_job(self, job_id):
-        with self.lock:
-            if job_id not in self.jobs:
-                raise InvalidJobException(job_id)
-            job = self.jobs[job_id]
-        return job
+        if job_id not in self.jobs:
+            raise InvalidJobException(job_id)
+        return self.jobs[job_id]
 
     ######################################################################
     ###                        IPP Attributes                          ###
@@ -184,87 +183,150 @@ class GutenbachPrinter(threading.Thread):
     @property
     def printer_uri_supported(self):
         return ipp.PrinterUriSupported(self.uri)
+    @printer_uri_supported.setter
+    def printer_uri_supported(self, val):
+        raise ipp.errors.AttributesNotSettable("printer-uri-supported")
 
     @property
     def uri_authentication_supported(self):
         return ipp.UriAuthenticationSupported("none")
+    @uri_authentication_supported.setter
+    def uri_authentication_supported(self, val):
+        raise ipp.errors.AttributesNotSettable("uri-authentication-supported")
 
     @property
     def uri_security_supported(self):
         return ipp.UriSecuritySupported("none")
+    @uri_security_supported.setter
+    def uri_security_supported(self, val):
+        raise ipp.errors.AttributesNotSettable("uri-security-supported")
 
     @property
     def printer_name(self):
         return ipp.PrinterName(self.name)
+    @printer_name.setter
+    def printer_name(self, val):
+        raise ipp.errors.AttributesNotSettable("printer-name")
 
     @property
     def printer_state(self):
         return ipp.PrinterState(self.state)
+    @printer_state.setter
+    def printer_state(self, val):
+        raise ipp.errors.AttributesNotSettable("printer-state")
 
     @property
     def printer_state_reasons(self):
         return ipp.PrinterStateReasons("none")
+    @printer_state_reasons.setter
+    def printer_state_reasons(self, val):
+        raise ipp.errors.AttributesNotSettable("printer-state-reasons")
 
     @property
     def ipp_versions_supported(self):
         return ipp.IppVersionsSupported(*self.config['ipp-versions'])
+    @ipp_versions_supported.setter
+    def ipp_versions_supported(self, val):
+        raise ipp.errors.AttributesNotSettable("ipp-versions-supported")
 
     # XXX: We should query ourself for the supported operations
     @property
     def operations_supported(self):
         return ipp.OperationsSupported(ipp.OperationCodes.GET_JOBS)
+    @operations_supported.setter
+    def operations_supported(self, val):
+        raise ipp.errors.AttributesNotSettable("operations-supported")
 
     @property
     def charset_configured(self):
-        return ipp.CharsetConfigured("utf-8")
-
+        return ipp.CharsetConfigured("utf-8") # XXX
+    @charset_configured.setter
+    def charset_configured(self, val):
+        raise ipp.errors.AttributesNotSettable("charset-configured")
+        
     @property
     def charset_supported(self):
-        return ipp.CharsetSupported("utf-8")
+        return ipp.CharsetSupported("utf-8") # XXX
+    @charset_supported.setter
+    def charset_supported(self, val):
+        raise ipp.errors.AttributesNotSettable("charset-supported")
 
     @property
     def natural_language_configured(self):
         return ipp.NaturalLanguageConfigured("en-us")
+    @natural_language_configured.setter
+    def natural_language_configured(self, val):
+        raise ipp.errors.AttributesNotSettable("natural-language-configured")
 
     @property
     def generated_natural_language_supported(self):
         return ipp.GeneratedNaturalLanguageSupported("en-us")
+    @generated_natural_language_supported.setter
+    def generated_natural_language_supported(self, val):
+        raise ipp.errors.AttributesNotSettable("generated-natural-language-supported")
 
     @property
     def document_format_default(self):
         return ipp.DocumentFormatDefault("application/octet-stream")
+    @document_format_default.setter
+    def document_format_default(self, val):
+        raise ipp.errors.AttributesNotSettable("document-format-default")
 
     @property
     def document_format_supported(self):
         return ipp.DocumentFormatSupported("application/octet-stream", "audio/mp3")
+    @document_format_supported.setter
+    def document_format_supported(self, val):
+        raise ipp.errors.AttributesNotSettable("document-format-supported")
 
     @property
     def printer_is_accepting_jobs(self):
         return ipp.PrinterIsAcceptingJobs(True)
+    @printer_is_accepting_jobs.setter
+    def printer_is_accepting_jobs(self, val):
+        raise ipp.errors.AttributesNotSettable("printer-is-accepting-jobs")
 
     @property
     def queued_job_count(self):
         return ipp.QueuedJobCount(len(self.active_jobs))
+    @queued_job_count.setter
+    def queued_job_count(self, val):
+        raise ipp.errors.AttributesNotSettable("queued-job-count")
 
     @property
     def pdl_override_supported(self):
         return ipp.PdlOverrideSupported("not-attempted")
+    @pdl_override_supported.setter
+    def pdl_override_supported(self, val):
+        raise ipp.errors.AttributesNotSettable("pdl-override-supported")
 
     @property
     def printer_up_time(self):
         return ipp.PrinterUpTime(int(time.time()) - self.time_created)
+    @printer_up_time.setter
+    def printer_up_time(self, val):
+        raise ipp.errors.AttributesNotSettable("printer-up-time")
 
     @property
     def compression_supported(self):
         return ipp.CompressionSupported("none")
+    @compression_supported.setter
+    def compression_supported(self, val):
+        raise ipp.errors.AttributesNotSettable("compression-supported")
 
     @property
     def multiple_operation_time_out(self):
         return ipp.MultipleOperationTimeOut(240)
+    @multiple_operation_time_out.setter
+    def multiple_operation_time_out(self, val):
+        raise ipp.errors.AttributesNotSettable("multiple-operation-time-out")
 
     @property
     def multiple_document_jobs_supported(self):
         return ipp.MultipleDocumentJobsSupported(False)
+    @multiple_document_jobs_supported.setter
+    def multiple_document_jobs_supported(self, val):
+        raise ipp.errors.AttributesNotSettable("multiple-document-jobs-supported")
 
     ######################################################################
     ###                      Job IPP Attributes                        ###
@@ -348,11 +410,35 @@ class GutenbachPrinter(threading.Thread):
         
         return job_id
 
+    @sync
     def pause_printer(self):
-        pass
+        """Pause the printer.
 
+        Does nothing if the printer is already paused.
+        """
+        if self.paused:
+            return
+
+        if self.current_job is not None and self.current_job.is_playing:
+            self.current_job.pause()
+
+        self.paused = True
+
+
+
+    @sync
     def resume_printer(self):
-        pass
+        """Resume the printer.
+
+        Does nothing if the printer is not paused.
+        """
+        if not self.paused:
+            return
+
+        if self.current_job is not None:
+            self.current_job.resume()
+
+        self.paused = False
 
     def get_printer_attributes(self, requested_attributes=None):
         if requested_attributes is None:
@@ -365,8 +451,12 @@ class GutenbachPrinter(threading.Thread):
         attributes = [getattr(self, attr) for attr in _attributes]
         return attributes
 
-    def set_printer_attributes(self):
-        pass
+    def set_printer_attributes(self, job_id, attributes):
+        for attr in attributes:
+            try:
+                setattr(self, attr, attributes[attr])
+            except AttributeError:
+                raise ipp.errors.ClientErrorAttributes
 
     def cancel_job(self, job_id, requesting_user_name=None):
         job = self.get_job(job_id)
@@ -384,8 +474,14 @@ class GutenbachPrinter(threading.Thread):
         job = self.get_job(job_id)
         job.spool(document)
 
-    def send_uri(self):
-        pass
+    def send_uri(self, job_id, document_uri, document_name=None,
+                 document_format=None, document_natural_language=None,
+                 requesting_user_name=None, compression=None,
+                 last_document=None):
+        job = self.get_job(job_id)
+        # XXX: need to validate URI
+        # XXX: need to deal with the URI stream?
+        #job.spool_uri(document_uri)
 
     def get_job_attributes(self, job_id, requested_attributes=None):
         if requested_attributes is None:
@@ -398,9 +494,16 @@ class GutenbachPrinter(threading.Thread):
         attributes = [getattr(self, attr)(job_id) for attr in _attributes]
         return attributes
 
-    def set_job_attributes(self):
-        pass
-
+    def set_job_attributes(self, job_id, attributes):
+        job = self.get_job(job_id)
+        for attr in attributes:
+            if attr in ("job-id", "job-k-octets", "job-state", "job-printer-uri"):
+                raise ipp.errors.ClientErrorAttributesNotSettable(attr)
+            elif attr == "job-name":
+                job.name = attributes[attr]
+            elif attr == "job-originating-user-name":
+                job.creator = attributes[attr] # XXX: do we want this?
+                
     def restart_job(self, job_id, requesting_user_name=None):
         job = self.get_job(job_id)
         try:
