@@ -124,7 +124,7 @@ class GutenbachRequestHandler(object):
 
     @handler_for(ipp.OperationCodes.PRINT_JOB)
     def print_job(self, request, response):
-        """RFC 2911: 3.2.1 Print-Job Operation
+            """RFC 2911: 3.2.1 Print-Job Operation
 
         This REQUIRED operation allows a client to submit a print job
         with only one document and supply the document data (rather
@@ -198,7 +198,7 @@ class GutenbachRequestHandler(object):
 
         # get attributes from the printer and add to response
         job_id = self.printer.create_job(
-            requesting_user_name=requesting_user_name,
+            requesting_user_name=user_name,
             job_name=job_name,
             job_k_octets=job_k_octets)
         attrs = self.printer.get_job_attributes(job_id)
@@ -207,7 +207,7 @@ class GutenbachRequestHandler(object):
             #raise ipp.errors.ServerErrorOperationNotSupported
         # Get nescessary information for calling send_document
         # Any field being set to None here just means that we either aren't using or haven't implemented parsing it
-        document = request.attribute_groups[2]
+        document = request.data        
         #XXX
         document_format = None
         document_natural_language = None
@@ -217,15 +217,34 @@ class GutenbachRequestHandler(object):
 
         
         # Actually put the document in the job
-        self.printer.send_document(job_id,document,
+        try:
+            self.printer.send_document(job_id,document,
+                    document_name = document_name,
+                    document_format = document_format,
+                    document_natural_language = document_natural_language,
+                    requesting_user_name = requesting_user_name,
+                    compression = compression,
+                    last_document = last_document)
+        except InvalidJobException:
+            raise ipp.errors.ClientErrorNotFound("bad job: %d" % job_id)
+
+        
+        # Print the job, now that we've filled it in as appropriate
+       
+       #XXX
+       #Should we be handling a possible exception here?
+        self.print_job(document,
                 document_name = document_name,
                 document_format = document_format,
                 document_natural_language = document_natural_language,
                 requesting_user_name = requesting_user_name,
-                compression = compression,
-                last_document = last_document)
-        #fix this once jess pushes
-        self.print_job()
+                compression=compression,
+                job_name = job_name,
+                job_k_octets = job_k_octets)
+
+        attrs = self.printer.get_job_attributes(job_id)
+        response.attribute_groups.append(ipp.AttributeGroup(ipp.AttributeTags.JOB, attrs))
+
     @handler_for(ipp.OperationCodes.VALIDATE_JOB)
     def validate_job(self, request, response):
 
