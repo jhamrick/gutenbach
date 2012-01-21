@@ -2,6 +2,7 @@ import logging
 import threading
 import subprocess
 import time
+from . import sync
 
 # initialize logger
 logger = logging.getLogger(__name__)
@@ -23,22 +24,20 @@ class Player(threading.Thread):
             self._lag = 0.01
 
     @property
+    @sync
     def is_playing(self):
-        with self.lock:
-            if self._dryrun:
-                playing = self.isAlive() and not self.is_done
-            else:
-                playing = self.isAlive() and \
-                          not self.is_done and \
-                          self.player is not None and \
-                          self.player.poll() is None
-        return playing
+        if self._dryrun:
+            return self.isAlive() and not self.is_done
+        else:
+            return self.isAlive() and \
+                      not self.is_done and \
+                      self.player is not None and \
+                      self.player.poll() is None
 
     @property
+    @sync
     def is_paused(self):
-        with self.lock:
-            paused = self.is_playing and self._paused
-        return paused
+        return self.is_playing and self._paused
 
     @property
     def is_done(self):
@@ -48,9 +47,9 @@ class Player(threading.Thread):
     def callback(self):
         return self._callback
     @callback.setter
+    @sync
     def callback(self, val):
-        with self.lock:
-            self._callback = val
+        self._callback = val
 
     def start(self):
         super(Player, self).start()
@@ -111,6 +110,7 @@ class Player(threading.Thread):
             self._done = True
 
     def mplayer_pause(self):
+        # Note: Inner lock due to sleep.
         with self.lock:
             if self.is_playing:
                 if not self._dryrun:
@@ -122,6 +122,7 @@ class Player(threading.Thread):
         time.sleep(self._lag)
                 
     def mplayer_stop(self):
+        # Note: Inner Lock due to join.
         with self.lock:
             if self.is_playing:
                 if not self._dryrun:

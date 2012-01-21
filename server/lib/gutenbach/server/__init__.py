@@ -3,6 +3,20 @@ from errors import *
 __all__ = ['errors']
 __all__.extend(errors.__all__)
 
+def sync(func):
+    """Lock decorator
+
+    Holds a lock (self.lock) for the durration of a method call.
+    """
+
+    def do(self, *args, **kwargs):
+        with self.lock:
+            return func(self, *args, **kwargs)
+
+    return do
+__all__.append('sync')
+
+
 from job import GutenbachJob
 __all__.append('GutenbachJob')
 

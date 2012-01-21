@@ -8,6 +8,7 @@ import threading
 import heapq
 import traceback
 import sys
+from . import sync
 
 
 # initialize logger
@@ -123,59 +124,57 @@ class GutenbachPrinter(threading.Thread):
         return self.uris[0]
 
     @property
+    @sync
     def state(self):
-        with self.lock:
-            if self.current_job is not None:
-                val = States.PROCESSING
-            elif len(self.pending_jobs) == 0:
-                val = States.IDLE
-            else:
-                val = States.STOPPED
-        return val
+        if self.current_job is not None:
+            return States.PROCESSING
+        elif len(self.pending_jobs) == 0:
+            return States.IDLE
+        else:
+            return States.STOPPED
 
     @property
+    @sync
     def active_jobs(self):
-        with self.lock:
-            jobs = self.pending_jobs[:]
-            if self.current_job is not None:
-                jobs.insert(0, self.current_job.id)
+        jobs = self.pending_jobs[:]
+        if self.current_job is not None:
+            jobs.insert(0, self.current_job.id)
         return jobs
 
     ######################################################################
     ###                            Methods                             ###
     ######################################################################
 
+    @sync
     def start_job(self):
-        with self.lock:
-            if self.current_job is None:
-                try:
-                    job_id = heapq.heappop(self.pending_jobs)
-                    self.current_job = self.get_job(job_id)
-                    self.current_job.play()
-                except IndexError:
-                    self.current_job = None
-                except InvalidJobStateException:
-                    heapq.heappush(self.pending_jobs, self.current_job.id)
-                    self.current_job = None
-                    
-    def complete_job(self):
-        with self.lock:
-            if self.current_job is None:
-                return
-
+        if self.current_job is None:
             try:
-                if not self.current_job.is_done:
-                    self.current_job.stop()
-            finally:
-                self.finished_jobs.append(self.current_job.id)
+                job_id = heapq.heappop(self.pending_jobs)
+                self.current_job = self.get_job(job_id)
+                self.current_job.play()
+            except IndexError:
                 self.current_job = None
+            except InvalidJobStateException:
+                heapq.heappush(self.pending_jobs, self.current_job.id)
+                self.current_job = None
+                    
+    @sync
+    def complete_job(self):
+        if self.current_job is None:
+            return
 
+        try:
+            if not self.current_job.is_done:
+                self.current_job.stop()
+        finally:
+            self.finished_jobs.append(self.current_job.id)
+            self.current_job = None
+
+    @sync
     def get_job(self, job_id):
-        with self.lock:
-            if job_id not in self.jobs:
-                raise InvalidJobException(job_id)
-            job = self.jobs[job_id]
-        return job
+        if job_id not in self.jobs:
+            raise InvalidJobException(job_id)
+        return self.jobs[job_id]
 
     ######################################################################
     ###                        IPP Attributes                          ###
