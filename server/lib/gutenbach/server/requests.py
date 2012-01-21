@@ -698,26 +698,29 @@ class GutenbachRequestHandler(object):
 
     @handler_for(ipp.OperationCodes.SEND_URI)
     def send_uri(self, request, response):
-        """This OPTIONAL operation is identical to the Send-Document operation
-        (see section 3.3.1) except that a client MUST supply a URI reference
-        ("document-uri" operation attribute) rather than the document data
-        itself.  If a Printer object supports this operation, clients can use
-        both Send-URI or Send-Document operations to add new documents to an
-        existing multi-document Job object.  However, if a client needs to
-        indicate that the previous Send-URI or Send-Document was the last
-        document,  the client MUST use the Send-Document operation with no
-        document data and the "last-document" flag set to 'true' (rather than
-        using a Send-URI operation with no "document-uri" operation
+        """3.2.2 Send URI
+
+        This OPTIONAL operation is identical to the Send-Document
+        operation (see section 3.3.1) except that a client MUST supply
+        a URI reference ('document-uri' operation attribute) rather
+        than the document data itself.  If a Printer object supports
+        this operation, clients can use both Send-URI or Send-Document
+        operations to add new documents to an existing multi-document
+        Job object.  However, if a client needs to indicate that the
+        previous Send-URI or Send-Document was the last document, the
+        client MUST use the Send-Document operation with no document
+        data and the 'last-document' flag set to 'true' (rather than
+        using a Send-URI operation with no 'document-uri' operation
         attribute).
 
-        If a Printer object supports this operation, it MUST also support the
-        Print-URI operation (see section 3.2.2).
+        If a Printer object supports this operation, it MUST also
+        support the Print-URI operation (see section 3.2.2).
 
-        The Printer object MUST validate the syntax and URI scheme of the
-        supplied URI before returning a response, just as in the Print-URI
-        operation.  The IPP Printer MAY validate the accessibility of the
-        document as part of the operation or subsequently (see section
-        3.2.2).
+        The Printer object MUST validate the syntax and URI scheme of
+        the supplied URI before returning a response, just as in the
+        Print-URI operation.  The IPP Printer MAY validate the
+        accessibility of the document as part of the operation or
+        subsequently (see section 3.2.2).
 
         Request
         -------
@@ -750,7 +753,9 @@ class GutenbachRequestHandler(object):
             REQUIRED 'job-state' (type1 enum)
             REQUIRED 'job-state-reasons' (1setOf type2 keyword)
             OPTIONAL 'job-state-message' (text(MAX))
-            OPTIONAL 'number-of-intervening-jobs' (integer(0:MAX))"""
+            OPTIONAL 'number-of-intervening-jobs' (integer(0:MAX))
+
+        """
         
         operation = request.attribute_groups[0]
 
