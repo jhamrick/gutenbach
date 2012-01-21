@@ -20,8 +20,8 @@
      [ ] set printer attributes
      [ ] send uri
      [ ] set job attributes
-     [ ] restart job
-     [ ] promote job
+     [X] restart job
+     [\] promote job
 
 - add support in job.py for:
      [ ] restart job
