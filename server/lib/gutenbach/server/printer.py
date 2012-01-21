@@ -404,5 +404,11 @@ class GutenbachPrinter(threading.Thread):
     def restart_job(self):
         pass
 
-    def promote_job(self):
-        pass
+    def promote_job(self, job_id):
+        # According to RFC 3998, we need to put the job at the front
+        # of the queue (so that when the currently playing job
+        # completes, this one will go next
+        
+        job = self.get_job(job_id)
+        job.priority = 1 # XXX we need to actually do something
+                         # correct here
