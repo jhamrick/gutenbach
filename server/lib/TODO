@@ -3,6 +3,7 @@
 * items in this file will be merged into the Trac.
 
 - finish implementing a bunch of the IPP handlers
+     [ ] print job
      [ ] validate job
      [ ] pause printer
      [ ] resume printer
@@ -14,17 +15,18 @@
      [ ] cups get document
 
 - add support in printer.py for:
+     [ ] print job
      [ ] validate job
      [ ] pause printer
      [ ] resume printer
-     [ ] set printer attributes
-     [ ] send uri
-     [ ] set job attributes
-     [ ] restart job
-     [ ] promote job
+     [\] set printer attributes
+     [\] send uri
+     [\] set job attributes
+     [X] restart job
+     [\] promote job
 
 - add support in job.py for:
-     [ ] restart job
+     [X] restart job
 
 - finish test cases for printer.py
 - write test cases for requests.py
@@ -51,6 +53,7 @@ Ponies
    - last.fm
    - local streaming
    - generic streaming
+   - zephyr control (e.g. youtube link)
 
 Tickets that should be fixed by this new version:
    http://gutenbach.mit.edu/ticket/21

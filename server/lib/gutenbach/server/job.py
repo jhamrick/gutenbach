@@ -382,5 +382,21 @@ class GutenbachJob(object):
         self._why_done = "aborted"
 
     def restart(self):
-        # XXX: Todo
-        pass
+        """Non-blocking restart.  Job must be finished (see
+        'GutenbachJob.is_done'), and will be ready to be played (see
+        'GutenbachJob.is_ready') if this method is successful.
+
+        Raises
+        ------
+        InvalidJobStateException
+            If the job is not done.
+
+        """
+
+        if not self.is_done:
+            raise errors.InvalidJobStateException(self.state)
+
+        logger.debug("restarting job %d" % (self.id, self.document))
+
+        self._why_done = None
+        self.spool(self.document)
