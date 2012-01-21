@@ -3,6 +3,7 @@
 * items in this file will be merged into the Trac.
 
 - finish implementing a bunch of the IPP handlers
+     [ ] print job
      [ ] validate job
      [ ] pause printer
      [ ] resume printer
@@ -14,6 +15,7 @@
      [ ] cups get document
 
 - add support in printer.py for:
+     [ ] print job
      [ ] validate job
      [ ] pause printer
      [ ] resume printer
