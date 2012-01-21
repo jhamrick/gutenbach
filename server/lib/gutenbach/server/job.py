@@ -414,7 +414,12 @@ class GutenbachJob(object):
         if not self.is_done:
             raise errors.InvalidJobStateException(self.state)
 
-        logger.debug("restarting job %d" % (self.id, self.document))
+        logger.debug("restarting job %d", self.id)
 
         self._why_done = None
-        self.spool(self.document)
+        fh = self.player.fh
+
+        if not fh or fh.closed:
+            raise RuntimeError, "file handler is closed"
+
+        self.player = Player(fh)
