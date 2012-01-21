@@ -2,3 +2,6 @@
 client/bin/*.1.gz
 debian/
 *.pyc
+*.log
+*.log.*
+tags
