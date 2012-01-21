@@ -401,10 +401,19 @@ class GutenbachPrinter(threading.Thread):
     def set_job_attributes(self):
         pass
 
-    def restart_job(self):
-        pass
+    def restart_job(self, job_id, requesting_user_name=None):
+        job = self.get_job(job_id)
+        try:
+            job.restart()
+        except InvalidJobStateException:
+            # XXX
+            raise ipp.errors.ClientErrorNotPossible
 
-    def promote_job(self, job_id):
+        with self.lock:
+            self.finished_jobs.remove(job_id)
+            self.pending_jobs.append(job_id)
+
+    def promote_job(self, job_id, requesting_user_name=None):
         # According to RFC 3998, we need to put the job at the front
         # of the queue (so that when the currently playing job
         # completes, this one will go next
