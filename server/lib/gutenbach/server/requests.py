@@ -290,11 +290,12 @@ class GutenbachRequestHandler(object):
         attribute (see section 3.1.6.4).
 
         If the Printer determines this document accessibility problem after
-        accepting the request and returning an operation response with one of
-        the successful status codes, the Printer adds the 'document-access-
-        error' value to the job's 'job-state-reasons' attribute and MAY                                                 populate the job's 'job-document-access-errors' Job Description
-        attribute (see section 4.3.11).  See The Implementer's Guide [IPP-
-        IIG] for suggested additional checks.
+        accepting the request and returning an operation response with one
+        of the successful status codes, the Printer adds the
+        'document-access- error' value to the job's 'job-state-reasons'
+        attribute and MAY populate the job's 'job-document-access-errors'
+        Job Description attribute (see section 4.3.11).  See The
+        Implementer's Guide [IPP- IIG] for suggested additional checks.
                                                                               
         If the Printer object supports this operation, it MUST support the
         'reference-uri-schemes-supported' Printer attribute (see section 4.4.27).
@@ -895,7 +896,7 @@ class GutenbachRequestHandler(object):
 
     @handler_for(ipp.OperationCodes.SEND_URI)
     def send_uri(self, request, response):
-       raise ipp.errors.ServerErrorOperationNotSupported
+
         """3.2.2 Send URI
 
         This OPTIONAL operation is identical to the Send-Document
