@@ -27,13 +27,16 @@ class Player(threading.Thread):
     @sync
     def is_playing(self):
         if self._dryrun:
-            return self.isAlive() and not self.is_done
+            return self.ident is not None and \
+                   self.isAlive() and \
+                   not self.is_done
         else:
-            return self.isAlive() and \
-                      not self.is_done and \
-                      self.player is not None and \
-                      self.player.poll() is None
-
+            return self.ident is not None and \
+                   self.isAlive() and \
+                   not self.is_done and \
+                   self.player is not None and \
+                   self.player.poll() is None
+        
     @property
     @sync
     def is_paused(self):
@@ -120,9 +123,9 @@ class Player(threading.Thread):
             else:
                 logger.warning("trying to pause non-playing job")
         time.sleep(self._lag)
-                
+
     def mplayer_stop(self):
-        # Note: Inner Lock due to join.
+        # Note: Inner lock due to join.
         with self.lock:
             if self.is_playing:
                 if not self._dryrun:
@@ -133,3 +136,4 @@ class Player(threading.Thread):
             else:
                 logger.warning("trying to stop non-playing job")
         self.join()
+

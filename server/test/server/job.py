@@ -5,6 +5,7 @@ import unittest
 import tempfile
 import sys
 import time
+import logging
 
 def make_tempfile():
     fh = tempfile.NamedTemporaryFile()
@@ -203,4 +204,5 @@ class TestOperations(unittest.TestCase):
         pass
 
 if __name__ == "__main__":
+    logging.basicConfig(loglevel=logging.CRITICAL)
     unittest.main()
