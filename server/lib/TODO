@@ -18,7 +18,7 @@
      [ ] pause printer
      [ ] resume printer
      [\] set printer attributes
-     [ ] send uri
+     [\] send uri
      [\] set job attributes
      [X] restart job
      [\] promote job

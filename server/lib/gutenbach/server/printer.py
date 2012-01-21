@@ -451,8 +451,14 @@ class GutenbachPrinter(threading.Thread):
         job = self.get_job(job_id)
         job.spool(document)
 
-    def send_uri(self):
-        pass
+    def send_uri(self, job_id, document_uri, document_name=None,
+                 document_format=None, document_natural_language=None,
+                 requesting_user_name=None, compression=None,
+                 last_document=None):
+        job = self.get_job(job_id)
+        # XXX: need to validate URI
+        # XXX: need to deal with the URI stream?
+        #job.spool_uri(document_uri)
 
     def get_job_attributes(self, job_id, requested_attributes=None):
         if requested_attributes is None:

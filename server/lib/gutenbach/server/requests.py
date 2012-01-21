@@ -929,13 +929,12 @@ class GutenbachRequestHandler(object):
             REQUIRED 'attributes-natural-language' 
             REQUIRED 'job-id' (integer(1:MAX)) and 'printer-uri' (uri)
             REQUIRED 'document-uri' (uri)
-              -or-   'job-uri' (uri)
+            OPTIONAL 'job-uri' (uri)
             OPTIONAL 'requesting-user-name' (name(MAX))
             OPTIONAL 'document-name' (name(MAX))
             OPTIONAL 'compression' (type3 keyword)
             OPTIONAL 'document-format' (mimeMediaType)
             OPTIONAL 'document-natural-language' (naturalLanguage)
-        Group 2: Document Content
             
         Response
         --------
@@ -1013,7 +1012,7 @@ class GutenbachRequestHandler(object):
         try:
             self.printer.send_uri(
                 job_id,
-                document_uri=document_uri,
+                document_uri,
                 document_name=document_name,
                 document_format=document_format,
                 document_natural_language=document_natural_language,
