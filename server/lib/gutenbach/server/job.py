@@ -55,7 +55,8 @@ class GutenbachJob(object):
 
     def __del__(self):
         if self.player:
-            self.player.mplayer_stop()
+            if self.player.is_playing:
+                self.player.mplayer_stop()
             if self.player.fh:
                 if self.player.fh.closed:
                     self.player.fh.close()
