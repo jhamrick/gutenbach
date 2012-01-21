@@ -698,7 +698,130 @@ class GutenbachRequestHandler(object):
 
     @handler_for(ipp.OperationCodes.SEND_URI)
     def send_uri(self, request, response):
-        raise ipp.errors.ServerErrorOperationNotSupported
+        """This OPTIONAL operation is identical to the Send-Document operation
+        (see section 3.3.1) except that a client MUST supply a URI reference
+        ("document-uri" operation attribute) rather than the document data
+        itself.  If a Printer object supports this operation, clients can use
+        both Send-URI or Send-Document operations to add new documents to an
+        existing multi-document Job object.  However, if a client needs to
+        indicate that the previous Send-URI or Send-Document was the last
+        document,  the client MUST use the Send-Document operation with no
+        document data and the "last-document" flag set to 'true' (rather than
+        using a Send-URI operation with no "document-uri" operation
+        attribute).
+
+        If a Printer object supports this operation, it MUST also support the
+        Print-URI operation (see section 3.2.2).
+
+        The Printer object MUST validate the syntax and URI scheme of the
+        supplied URI before returning a response, just as in the Print-URI
+        operation.  The IPP Printer MAY validate the accessibility of the
+        document as part of the operation or subsequently (see section
+        3.2.2).
+
+        Request
+        -------
+
+        Group 1: Operation Attributes
+            REQUIRED 'attributes-charset' 
+            REQUIRED 'attributes-natural-language' 
+            REQUIRED 'job-id' (integer(1:MAX)) and 'printer-uri' (uri)
+            REQUIRED 'document-uri' (uri)
+              -or-   'job-uri' (uri)
+            OPTIONAL 'requesting-user-name' (name(MAX))
+            OPTIONAL 'document-name' (name(MAX))
+            OPTIONAL 'compression' (type3 keyword)
+            OPTIONAL 'document-format' (mimeMediaType)
+            OPTIONAL 'document-natural-language' (naturalLanguage)
+        Group 2: Document Content
+            
+        Response
+        --------
+
+        Group 1: Operation Attributes
+            OPTIONAL 'status-message' (text(255))
+            OPTIONAL 'detailed-status-message' (text(MAX))
+            REQUIRED 'attributes-charset'
+            REQUIRED 'attributes-natural-language'
+        Group 2: Unsupported Attributes
+        Group 3: Job Object Attributes
+            REQUIRED 'job-uri' (uri)
+            REQUIRED 'job-id' (integer(1:MAX))
+            REQUIRED 'job-state' (type1 enum)
+            REQUIRED 'job-state-reasons' (1setOf type2 keyword)
+            OPTIONAL 'job-state-message' (text(MAX))
+            OPTIONAL 'number-of-intervening-jobs' (integer(0:MAX))"""
+        
+        operation = request.attribute_groups[0]
+
+        job_id = None
+        printer_uri = None
+        requesting_user_name = None
+        document_name = None
+        compression = None
+        document_format = None
+        document_natural_language = None
+        last_document = None
+
+        # required attributes
+        if 'job-id' not in operation:
+            raise ipp.errors.ClientErrorBadRequest("Missing 'job-id' attribute")
+        job_id = verify_attribute(operation['job-id'], ipp.JobId)[0]
+
+        if 'last-document' not in operation:
+            raise ipp.errors.ClientErrorBadRequest("Missing 'last-document' attribute")
+        last_document = verify_attribute(operation['last-document'], ipp.LastDocument)[0]
+
+        if 'document-uri' not in operation:
+            raise ipp.errors.ClientErrorBadRequest("Missing 'document-uri' attribute")
+        document_uri = verify_attribute(operation['document-uri'], ipp.DocumentUri)[0]
+        if not last_document:
+            raise ipp.errors.ServerErrorMultipleJobsNotSupported
+
+        # optional attributes
+        if 'printer-uri' in operation:
+            printer_uri = verify_attribute(operation['printer-uri'], ipp.PrinterUri)[0]
+            if printer_uri not in self.printer.uris:
+                raise ipp.errors.ClientErrorAttributes(
+                    str(operation['printer-uri']), operation['printer-uri'])
+
+        if 'requesting-user-name' in operation:
+            user_name = verify_attribute(
+                operation['requesting-user-name'], ipp.RequestingUserName)[0]
+
+        if 'document-name' in operation:
+            document_name = verify_attribute(
+                operation['document-name'], ipp.DocumentName)[0]
+
+        if 'compression' in operation:
+            compression = verify_attribute(
+                operation['compression'], ipp.Compression)[0]
+
+        if 'document-format' in operation:
+            document_format = verify_attribute(
+                operation['document-format'], ipp.DocumentFormat)[0]
+
+        if 'document-natural-language' in operation:
+            document_natural_language = verify_attribute(
+                operation['document_natural_language'],
+                ipp.DocumentNaturalLanguage)[0]
+
+        try:
+            self.printer.send_uri(
+                job_id,
+                document_uri=document_uri,
+                document_name=document_name,
+                document_format=document_format,
+                document_natural_language=document_natural_language,
+                requesting_user_name=user_name,
+                compression=compression,
+                last_document=last_document)
+            attrs = self.printer.get_job_attributes(job_id)
+        except InvalidJobException:
+            raise ipp.errors.ClientErrorNotFound("bad job: %d" % job_id)
+
+        response.attribute_groups.append(ipp.AttributeGroup(
+            ipp.AttributeTags.JOB, attrs))
 
     @handler_for(ipp.OperationCodes.GET_JOB_ATTRIBUTES)
     def get_job_attributes(self, request, response):
