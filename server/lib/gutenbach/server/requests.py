@@ -895,9 +895,7 @@ class GutenbachRequestHandler(object):
 
     @handler_for(ipp.OperationCodes.SEND_URI)
     def send_uri(self, request, response):
-<<<<<<< HEAD
        raise ipp.errors.ServerErrorOperationNotSupported
-=======
         """3.2.2 Send URI
 
         This OPTIONAL operation is identical to the Send-Document
@@ -1027,7 +1025,6 @@ class GutenbachRequestHandler(object):
 
         response.attribute_groups.append(ipp.AttributeGroup(
             ipp.AttributeTags.JOB, attrs))
->>>>>>> 7c8a2f82df069878680146d8ac18339ec96bd487
 
     @handler_for(ipp.OperationCodes.GET_JOB_ATTRIBUTES)
     def get_job_attributes(self, request, response):
