@@ -68,3 +68,49 @@ Tickets that should be fixed by this new version:
    [x] http://gutenbach.mit.edu/ticket/38
    [ ] http://gutenbach.mit.edu/ticket/41
    [ ] http://gutenbach.mit.edu/ticket/18
+
+ === CONSIDERATIONS FOR MPD ===
+
+We are considering using MPD (the Music Player Daemon) for playback, instead
+of mplayer.  This gives us a pony (gapless playback), and makes some other
+things, like keeping track of the queue, much easier.  There is a lot of work
+needed to make this work, though.
+
+THIS ADDS A DEPENDENCY:  python-mpd
+
+We will have to re-implement all the functions in jobs.py, and completely
+re-structure player.py
+
+If we want video playback eventually (and we do), there will be some hackery
+involved.  We will pause mpd playback, do the video playback completely
+separately, and then resume mpd playback.
+
+Some almost-pseudocode:
+
+startup:
+  client = MPDClient()
+  client.connect(**{'host':'/var/run/mpd/socket', 'port':'6600'})
+
+adding a song to the queue:
+  Receive job
+  Put it into a file                    [gutenbach/FILENAME]
+  Tell MPD to add it to the queue       [client.addid('gutenbach/FILENAME')]
+  Find out what the id is
+  Store all the data [including the temporary filename]
+  IF WE ARE SUPPOSED TO BE PLAYING, MAKE SURE WE *ARE* PLAYING
+    In particular, if the queue was empty, start playback   [gutenbach.play()]
+
+when a job completes playing:
+  Remove the file                       [rm gutenbach/FILENAME]
+
+getting the queue:
+  get playlist, parse return            [client.playlistid()]
+
+removing a job:
+  dequeue it                  [client.deleteid('NUMBER')]
+  remove the file
+  tell them what you did
+
+restart song:
+  client.seek(0,1)   [0% through song 1...]
+

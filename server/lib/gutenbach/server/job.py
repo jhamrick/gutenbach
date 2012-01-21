@@ -53,6 +53,20 @@ class GutenbachJob(object):
         """
         return cmp(self.priority, other.priority)
 
+    def __del__(self):
+        if self.player:
+            self.player.mplayer_stop()
+            self.player = None
+        if self.document and not self.document.closed:
+            self.document.close()
+            self.document = None
+
+        self.id = None
+        self.creator = None
+        self.name = None
+        self.priority = None
+        self._why_done = None
+
     ######################################################################
     ###                          Properties                            ###
     ######################################################################
@@ -258,6 +272,8 @@ class GutenbachJob(object):
             raise errors.InvalidDocument, "no read attribute"
         if not hasattr(document, "close"):
             raise errors.InvalidDocument, "no close attribute"
+        if not hasattr(document, "closed"):
+            raise errors.InvalidDocument, "no closed attribute"
 
     def spool(self, document=None):
         """Non-blocking spool.  Job must be valid (see

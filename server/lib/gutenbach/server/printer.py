@@ -8,6 +8,7 @@ import threading
 import heapq
 import traceback
 import sys
+import tempfile
 from . import sync
 
 
@@ -360,11 +361,41 @@ class GutenbachPrinter(threading.Thread):
     ###                        IPP Operations                          ###
     ######################################################################
 
-    def print_job(self):
-        pass
+    def print_job(self, document, document_name=None, document_format=None,
+                  document_natural_language=None, requesting_user_name=None,
+                  compression=None, job_name=None, job_k_octets=None):
 
-    def validate_job(self):
-        pass
+        # create the job
+        job_id = self.create_job(
+            requesting_user_name=requesting_user_name,
+            job_name=job_name,
+            job_k_octets=job_k_octets)
+        
+        # send the document
+        self.send_document(
+            job_id,
+            document,
+            document_name=document_name,
+            document_format=document_format,
+            document_natural_language=document_natural_language,
+            requesting_user_name=requesting_user_name,
+            compression=compression,
+            last_document=False)
+
+        return job_id
+
+    def verify_job(self, document_name=None, document_format=None,
+                  document_natural_language=None, requesting_user_name=None,
+                  compression=None, job_name=None, job_k_octets=None):
+
+        job_id = self._next_job_id
+        job = GutenbachJob(
+            job_id,
+            creator=requesting_user_name,
+            name=job_name)
+        job.spool(tempfile.TemporaryFile())
+        job.abort()
+        del job
 
     def get_jobs(self, requesting_user_name=None, which_jobs=None,
                  requested_attributes=None):
@@ -396,7 +427,9 @@ class GutenbachPrinter(threading.Thread):
     def print_uri(self):
         pass
 
-    def create_job(self, requesting_user_name=None, job_name=None, job_k_octets=None):
+    def create_job(self, requesting_user_name=None, job_name=None,
+                   job_k_octets=None):
+
         job_id = self._next_job_id
         self._next_job_id += 1
         
@@ -404,7 +437,7 @@ class GutenbachPrinter(threading.Thread):
             job_id,
             creator=requesting_user_name,
             name=job_name)
-        
+
         self.jobs[job_id] = job
         self.pending_jobs.append(job_id)
         
@@ -424,8 +457,6 @@ class GutenbachPrinter(threading.Thread):
 
         self.paused = True
 
-
-
     @sync
     def resume_printer(self):
         """Resume the printer.
@@ -440,6 +471,7 @@ class GutenbachPrinter(threading.Thread):
 
         self.paused = False
 
+    @sync
     def get_printer_attributes(self, requested_attributes=None):
         if requested_attributes is None:
             requested = self.printer_attributes
@@ -451,6 +483,7 @@ class GutenbachPrinter(threading.Thread):
         attributes = [getattr(self, attr) for attr in _attributes]
         return attributes
 
+    @sync
     def set_printer_attributes(self, job_id, attributes):
         for attr in attributes:
             try:
@@ -458,6 +491,7 @@ class GutenbachPrinter(threading.Thread):
             except AttributeError:
                 raise ipp.errors.ClientErrorAttributes
 
+    @sync
     def cancel_job(self, job_id, requesting_user_name=None):
         job = self.get_job(job_id)
         try:
@@ -466,6 +500,7 @@ class GutenbachPrinter(threading.Thread):
             # XXX
             raise
 
+    @sync
     def send_document(self, job_id, document, document_name=None,
                       document_format=None, document_natural_language=None,
                       requesting_user_name=None, compression=None,
@@ -474,6 +509,7 @@ class GutenbachPrinter(threading.Thread):
         job = self.get_job(job_id)
         job.spool(document)
 
+    @sync
     def send_uri(self, job_id, document_uri, document_name=None,
                  document_format=None, document_natural_language=None,
                  requesting_user_name=None, compression=None,
@@ -483,6 +519,7 @@ class GutenbachPrinter(threading.Thread):
         # XXX: need to deal with the URI stream?
         #job.spool_uri(document_uri)
 
+    @sync
     def get_job_attributes(self, job_id, requested_attributes=None):
         if requested_attributes is None:
             requested = self.job_attributes
@@ -494,6 +531,7 @@ class GutenbachPrinter(threading.Thread):
         attributes = [getattr(self, attr)(job_id) for attr in _attributes]
         return attributes
 
+    @sync
     def set_job_attributes(self, job_id, attributes):
         job = self.get_job(job_id)
         for attr in attributes:
@@ -503,7 +541,8 @@ class GutenbachPrinter(threading.Thread):
                 job.name = attributes[attr]
             elif attr == "job-originating-user-name":
                 job.creator = attributes[attr] # XXX: do we want this?
-                
+
+    @sync
     def restart_job(self, job_id, requesting_user_name=None):
         job = self.get_job(job_id)
         try:
@@ -512,10 +551,10 @@ class GutenbachPrinter(threading.Thread):
             # XXX
             raise ipp.errors.ClientErrorNotPossible
 
-        with self.lock:
-            self.finished_jobs.remove(job_id)
-            self.pending_jobs.append(job_id)
+        self.finished_jobs.remove(job_id)
+        self.pending_jobs.append(job_id)
 
+    @sync
     def promote_job(self, job_id, requesting_user_name=None):
         # According to RFC 3998, we need to put the job at the front
         # of the queue (so that when the currently playing job
