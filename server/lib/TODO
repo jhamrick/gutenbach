@@ -15,8 +15,8 @@
      [ ] cups get document
 
 - add support in printer.py for:
-     [ ] print job
-     [ ] validate job
+     [x] print job
+     [x] validate job
      [x] pause printer
      [x] resume printer
      [\] set printer attributes
@@ -29,22 +29,29 @@
      [X] restart job
      [x] resume job
 
-- finish test cases for printer.py
-- write test cases for requests.py
-- write convenience client-side API
-- write test cases for future client API
-- all the documentation
-- deal with all the code marked 'XXX'
-- setuptools entry points for notification system (e.g. zephyr)
-- check test case coverage ( http://nedbatchelder.com/code/coverage/ )
-- deal with queue management/reordering
-- add support for volume management
-- make sure all CUPS commands are compatible
-- rewrite gbr/gbq/etc. scripts to use client API
-- rewrite server-side queue display to use API
-- support authentication/security
-- why doesn't the bug tracker work?! relatedly, figure out a
-  solution that makes it easier for non-MIT developers to contribute
+- server stuff
+     [ ] write convenience client-side API
+     [ ] setuptools entry points for notification system (e.g. zephyr)
+     [ ] deal with queue management/reordering
+     [ ] add support for volume management
+     [ ] support authentication/security
+
+- client-ish stuff
+     [ ] rewrite gbr/gbq/etc. scripts to use client API
+     [ ] rewrite server-side queue display to use API
+
+- misc
+     [ ] make sure all CUPS commands are compatible
+     [ ] deal with all the code marked 'XXX'
+
+- documentation and testing
+     [ ] finish test cases for printer.py
+     [ ] write test cases for requests.py
+     [ ] write test cases for future client API
+     [ ] all the documentation
+     [ ] check test case coverage ( http://nedbatchelder.com/code/coverage/ )
+     [ ] why doesn't the bug tracker work?! relatedly, figure out a
+         solution that makes it easier for non-MIT developers to contribute
 
 Ponies
    - gapless playback
