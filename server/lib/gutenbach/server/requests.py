@@ -124,7 +124,7 @@ class GutenbachRequestHandler(object):
 
     @handler_for(ipp.OperationCodes.PRINT_JOB)
     def print_job(self, request, response):
-            """RFC 2911: 3.2.1 Print-Job Operation
+        """RFC 2911: 3.2.1 Print-Job Operation
 
         This REQUIRED operation allows a client to submit a print job
         with only one document and supply the document data (rather
@@ -168,7 +168,9 @@ class GutenbachRequestHandler(object):
             OPTIONAL 'number-of-intervening-jobs' (integer(0:MAX))
 
         """
+
         operation = request.attribute_groups[0]
+
         # requested printer uri
         if 'printer-uri' not in operation:
             raise ipp.errors.ClientErrorBadRequest("Missing 'printer-uri' attribute")
