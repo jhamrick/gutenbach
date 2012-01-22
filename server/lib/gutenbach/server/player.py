@@ -132,6 +132,7 @@ class Player(threading.Thread):
                     self.player.stdin.write("quit\n")
                 else:
                     self._dryrun_time = 0.0
+                self._paused = False
                 logger.info("stopped")
             else:
                 logger.warning("trying to stop non-playing job")

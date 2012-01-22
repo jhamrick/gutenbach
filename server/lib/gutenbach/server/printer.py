@@ -5,7 +5,6 @@ import gutenbach.ipp as ipp
 import logging
 import time
 import threading
-import heapq
 import traceback
 import sys
 import tempfile
@@ -101,19 +100,27 @@ class GutenbachPrinter(threading.Thread):
     def run(self):
         self._running = True
         while self._running:
-            try:
-                with self.lock:
+            with self.lock:
+                try:
                     if self.current_job is None:
                         self.start_job()
                     elif self.current_job.is_done:
                         self.complete_job()
-            except:
-                logger.fatal(traceback.format_exc())
-                sys.exit(1)
+                except:
+                    self._running = False
+                    logger.fatal(traceback.format_exc())
+                    break
             time.sleep(0.1)
 
     def stop(self):
         with self.lock:
+            for job in self.jobs.keys():
+                try:
+                    self.jobs[job].abort()
+                    del self.jobs[job]
+                except InvalidJobStateException:
+                    pass
+                
             self._running = False
         if self.ident is not None and self.isAlive():
             self.join()
@@ -158,12 +165,14 @@ class GutenbachPrinter(threading.Thread):
     @property
     @sync
     def state(self):
-        if self.is_running and self.current_job is not None:
-            state = States.PROCESSING
-        elif self.is_running and len(self.pending_jobs) == 0:
-            state = States.IDLE
+        if self.is_running and not self.paused:
+            if len(self.active_jobs) > 0:
+                state = States.PROCESSING
+            else:
+                state = States.IDLE
         else:
             state = States.STOPPED
+
         return state
 
     @property
@@ -193,13 +202,10 @@ class GutenbachPrinter(threading.Thread):
         self.assert_running()
         if not self.paused and self.current_job is None:
             try:
-                job_id = heapq.heappop(self.pending_jobs)
+                job_id = self.pending_jobs.pop(0)
                 self.current_job = self.get_job(job_id)
                 self.current_job.play()
             except IndexError:
-                self.current_job = None
-            except InvalidJobStateException:
-                heapq.heappush(self.pending_jobs, self.current_job.id)
                 self.current_job = None
                     
     @sync
@@ -529,8 +535,8 @@ class GutenbachPrinter(threading.Thread):
         self.assert_running()
 
     @sync
-    def create_job(self, requesting_user_name=None, job_name=None,
-                   job_k_octets=None):
+    def create_job(self, requesting_user_name=None,
+                   job_name=None, job_k_octets=None):
 
         self.assert_running()
 
@@ -543,8 +549,6 @@ class GutenbachPrinter(threading.Thread):
             name=job_name)
 
         self.jobs[job_id] = job
-        self.pending_jobs.append(job_id)
-        
         return job_id
 
     @sync
@@ -616,7 +620,10 @@ class GutenbachPrinter(threading.Thread):
         self.assert_running()
         job = self.get_job(job_id)
         job.spool(document)
-
+        if 'dryrun' in self.config and self.config['dryrun']:
+            job.player._dryrun = True
+        self.pending_jobs.append(job_id)
+        
     @sync
     def send_uri(self, job_id, document_uri, document_name=None,
                  document_format=None, document_natural_language=None,
@@ -627,8 +634,12 @@ class GutenbachPrinter(threading.Thread):
         job = self.get_job(job_id)
         # XXX: need to validate URI
         # XXX: need to deal with the URI stream?
-        #job.spool_uri(document_uri)
 
+        #job.spool_uri(document_uri)
+        #if 'dryrun' in self.config and self.config['dryrun']:
+        #    job.player._dryrun = True
+        #self.pending_jobs.append(job_id)
+        
     @sync
     def get_job_attributes(self, job_id, requested_attributes=None):
 
