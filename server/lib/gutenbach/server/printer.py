@@ -84,31 +84,39 @@ class GutenbachPrinter(threading.Thread):
         self.jobs = {}
 
         self.lock = threading.RLock()
-        self.running = False
+        self._running = False
         self.paused = False
 
         # CUPS ignores jobs with id 0, so we have to start at 1
         self._next_job_id = 1
 
+    @sync
     def __repr__(self):
         return str(self)
 
+    @sync
     def __str__(self):
-        return "<Printer '%s'>" % self.name 
+        return "<Printer '%s'>" % self.name
 
     def run(self):
-        self.running = True
-        while self.running:
-            with self.lock:
-                try:
-                    if not self.paused and self.current_job is None:
+        self._running = True
+        while self._running:
+            try:
+                with self.lock:
+                    if self.current_job is None:
                         self.start_job()
                     elif self.current_job.is_done:
                         self.complete_job()
-                except:
-                    logger.fatal(traceback.format_exc())
-                    sys.exit(1)
+            except:
+                logger.fatal(traceback.format_exc())
+                sys.exit(1)
             time.sleep(0.1)
+
+    def stop(self):
+        with self.lock:
+            self._running = False
+        if self.ident is not None and self.isAlive():
+            self.join()
 
     ######################################################################
     ###                          Properties                            ###
@@ -142,13 +150,18 @@ class GutenbachPrinter(threading.Thread):
             jobs.insert(0, self.current_job.id)
         return jobs
 
+    @property
+    def is_running(self):
+        running = self.ident is not None and self.isAlive() and self._running
+        return running
+
     ######################################################################
     ###                            Methods                             ###
     ######################################################################
 
     @sync
     def start_job(self):
-        if self.current_job is None:
+        if not self.paused and self.current_job is None:
             try:
                 job_id = heapq.heappop(self.pending_jobs)
                 self.current_job = self.get_job(job_id)
@@ -161,15 +174,13 @@ class GutenbachPrinter(threading.Thread):
                     
     @sync
     def complete_job(self):
-        if self.current_job is None:
-            return
-
-        try:
-            if not self.current_job.is_done:
-                self.current_job.stop()
-        finally:
-            self.finished_jobs.append(self.current_job.id)
-            self.current_job = None
+        if not self.paused and self.current_job is not None:
+            try:
+                if not self.current_job.is_done:
+                    self.current_job.stop()
+            finally:
+                self.finished_jobs.append(self.current_job.id)
+                self.current_job = None
 
     @sync
     def get_job(self, job_id):
@@ -449,13 +460,12 @@ class GutenbachPrinter(threading.Thread):
 
         Does nothing if the printer is already paused.
         """
-        if self.paused:
-            return
-
-        if self.current_job is not None and self.current_job.is_playing:
-            self.current_job.pause()
-
-        self.paused = True
+        
+        if not self.paused:
+            if self.current_job is not None and self.current_job.is_playing:
+                self.current_job.pause()
+            self.paused = True
+            logger.info("%s paused", str(self))
 
     @sync
     def resume_printer(self):
@@ -463,13 +473,12 @@ class GutenbachPrinter(threading.Thread):
 
         Does nothing if the printer is not paused.
         """
-        if not self.paused:
-            return
-
-        if self.current_job is not None:
-            self.current_job.resume()
-
-        self.paused = False
+        
+        if self.paused:
+            if self.current_job is not None:
+                self.current_job.resume()
+            self.paused = False
+            logger.info("%s unpaused", str(self))
 
     @sync
     def get_printer_attributes(self, requested_attributes=None):
