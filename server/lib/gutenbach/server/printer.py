@@ -123,6 +123,29 @@ class GutenbachPrinter(threading.Thread):
     ######################################################################
 
     @property
+    def name(self):
+        return self._name
+    @name.setter
+    def name(self, val):
+        try:
+            self._name = str(val)
+        except:
+            self._name = "gutenbach-printer"
+
+    @property
+    def config(self):
+        return self._config
+    @config.setter
+    def config(self, val):
+        try:
+            _config = dict(val).copy()
+        except:
+            raise ValueError, "not a dictionary"
+        if 'ipp-versions' not in _config:
+            raise ValueError, "missing ipp-versions"
+        self._config = _config
+
+    @property
     def uris(self):
         uris = ["ipp://localhost:8000/printers/" + self.name,
                 "ipp://localhost/printers/" + self.name]
@@ -456,9 +479,9 @@ class GutenbachPrinter(threading.Thread):
         return job_id
 
     @sync
-    def verify_job(self, document_name=None, document_format=None,
-                  document_natural_language=None, requesting_user_name=None,
-                  compression=None, job_name=None, job_k_octets=None):
+    def validate_job(self, document_name=None, document_format=None,
+                     document_natural_language=None, requesting_user_name=None,
+                     compression=None, job_name=None, job_k_octets=None):
 
         self.assert_running()
 
@@ -566,7 +589,7 @@ class GutenbachPrinter(threading.Thread):
         return attributes
 
     @sync
-    def set_printer_attributes(self, job_id, attributes):
+    def set_printer_attributes(self, attributes):
         self.assert_running()
         for attr in attributes:
             try:
