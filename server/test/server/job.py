@@ -200,8 +200,22 @@ class TestOperations(unittest.TestCase):
         self.assertTrue(self.job.is_aborted)
 
     def testRestart(self):
-        # XXX: Todo
-        pass
+        self.assertRaises(errors.InvalidJobStateException, self.job.restart)
+
+        self.job.play()
+        self.assertTrue(self.job.is_playing)
+        self.assertFalse(self.job.is_done)
+
+        self.assertRaises(errors.InvalidJobStateException, self.job.restart)
+
+        self.job.cancel()
+        self.assertFalse(self.job.is_playing)
+        self.assertTrue(self.job.is_done)
+        self.assertTrue(self.job.is_cancelled)
+        self.assertFalse(self.job.is_aborted)
+
+        self.job.restart()
+        self.assertTrue(self.job.is_ready)
 
 if __name__ == "__main__":
     logging.basicConfig(loglevel=logging.CRITICAL)

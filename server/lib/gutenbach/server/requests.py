@@ -168,6 +168,7 @@ class GutenbachRequestHandler(object):
             OPTIONAL 'number-of-intervening-jobs' (integer(0:MAX))
 
         """
+
         operation = request.attribute_groups[0]
         document = request.data        
         user_name = None
@@ -177,8 +178,6 @@ class GutenbachRequestHandler(object):
         document_natural_language = None
         compression = None
         last_document = None
-
-
         # requested printer uri
         if 'printer-uri' not in operation:
             raise ipp.errors.ClientErrorBadRequest("Missing 'printer-uri' attribute")
