@@ -149,16 +149,16 @@ class TestGutenbachPrinter(unittest.TestCase):
         return job_id
 
     def testPrintJob(self):
-        pass
+        raise NotImplementedError
 
     def testValidateJob(self):
-        pass
+        raise NotImplementedError
 
     def testGetJobs(self):
-        pass
+        raise NotImplementedError
 
     def testPrintUri(self):
-        pass
+        raise NotImplementedError
 
     def testCreateJob(self):
         for i in xrange(2):
@@ -227,31 +227,31 @@ class TestGutenbachPrinter(unittest.TestCase):
         self.assertEqual(self.printer.state, States.IDLE)
 
     def testGetPrinterAttributes(self):
-        pass
+        raise NotImplementedError
 
     def testSetPrinterAttributes(self):
-        pass
+        raise NotImplementedError
 
     def testCancelJob(self):
-        pass
+        raise NotImplementedError
 
     def testSendDocument(self):
-        pass
+        raise NotImplementedError
 
     def testSendUri(self):
-        pass
+        raise NotImplementedError
 
     def testGetJobAttributes(self):
-        pass
+        raise NotImplementedError
 
     def testSetJobAttributes(self):
-        pass
+        raise NotImplementedError
 
     def testRestartJob(self):
-        pass
+        raise NotImplementedError
 
     def testPromoteJob(self):
-        pass
+        raise NotImplementedError
 
 if __name__ == "__main__":
     logging.basicConfig(loglevel=logging.DEBUG)
