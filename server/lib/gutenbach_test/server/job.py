@@ -35,7 +35,7 @@ class TestEmptyGutenbachJob(unittest.TestCase):
     def testSize(self):
         self.assertEqual(self.job.size, 0)
     def testState(self):
-        self.assertEqual(self.job.state, States.HELD)
+        self.assertEqual(self.job.state, States.PENDING_HELD)
     def testPriority(self):
         self.assertEqual(self.job.priority, 1)
 
@@ -46,7 +46,7 @@ class TestEmptyGutenbachJob(unittest.TestCase):
         self.assertFalse(self.job.is_paused)
         self.assertFalse(self.job.is_done)
         self.assertFalse(self.job.is_completed)
-        self.assertFalse(self.job.is_cancelled)
+        self.assertFalse(self.job.is_canceled)
         self.assertFalse(self.job.is_aborted)
 
     def testSpool(self):
@@ -59,8 +59,8 @@ class TestEmptyGutenbachJob(unittest.TestCase):
         self.assertRaises(errors.InvalidJobStateException, self.job.pause)
     def testCancel(self):
         self.job.cancel()
-        self.assertTrue(self.job.is_cancelled)
-        self.assertEqual(self.job.state, States.CANCELLED)
+        self.assertTrue(self.job.is_canceled)
+        self.assertEqual(self.job.state, States.CANCELED)
     def testAbort(self):
         self.job.abort()
         self.assertTrue(self.job.is_aborted)
@@ -156,7 +156,7 @@ class TestGutenbachJobOperations(unittest.TestCase):
         self.assertTrue(self.job.is_done)
         self.assertTrue(self.job.is_completed)
         self.assertFalse(self.job.is_aborted)
-        self.assertFalse(self.job.is_cancelled)
+        self.assertFalse(self.job.is_canceled)
 
     def testPause(self):
         self.job.play()
@@ -181,17 +181,17 @@ class TestGutenbachJobOperations(unittest.TestCase):
         self.assertTrue(self.job.is_done)
         self.assertTrue(self.job.is_completed)
         self.assertFalse(self.job.is_aborted)
-        self.assertFalse(self.job.is_cancelled)
+        self.assertFalse(self.job.is_canceled)
 
     def testCancel(self):
         self.job.play()
         self.assertTrue(self.job.is_playing)
-        self.assertFalse(self.job.is_cancelled)
+        self.assertFalse(self.job.is_canceled)
 
         self.job.cancel()
         self.assertFalse(self.job.is_playing)
         self.assertTrue(self.job.is_done)
-        self.assertTrue(self.job.is_cancelled)
+        self.assertTrue(self.job.is_canceled)
         self.assertFalse(self.job.is_aborted)
 
     def testAbort(self):
@@ -202,7 +202,7 @@ class TestGutenbachJobOperations(unittest.TestCase):
         self.job.abort()
         self.assertFalse(self.job.is_playing)
         self.assertTrue(self.job.is_done)
-        self.assertFalse(self.job.is_cancelled)
+        self.assertFalse(self.job.is_canceled)
         self.assertTrue(self.job.is_aborted)
 
     def testRestart(self):
@@ -217,7 +217,7 @@ class TestGutenbachJobOperations(unittest.TestCase):
         self.job.cancel()
         self.assertFalse(self.job.is_playing)
         self.assertTrue(self.job.is_done)
-        self.assertTrue(self.job.is_cancelled)
+        self.assertTrue(self.job.is_canceled)
         self.assertFalse(self.job.is_aborted)
 
         self.job.restart()

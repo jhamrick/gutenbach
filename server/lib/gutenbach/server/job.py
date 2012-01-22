@@ -167,7 +167,7 @@ class GutenbachJob(object):
         return self.is_valid and \
                self.player is not None and \
                not self.player.is_playing and \
-               not self._why_done == "cancelled" and \
+               not self._why_done == "canceled" and \
                not self._why_done == "aborted"
 
     @property
@@ -201,7 +201,7 @@ class GutenbachJob(object):
         return (self.is_valid and \
                 self.player is not None and \
                 self.player.is_done) or \
-                (self._why_done == "cancelled" or \
+                (self._why_done == "canceled" or \
                  self._why_done == "aborted")
 
     @property
@@ -213,12 +213,12 @@ class GutenbachJob(object):
         return self.is_done and self._why_done == "completed"
 
     @property
-    def is_cancelled(self):
-        """Whether the job was cancelled.
+    def is_canceled(self):
+        """Whether the job was canceled.
 
         """
 
-        return self.is_done and self._why_done == "cancelled"
+        return self.is_done and self._why_done == "canceled"
 
     @property
     def is_aborted(self):
@@ -234,7 +234,7 @@ class GutenbachJob(object):
         job-state status codes).  State transitions are as follows:
         
             HELD ---> PENDING ---> PROCESSING <--> STOPPED (aka paused)
-                         ^              |---> CANCELLED
+                         ^              |---> CANCELED
                          |              |---> ABORTED
                          |              |---> COMPLETE ---|
                          |--------------------------------|
@@ -246,15 +246,15 @@ class GutenbachJob(object):
         elif self.is_playing and not self.is_paused:
             state = States.PROCESSING
         elif self.is_playing and self.is_paused:
-            state = States.STOPPED
+            state = States.PROCESSING_STOPPED
         elif self.is_completed:
-            state = States.COMPLETE
-        elif self.is_cancelled:
-            state = States.CANCELLED
+            state = States.COMPLETED
+        elif self.is_canceled:
+            state = States.CANCELED
         elif self.is_aborted:
             state = States.ABORTED
         else:
-            state = States.HELD
+            state = States.PENDING_HELD
         return state
 
     ######################################################################
@@ -292,7 +292,7 @@ class GutenbachJob(object):
 
         """
 
-        if not self.is_valid or self.state != States.HELD:
+        if not self.is_valid or self.state != States.PENDING_HELD:
             raise errors.InvalidJobStateException(self.state)
         self.verify_document(document)
         self.document = document.name
@@ -356,7 +356,7 @@ class GutenbachJob(object):
     def cancel(self):
         """Blocking cancel. The job must not have been previously
         aborted or completed (though this method will succeed if it
-        was previously cancelled).  This should be used to stop the
+        was previously canceled).  This should be used to stop the
         job following an external request.
 
         Raises
@@ -370,15 +370,15 @@ class GutenbachJob(object):
             self.player._callback = None
             self.player.mplayer_stop()
 
-        elif self.is_done and not self._why_done == "cancelled":
+        elif self.is_done and not self._why_done == "canceled":
             raise errors.InvalidJobStateException(self.state)
 
-        logger.info("cancelled job %s" % str(self))
-        self._why_done = "cancelled"
+        logger.info("canceled job %s" % str(self))
+        self._why_done = "canceled"
 
     def abort(self):
         """Blocking abort. The job must not have been previously
-        cancelled or completed (though this method will succeed if it
+        canceled or completed (though this method will succeed if it
         was previously aborted).  This should be used to stop the job
         following internal errors.
 

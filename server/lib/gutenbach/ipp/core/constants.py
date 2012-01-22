@@ -20,13 +20,13 @@ class JobStates():
     
     """
 
-    PENDING    = 3
-    HELD       = 4
-    PROCESSING = 5
-    STOPPED    = 6
-    CANCELLED  = 7
-    ABORTED    = 8
-    COMPLETE   = 9
+    PENDING            = 3
+    PENDING_HELD       = 4
+    PROCESSING         = 5
+    PROCESSING_STOPPED = 6
+    CANCELED           = 7
+    ABORTED            = 8
+    COMPLETED          = 9
 
     def __init__(self): pass
 
