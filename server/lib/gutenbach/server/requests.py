@@ -682,7 +682,23 @@ class GutenbachRequestHandler(object):
 
    
     """
-        raise ipp.errors.ServerErrorOperationNotSupported
+    operation = request.attribute_groups[0]
+    printer_uri = None
+    user_name   = None
+    if 'printer-uri' not in operation:
+            raise ipp.errors.ClientErrorBadRequest("Missing 'printer-uri' attribute")
+        printer_uri = verify_attribute(operation['printer-uri'], ipp.PrinterUri)[0]
+        if printer_uri not in self.printer.uris:
+            raise ipp.errors.ClientErrorAttributes(
+                str(operation['printer-uri']), operation['printer-uri'])
+
+    if 'requesting-user-name' in operation:
+        user_name = verify_attribute(
+            operation['requesting-user-name'], ipp.RequestingUserName)[0]
+   self.printer.pause_printer()
+
+
+    #    raise ipp.errors.ServerErrorOperationNotSupported
 
     @handler_for(ipp.OperationCodes.RESUME_PRINTER)
     def resume_printer(self, request, response):
@@ -731,7 +747,21 @@ class GutenbachRequestHandler(object):
         attribute groups and attributes as the Pause-Printer operation (see
         sections 3.2.7.1 and 3.2.7.2).                 
         """
-        raise ipp.errors.ServerErrorOperationNotSupported
+    operation = request.attribute_groups[0]
+    printer_uri = None
+    user_name   = None
+    if 'printer-uri' not in operation:
+            raise ipp.errors.ClientErrorBadRequest("Missing 'printer-uri' attribute")
+        printer_uri = verify_attribute(operation['printer-uri'], ipp.PrinterUri)[0]
+        if printer_uri not in self.printer.uris:
+            raise ipp.errors.ClientErrorAttributes(
+                str(operation['printer-uri']), operation['printer-uri'])
+
+    if 'requesting-user-name' in operation:
+        user_name = verify_attribute(
+            operation['requesting-user-name'], ipp.RequestingUserName)[0]
+   self.printer.resume_printer()
+
 
     @handler_for(ipp.OperationCodes.GET_PRINTER_ATTRIBUTES)
     def get_printer_attributes(self, request, response):
@@ -1404,6 +1434,6 @@ class GutenbachRequestHandler(object):
         (Source: http://www.cups.org/documentation.php/spec-ipp.html#CUPS_GET_CLASSES )
 
         """
-
+        
         raise ipp.errors.ServerErrorOperationNotSupported
 
