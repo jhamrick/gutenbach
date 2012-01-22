@@ -1,3 +1,9 @@
+__all__ = [
+    'TestEmptyGutenbachPrinter',
+    'TestBadEmptyGutenbachPrinter',
+    'TestGutenbachPrinter',
+    ]
+
 from gutenbach.server import GutenbachJob
 from gutenbach.server import GutenbachPrinter
 from gutenbach.server import errors

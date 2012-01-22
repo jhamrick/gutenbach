@@ -1,3 +1,9 @@
+__all__ = [
+    'TestEmptyGutenbachJob',
+    'TestBadGutenbachJob',
+    'TestGutenbachJobOperations',
+    ]
+
 from gutenbach.server import GutenbachJob
 from gutenbach.server import errors
 from gutenbach.ipp import JobStates as States
@@ -128,7 +134,7 @@ class TestBadGutenbachJob(unittest.TestCase):
         self.assertRaises(errors.InvalidJobStateException, job.spool, [])
         self.assertRaises(errors.InvalidJobStateException, job.spool, 12345)
 
-class TestOperations(unittest.TestCase):
+class TestGutenbachJobOperations(unittest.TestCase):
 
     def setUp(self):
         fh = make_tempfile()
