@@ -12,10 +12,17 @@ class InvalidJobException(Exception):
 	return "Job does not exist: %d" % self.jobid
 
 class InvalidPrinterStateException(Exception):
+    errstr = {
+        3: "idle",
+        4: "processing",
+        5: "stopped"
+        }
+    
     def __init__(self, state):
-        self.state = hex(state)
+        self.state = int(state)
     def __str__(self):
-        return "Invalid printer state: %s" % self.state
+        return "Invalid printer state: %s (%s)" % \
+               (self.errstr[self.state], hex(self.state))
 
 class InvalidJobStateException(Exception):
     errstr = {
