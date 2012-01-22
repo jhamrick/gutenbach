@@ -228,7 +228,7 @@ class GutenbachRequestHandler(object):
         
     @handler_for(ipp.OperationCodes.VALIDATE_JOB)
     def validate_job(self, request, response):
-        """3.2.3 Validate-Job Operation
+        """RFC 2911: 3.2.3 Validate-Job Operation
 
         This REQUIRED operation is similar to the Print-Job operation
         (section 3.2.1) except that a client supplies no document data
@@ -311,7 +311,7 @@ class GutenbachRequestHandler(object):
 
     @handler_for(ipp.OperationCodes.GET_JOBS)
     def get_jobs(self, request, response):
-        """3.2.6 Get-Jobs Operation
+        """RFC 2911: 3.2.6 Get-Jobs Operation
         
         This REQUIRED operation allows a client to retrieve the list
         of Job objects belonging to the target Printer object. The
@@ -400,7 +400,7 @@ class GutenbachRequestHandler(object):
 
     @handler_for(ipp.OperationCodes.PRINT_URI)
     def print_uri(self, request, response):
-        """3.2.2 Print-URI Operation
+        """RFC 2911: 3.2.2 Print-URI Operation
 
         This OPTIONAL operation is identical to the Print-Job
         operation (section 3.2.1) except that a client supplies a URI
@@ -414,24 +414,6 @@ class GutenbachRequestHandler(object):
         object's 'referenced-uri-scheme-supported' attribute, the
         Printer object MUST reject the request and return the
         'client-error-uri- scheme-not-supported' status code.
-
-        The IPP Printer MAY validate the accessibility of the document
-        as part of the operation or subsequently.  If the Printer
-        determines an accessibility problem before returning an
-        operation response, it rejects the request and returns the
-        'client-error-document-access- error' status code.  The
-        Printer MAY also return a specific document access error code
-        using the 'document-access-error' operation attribute (see
-        section 3.1.6.4).
-
-        If the Printer determines this document accessibility problem
-        after accepting the request and returning an operation
-        response with one of the successful status codes, the Printer
-        adds the 'document-access- error' value to the job's
-        'job-state-reasons' attribute and MAY populate the job's
-        'job-document-access-errors' Job Description attribute (see
-        section 4.3.11).  See The Implementer's Guide [IPP- IIG] for
-        suggested additional checks.
                                                                               
         If the Printer object supports this operation, it MUST support
         the 'reference-uri-schemes-supported' Printer attribute (see
@@ -630,7 +612,7 @@ class GutenbachRequestHandler(object):
     
     @handler_for(ipp.OperationCodes.PAUSE_PRINTER)
     def pause_printer(self, request, response):
-        """3.2.7 Pause-Printer Operation
+        """RFC 2911: 3.2.7 Pause-Printer Operation
 
         This OPTIONAL operation allows a client to stop the Printer
         object from scheduling jobs on all its devices.  Depending on
@@ -693,7 +675,7 @@ class GutenbachRequestHandler(object):
 
     @handler_for(ipp.OperationCodes.RESUME_PRINTER)
     def resume_printer(self, request, response):
-        """3.2.8 Resume-Printer Operation
+        """RFC 2911: 3.2.8 Resume-Printer Operation
 
         This operation allows a client to resume the Printer object
         scheduling jobs on all its devices.  The Printer object MUST
@@ -837,7 +819,7 @@ class GutenbachRequestHandler(object):
 
     @handler_for(ipp.OperationCodes.CANCEL_JOB)
     def cancel_job(self, request, response):
-        """3.3.3 Cancel-Job Operation
+        """RFC 2911: 3.3.3 Cancel-Job Operation
 
         This REQUIRED operation allows a client to cancel a Print Job
         from the time the job is created up to the time it is
@@ -875,14 +857,6 @@ class GutenbachRequestHandler(object):
         'processing-to-stop-point' value in its 'job-state-reasons'
         attribute, then the Printer object MUST reject a Cancel-Job
         operation.
-
-        Access Rights: The authenticated user (see section 8.3)
-        performing this operation must either be the job owner or an
-        operator or administrator of the Printer object (see Sections
-        1 and 8.5).  Otherwise, the IPP object MUST reject the
-        operation and return: 'client-error-forbidden',
-        'client-error-not-authenticated', or
-        'client-error-not-authorized' as appropriate.
 
         Request
         -------
@@ -937,7 +911,7 @@ class GutenbachRequestHandler(object):
 
     @handler_for(ipp.OperationCodes.SEND_DOCUMENT)
     def send_document(self, request, response):
-        """3.3.1 Send-Document Operation
+        """RFC 2911: 3.3.1 Send-Document Operation
         
         This OPTIONAL operation allows a client to create a
         multi-document Job object that is initially 'empty' (contains
@@ -975,15 +949,6 @@ class GutenbachRequestHandler(object):
         supply a send operation, sometime after the minimum time
         interval specified by the Printer object's
         'multiple-operation-time-out' attribute.
-
-        Access Rights: The authenticated user (see section 8.3)
-        performing this operation must either be the job owner (as
-        determined in the Create-Job operation) or an operator or
-        administrator of the Printer object (see Sections 1 and
-        8.5). Otherwise, the IPP object MUST reject the operation and
-        return: 'client-error-forbidden', 'client-
-        error-not-authenticated', or 'client-error-not-authorized' as
-        appropriate.
 
         Request
         -------
@@ -1089,8 +1054,7 @@ class GutenbachRequestHandler(object):
 
     @handler_for(ipp.OperationCodes.SEND_URI)
     def send_uri(self, request, response):
-
-        """3.2.2 Send URI
+        """RFC 2911: 3.2.2 Send URI
 
         This OPTIONAL operation is identical to the Send-Document
         operation (see section 3.3.1) except that a client MUST supply
@@ -1221,7 +1185,7 @@ class GutenbachRequestHandler(object):
 
     @handler_for(ipp.OperationCodes.GET_JOB_ATTRIBUTES)
     def get_job_attributes(self, request, response):
-        """3.3.4 Get-Job-Attributes Operation
+        """RFC 2911: 3.3.4 Get-Job-Attributes Operation
 
         This REQUIRED operation allows a client to request the values
         of attributes of a Job object and it is almost identical to

@@ -462,7 +462,35 @@ class GutenbachPrinter(threading.Thread):
     def print_job(self, document, document_name=None, document_format=None,
                   document_natural_language=None, requesting_user_name=None,
                   compression=None, job_name=None, job_k_octets=None):
+        """RFC 2911: 3.2.1 Print-Job Operation
+        
+        This REQUIRED operation allows a client to submit a print job
+        with only one document and supply the document data (rather
+        than just a reference to the data). See Section 15 for the
+        suggested steps for processing create operations and their
+        Operation and Job Template attributes.
 
+        Parameters
+        ----------
+        document (file)
+            an open file handler to the document
+        document_name (string)
+            the name of the document
+        document_format (string)
+            the encoding/format of the document
+        document_natural_language (string)
+            if the document is a text file, what language it is in
+        requesting_user_name (string)
+            the user name of the job owner
+        compression (string)
+            the form of compression used on the file
+        job_name (string)
+            the name that the job should be called
+        job_k_octets (int)
+            the size of the job in bytes
+
+        """
+        
         self.assert_running()
 
         # create the job
@@ -488,7 +516,49 @@ class GutenbachPrinter(threading.Thread):
     def validate_job(self, document_name=None, document_format=None,
                      document_natural_language=None, requesting_user_name=None,
                      compression=None, job_name=None, job_k_octets=None):
+        """RFC 2911: 3.2.3 Validate-Job Operation
 
+        This REQUIRED operation is similar to the Print-Job operation
+        (section 3.2.1) except that a client supplies no document data
+        and the Printer allocates no resources (i.e., it does not
+        create a new Job object).  This operation is used only to
+        verify capabilities of a printer object against whatever
+        attributes are supplied by the client in the Validate-Job
+        request.  By using the Validate-Job operation a client can
+        validate that an identical Print-Job operation (with the
+        document data) would be accepted. The Validate-Job operation
+        also performs the same security negotiation as the Print-Job
+        operation (see section 8), so that a client can check that the
+        client and Printer object security requirements can be met
+        before performing a Print-Job operation.
+
+        The Validate-Job operation does not accept a 'document-uri'
+        attribute in order to allow a client to check that the same
+        Print-URI operation will be accepted, since the client doesn't
+        send the data with the Print-URI operation.  The client SHOULD
+        just issue the Print-URI request.
+
+        Parameters
+        ----------
+        document (file)
+            an open file handler to the document
+        document_name (string)
+            the name of the document
+        document_format (string)
+            the encoding/format of the document
+        document_natural_language (string)
+            if the document is a text file, what language it is in
+        requesting_user_name (string)
+            the user name of the job owner
+        compression (string)
+            the form of compression used on the file
+        job_name (string)
+            the name that the job should be called
+        job_k_octets (int)
+            the size of the job in bytes
+
+        """
+        
         self.assert_running()
 
         job_id = self._next_job_id
@@ -503,6 +573,31 @@ class GutenbachPrinter(threading.Thread):
     @sync
     def get_jobs(self, requesting_user_name=None, which_jobs=None,
                  requested_attributes=None):
+        """RFC 2911: 3.2.6 Get-Jobs Operation
+        
+        This REQUIRED operation allows a client to retrieve the list
+        of Job objects belonging to the target Printer object. The
+        client may also supply a list of Job attribute names and/or
+        attribute group names. A group of Job object attributes will
+        be returned for each Job object that is returned.
+
+        This operation is similar to the Get-Job-Attributes operation,
+        except that this Get-Jobs operation returns attributes from
+        possibly more than one object.
+
+        Parameters
+        ----------
+        requesting_user_name (string)
+            the user name of the job owner, used as a filter
+        which_jobs (string)
+            a filter for the types of jobs to return:
+              * 'completed' -- only jobs that have finished
+              * 'not-completed' -- processing or pending jobs
+            this defaults to 'not-completed'
+        requested_attributes (list)
+            the job attributes to return
+
+        """
         
         self.assert_running()
 
@@ -532,12 +627,62 @@ class GutenbachPrinter(threading.Thread):
 
     @sync
     def print_uri(self):
+        """RFC 2911: 3.2.2 Print-URI Operation
+
+        This OPTIONAL operation is identical to the Print-Job
+        operation (section 3.2.1) except that a client supplies a URI
+        reference to the document data using the 'document-uri' (uri)
+        operation attribute (in Group 1) rather than including the
+        document data itself.  Before returning the response, the
+        Printer MUST validate that the Printer supports the retrieval
+        method (e.g., http, ftp, etc.) implied by the URI, and MUST
+        check for valid URI syntax.  If the client-supplied URI scheme
+        is not supported, i.e. the value is not in the Printer
+        object's 'referenced-uri-scheme-supported' attribute, the
+        Printer object MUST reject the request and return the
+        'client-error-uri- scheme-not-supported' status code.
+                                                                              
+        If the Printer object supports this operation, it MUST support
+        the 'reference-uri-schemes-supported' Printer attribute (see
+        section 4.4.27).
+
+        It is up to the IPP object to interpret the URI and
+        subsequently 'pull' the document from the source referenced by
+        the URI string.
+
+        """
+        
         self.assert_running()
+        # XXX: todo
 
     @sync
     def create_job(self, requesting_user_name=None,
                    job_name=None, job_k_octets=None):
+        """RFC 2911: 3.2.4 Create-Job Operation
 
+        This OPTIONAL operation is similar to the Print-Job operation
+        (section 3.2.1) except that in the Create-Job request, a
+        client does not supply document data or any reference to
+        document data. Also, the client does not supply any of the
+        'document-name', 'document- format', 'compression', or
+        'document-natural-language' operation attributes. This
+        operation is followed by one or more Send-Document or Send-URI
+        operations. In each of those operation requests, the client
+        OPTIONALLY supplies the 'document-name', 'document-format',
+        and 'document-natural-language' attributes for each document
+        in the multi-document Job object.
+
+        Parameters
+        ----------
+        requesting_user_name (string)
+            the user name of the job owner
+        job_name (string)
+            the name that the job should be called
+        job_k_octets (int)
+            the size of the job in bytes
+
+        """
+        
         self.assert_running()
 
         job_id = self._next_job_id
@@ -553,9 +698,32 @@ class GutenbachPrinter(threading.Thread):
 
     @sync
     def pause_printer(self):
-        """Pause the printer.
+        """RFC 2911: 3.2.7 Pause-Printer Operation
 
-        Does nothing if the printer is already paused.
+        This OPTIONAL operation allows a client to stop the Printer
+        object from scheduling jobs on all its devices.  Depending on
+        implementation, the Pause-Printer operation MAY also stop the
+        Printer from processing the current job or jobs.  Any job that
+        is currently being printed is either stopped as soon as the
+        implementation permits or is completed, depending on
+        implementation.  The Printer object MUST still accept create
+        operations to create new jobs, but MUST prevent any jobs from
+        entering the 'processing' state.
+
+        If the Pause-Printer operation is supported, then the
+        Resume-Printer operation MUST be supported, and vice-versa.
+
+        The IPP Printer MUST accept the request in any state and
+        transition the Printer to the indicated new 'printer-state'
+        before returning as follows:
+
+        Current       New         Reasons             Reponse
+        --------------------------------------------------------------
+        'idle'       'stopped'    'paused'            'successful-ok'
+        'processing' 'processing' 'moving-to-paused'  'successful-ok'
+        'processing' 'stopped'    'paused'            'successful-ok'
+        'stopped'    'stopped'    'paused'            'successful-ok'
+
         """
         
         self.assert_running()
@@ -567,9 +735,36 @@ class GutenbachPrinter(threading.Thread):
 
     @sync
     def resume_printer(self):
-        """Resume the printer.
+        """RFC 2911: 3.2.8 Resume-Printer Operation
 
-        Does nothing if the printer is not paused.
+        This operation allows a client to resume the Printer object
+        scheduling jobs on all its devices.  The Printer object MUST
+        remove the 'paused' and 'moving-to-paused' values from the
+        Printer object's 'printer-state-reasons' attribute, if
+        present.  If there are no other reasons to keep a device
+        paused (such as media-jam), the IPP Printer is free to
+        transition itself to the 'processing' or 'idle' states,
+        depending on whether there are jobs to be processed or not,
+        respectively, and the device(s) resume processing jobs.
+
+        If the Pause-Printer operation is supported, then the
+        Resume-Printer operation MUST be supported, and vice-versa.
+
+        The IPP Printer removes the 'printer-stopped' value from any
+        job's 'job-state-reasons' attributes contained in that
+        Printer.
+
+        The IPP Printer MUST accept the request in any state,
+        transition the Printer object to the indicated new state as
+        follows:
+
+        Current       New           Response
+        ---------------------------------------------
+        'idle'       'idle'         'successful-ok'
+        'processing' 'processing'   'successful-ok'
+        'stopped'    'processing'   'successful-ok'
+        'stopped'    'idle'         'successful-ok'
+
         """
         
         self.assert_running()
@@ -581,6 +776,24 @@ class GutenbachPrinter(threading.Thread):
 
     @sync
     def get_printer_attributes(self, requested_attributes=None):
+        """RFC 2911: 3.2.5 Get-Printer-Attributes Operation
+
+        This REQUIRED operation allows a client to request the values
+        of the attributes of a Printer object.
+        
+        In the request, the client supplies the set of Printer
+        attribute names and/or attribute group names in which the
+        requester is interested. In the response, the Printer object
+        returns a corresponding attribute set with the appropriate
+        attribute values filled in.
+
+        Parameters
+        ----------
+        requested_attributes (list)
+            the attributes to return
+
+        """
+        
         self.assert_running()
         if requested_attributes is None:
             requested = self.printer_attributes
@@ -603,6 +816,54 @@ class GutenbachPrinter(threading.Thread):
 
     @sync
     def cancel_job(self, job_id, requesting_user_name=None):
+        """RFC 2911: 3.3.3 Cancel-Job Operation
+
+        This REQUIRED operation allows a client to cancel a Print Job
+        from the time the job is created up to the time it is
+        completed, canceled, or aborted. Since a Job might already be
+        printing by the time a Cancel-Job is received, some media
+        sheet pages might be printed before the job is actually
+        terminated.
+
+        The IPP object MUST accept or reject the request based on the
+        job's current state and transition the job to the indicated
+        new state as follows:
+
+        Current State       New State           Response
+        -----------------------------------------------------------------
+        pending             canceled            successful-ok
+        pending-held        canceled            successful-ok
+        processing          canceled            successful-ok
+        processing          processing          successful-ok               See Rule 1
+        processing          processing          client-error-not-possible   See Rule 2
+        processing-stopped  canceled            successful-ok
+        processing-stopped  processing-stopped  successful-ok               See Rule 1
+        processing-stopped  processing-stopped  client-error-not-possible   See Rule 2
+        completed           completed           client-error-not-possible
+        canceled            canceled            client-error-not-possible
+        aborted             aborted             client-error-not-possible
+
+        Rule 1: If the implementation requires some measurable time to
+        cancel the job in the 'processing' or 'processing-stopped' job
+        states, the IPP object MUST add the 'processing-to-stop-point'
+        value to the job's 'job-state-reasons' attribute and then
+        transition the job to the 'canceled' state when the processing
+        ceases (see section 4.3.8).
+
+        Rule 2: If the Job object already has the
+        'processing-to-stop-point' value in its 'job-state-reasons'
+        attribute, then the Printer object MUST reject a Cancel-Job
+        operation.
+
+        Parameters
+        ----------
+        job_id (integer)
+            the id of the job to cancel
+        requesting_user_name (string)
+            the name of the job's owner
+
+        """
+
         self.assert_running()
         job = self.get_job(job_id)
         try:
@@ -616,7 +877,66 @@ class GutenbachPrinter(threading.Thread):
                       document_format=None, document_natural_language=None,
                       requesting_user_name=None, compression=None,
                       last_document=None):
+        """RFC 2911: 3.3.1 Send-Document Operation
+        
+        This OPTIONAL operation allows a client to create a
+        multi-document Job object that is initially 'empty' (contains
+        no documents). In the Create-Job response, the Printer object
+        returns the Job object's URI (the 'job-uri' attribute) and the
+        Job object's 32-bit identifier (the 'job-id' attribute). For
+        each new document that the client desires to add, the client
+        uses a Send-Document operation. Each Send- Document Request
+        contains the entire stream of document data for one document.
 
+        If the Printer supports this operation but does not support
+        multiple documents per job, the Printer MUST reject subsequent
+        Send-Document operations supplied with data and return the
+        'server-error-multiple- document-jobs-not-supported'. However,
+        the Printer MUST accept the first document with a 'true' or
+        'false' value for the 'last-document' operation attribute (see
+        below), so that clients MAY always submit one document jobs
+        with a 'false' value for 'last-document' in the first
+        Send-Document and a 'true' for 'last-document' in the second
+        Send-Document (with no data).
+        
+        Since the Create-Job and the send operations (Send-Document or
+        Send- URI operations) that follow could occur over an
+        arbitrarily long period of time for a particular job, a client
+        MUST send another send operation within an IPP Printer defined
+        minimum time interval after the receipt of the previous
+        request for the job. If a Printer object supports the
+        Create-Job and Send-Document operations, the Printer object
+        MUST support the 'multiple-operation-time-out' attribute (see
+        section 4.4.31). This attribute indicates the minimum number
+        of seconds the Printer object will wait for the next send
+        operation before taking some recovery action.
+
+        An IPP object MUST recover from an errant client that does not
+        supply a send operation, sometime after the minimum time
+        interval specified by the Printer object's
+        'multiple-operation-time-out' attribute.
+
+        Parameters
+        ----------
+        job_id (integer)
+            the id of the job to send the document
+        document (file)
+            an open file handler to the document
+        document_name (string)
+            the name of the document
+        document_format (string)
+            the encoding/format of the document
+        document_natural_language (string)
+            if the document is a text file, what language it is in
+        requesting_user_name (string)
+            the user name of the job owner
+        compression (string)
+            the form of compression used on the file
+        last_document (boolean)
+            whether or not this is the last document in this job
+
+        """
+        
         self.assert_running()
         job = self.get_job(job_id)
         job.spool(document)
@@ -629,6 +949,50 @@ class GutenbachPrinter(threading.Thread):
                  document_format=None, document_natural_language=None,
                  requesting_user_name=None, compression=None,
                  last_document=None):
+        """RFC 2911: 3.2.2 Send URI
+
+        This OPTIONAL operation is identical to the Send-Document
+        operation (see section 3.3.1) except that a client MUST supply
+        a URI reference ('document-uri' operation attribute) rather
+        than the document data itself.  If a Printer object supports
+        this operation, clients can use both Send-URI or Send-Document
+        operations to add new documents to an existing multi-document
+        Job object.  However, if a client needs to indicate that the
+        previous Send-URI or Send-Document was the last document, the
+        client MUST use the Send-Document operation with no document
+        data and the 'last-document' flag set to 'true' (rather than
+        using a Send-URI operation with no 'document-uri' operation
+        attribute).
+
+        If a Printer object supports this operation, it MUST also
+        support the Print-URI operation (see section 3.2.2).
+
+        The Printer object MUST validate the syntax and URI scheme of
+        the supplied URI before returning a response, just as in the
+        Print-URI operation.  The IPP Printer MAY validate the
+        accessibility of the document as part of the operation or
+        subsequently (see section 3.2.2).
+
+        Parameters
+        ----------
+        job_id (integer)
+            the id of the job to send the uri
+        document_uri (string)
+            the uri of the document
+        document_name (string)
+            the name of the document
+        document_format (string)
+            the encoding/format of the document
+        document_natural_language (string)
+            if the document is a text file, what language it is in
+        requesting_user_name (string)
+            the user name of the job owner
+        compression (string)
+            the form of compression used on the file
+        last_document (boolean)
+            whether or not this is the last document in this job
+
+        """
 
         self.assert_running()
         job = self.get_job(job_id)
@@ -642,6 +1006,53 @@ class GutenbachPrinter(threading.Thread):
         
     @sync
     def get_job_attributes(self, job_id, requested_attributes=None):
+        """RFC 2911: 3.3.4 Get-Job-Attributes Operation
+
+        This REQUIRED operation allows a client to request the values
+        of attributes of a Job object and it is almost identical to
+        the Get- Printer-Attributes operation (see section 3.2.5). The
+        only differences are that the operation is directed at a Job
+        object rather than a Printer object, there is no
+        'document-format' operation attribute used when querying a Job
+        object, and the returned attribute group is a set of Job
+        object attributes rather than a set of Printer object
+        attributes.
+
+        For Jobs, the possible names of attribute groups are:
+          - 'job-template': the subset of the Job Template attributes
+            that apply to a Job object (the first column of the table
+            in Section 4.2) that the implementation supports for Job
+            objects.
+          - 'job-description': the subset of the Job Description
+            attributes specified in Section 4.3 that the
+            implementation supports for Job objects.
+          - 'all': the special group 'all' that includes all
+            attributes that the implementation supports for Job
+            objects.
+
+        Since a client MAY request specific attributes or named
+        groups, there is a potential that there is some overlap. For
+        example, if a client requests, 'job-name' and
+        'job-description', the client is actually requesting the
+        'job-name' attribute once by naming it explicitly, and once by
+        inclusion in the 'job-description' group. In such cases, the
+        Printer object NEED NOT return the attribute only once in the
+        response even if it is requested multiple times. The client
+        SHOULD NOT request the same attribute in multiple ways.
+
+        It is NOT REQUIRED that a Job object support all attributes
+        belonging to a group (since some attributes are
+        OPTIONAL). However it is REQUIRED that each Job object support
+        all these group names.
+
+        Parameters
+        ----------
+        job_id (integer)
+            the id of the job to send the uri
+        requested_attributes (list)
+            the attributes to return
+
+        """
 
         self.assert_running()
         if requested_attributes is None:
@@ -656,7 +1067,6 @@ class GutenbachPrinter(threading.Thread):
 
     @sync
     def set_job_attributes(self, job_id, attributes):
-
         self.assert_running()
         job = self.get_job(job_id)
         for attr in attributes:
@@ -669,7 +1079,6 @@ class GutenbachPrinter(threading.Thread):
 
     @sync
     def restart_job(self, job_id, requesting_user_name=None):
-
         self.assert_running()
         job = self.get_job(job_id)
         try:
