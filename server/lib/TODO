@@ -3,12 +3,13 @@
 * items in this file will be merged into the Trac.
 
 - finish implementing a bunch of the IPP handlers
-     [ ] print job
-     [ ] validate job
-     [ ] pause printer
-     [ ] resume printer
-     [ ] set printer attributes
-     [ ] send uri
+     [X] print job
+     [X] validate job
+     [X] print uri
+     [X] pause printer
+     [X] resume printer
+     [X] set printer attributes
+     [X] send uri
      [ ] set job attributes
      [ ] restart job
      [ ] promote job
@@ -45,8 +46,48 @@
      [ ] deal with all the code marked 'XXX'
 
 - documentation and testing
-     [ ] finish test cases for printer.py
-     [ ] write test cases for requests.py
+     test cases for printer.py
+          [X] TestEmptyGutenbachPrinter
+          [X] TestBadEmptyGutenbachPrinter
+          [ ] testPrintJob
+          [ ] testValidateJob
+          [ ] testGetJobs
+          [ ] testPrintUri
+          [X] testCreateJob
+          [X] testPausePrinter
+          [X] testResumePrinter
+          [ ] testGetPrinterAttributes
+          [ ] testSetPrinterAttributes
+          [ ] testCancelJob
+          [ ] testSendDocument
+          [ ] testSendUri
+          [ ] testGetJobAttributes
+          [ ] testSetJobAttributes
+          [ ] testRestartJob
+          [ ] testPromoteJob
+
+     test cases for requests.py
+          [ ] testPrintJob
+          [ ] testValidateJob
+          [ ] testGetJobs
+          [ ] testPrintUri
+          [ ] testCreateJob
+          [ ] testPausePrinter
+          [ ] testResumePrinter
+          [ ] testGetPrinterAttributes
+          [ ] testSetPrinterAttributes
+          [ ] testCancelJob
+          [ ] testSendDocument
+          [ ] testSendUri
+          [ ] testGetJobAttributes
+          [ ] testSetJobAttributes
+          [ ] testRestartJob
+          [ ] testPromoteJob
+          [ ] testCupsGetDocument
+          [ ] testCupsGetDefault
+          [ ] testCupsGetPrinters
+          [ ] testCupsGetClasses
+
      [ ] write test cases for future client API
      [ ] all the documentation
      [ ] check test case coverage ( http://nedbatchelder.com/code/coverage/ )

@@ -1325,7 +1325,6 @@ class GutenbachRequestHandler(object):
 
     @handler_for(ipp.OperationCodes.SET_JOB_ATTRIBUTES)
     def set_job_attributes(self, request, response):
-        
         raise ipp.errors.ServerErrorOperationNotSupported
 
     @handler_for(ipp.OperationCodes.RESTART_JOB)
