@@ -124,7 +124,7 @@ class GutenbachRequestHandler(object):
 
     @handler_for(ipp.OperationCodes.PRINT_JOB)
     def print_job(self, request, response):
-            """RFC 2911: 3.2.1 Print-Job Operation
+        """RFC 2911: 3.2.1 Print-Job Operation
 
         This REQUIRED operation allows a client to submit a print job
         with only one document and supply the document data (rather
@@ -169,6 +169,16 @@ class GutenbachRequestHandler(object):
 
         """
         operation = request.attribute_groups[0]
+        document = request.data        
+        user_name = None
+        job_name = None
+        job_k_octets = None
+        document_format = None
+        document_natural_language = None
+        compression = None
+        last_document = None
+
+
         # requested printer uri
         if 'printer-uri' not in operation:
             raise ipp.errors.ClientErrorBadRequest("Missing 'printer-uri' attribute")
@@ -197,58 +207,83 @@ class GutenbachRequestHandler(object):
             pass # don't care
 
         # get attributes from the printer and add to response
-        job_id = self.printer.create_job(
-            requesting_user_name=user_name,
-            job_name=job_name,
-            job_k_octets=job_k_octets)
-        attrs = self.printer.get_job_attributes(job_id)
-        response.attribute_groups.append(ipp.AttributeGroup(
-            ipp.AttributeTags.JOB, attrs))
-            #raise ipp.errors.ServerErrorOperationNotSupported
-        # Get nescessary information for calling send_document
-        # Any field being set to None here just means that we either aren't using or haven't implemented parsing it
-        document = request.data        
-        #XXX
-        document_format = None
-        document_natural_language = None
-        compression = None
-        last_document = None
-
-
-        
-        # Actually put the document in the job
         try:
-            self.printer.send_document(job_id,document,
-                    document_name = document_name,
-                    document_format = document_format,
-                    document_natural_language = document_natural_language,
-                    requesting_user_name = requesting_user_name,
-                    compression = compression,
-                    last_document = last_document)
+            job_id = self.printer.print_job(document,
+                    document_name               = document_name,
+                    document_format             = document_format,
+                    document_natural_language   = document_natural_language,
+                    requesting_user_name        = user_name,
+                    compression                 = compression,
+                    job_name                    = job_name,
+                    job_k_octets                = job_k_octets)
         except InvalidJobException:
             raise ipp.errors.ClientErrorNotFound("bad job: %d" % job_id)
 
-        
-        # Print the job, now that we've filled it in as appropriate
-       
-       #XXX
-       #Should we be handling a possible exception here?
-        self.print_job(document,
-                document_name = document_name,
-                document_format = document_format,
-                document_natural_language = document_natural_language,
-                requesting_user_name = requesting_user_name,
-                compression=compression,
-                job_name = job_name,
-                job_k_octets = job_k_octets)
 
         attrs = self.printer.get_job_attributes(job_id)
-        response.attribute_groups.append(ipp.AttributeGroup(ipp.AttributeTags.JOB, attrs))
+     
+        #Actually append the attributes we pulled
+        response.attribute_groups.append(ipp.AttributeGroup(
+            ipp.AttributeTags.JOB, attrs))
 
+        
     @handler_for(ipp.OperationCodes.VALIDATE_JOB)
     def validate_job(self, request, response):
+        """3.2.3 Validate-Job Operation
 
-        raise ipp.errors.ServerErrorOperationNotSupported
+        This REQUIRED operation is similar to the Print-Job operation
+        (section 3.2.1) except that a client supplies no document data and
+        the Printer allocates no resources (i.e., it does not create a new
+        Job object).  This operation is used only to verify capabilities of a
+        printer object against whatever attributes are supplied by the client
+        in the Validate-Job request.  By using the Validate-Job operation a
+        client can validate that an identical Print-Job operation (with the
+        document data) would be accepted. The Validate-Job operation also
+        performs the same security negotiation as the Print-Job operation
+        (see section 8), so that a client can check that the client and
+        Printer object security requirements can be met before performing a
+        Print-Job operation.
+
+        The Validate-Job operation does not accept a 'document-uri' attribute
+        in order to allow a client to check that the same Print-URI operation
+        will be accepted, since the client doesn't send the data with the
+        Print-URI operation.  The client SHOULD just issue the Print-URI
+        request.
+
+        The Printer object returns the same status codes, Operation
+        Attributes (Group 1) and Unsupported Attributes (Group 2) as the
+        Print-Job operation.  However, no Job Object Attributes (Group 3) are
+        returned, since no Job object is created.
+        """
+        operation = request.attribute_groups[0]
+        user_name = None
+        job_name = None
+        job_k_octets = None
+        # requested printer uri
+        if 'printer-uri' not in operation:
+            raise ipp.errors.ClientErrorBadRequest("Missing 'printer-uri' attribute")
+        printer_uri = verify_attribute(operation['printer-uri'], ipp.PrinterUri)[0]
+        if printer_uri not in self.printer.uris:
+            raise ipp.errors.ClientErrorAttributes(
+                str(operation['printer-uri']), operation['printer-uri'])
+
+        if 'requesting-user-name' in operation:
+            user_name = verify_attribute(
+                operation['requesting-user-name'], ipp.RequestingUserName)[0]
+
+        if 'job-name' in operation:
+            job_name = verify_attribute(
+                operation['job-name'], ipp.JobName)[0]
+
+        if 'job-k-octets' in operation:
+            job_k_octets = verify_attribute(
+                operation['job-k-octets'], ipp.JobKOctets)[0]
+       
+        self.printer.verify_job(requesting_user_name=user_name,
+            job_name=job_name,
+            job_k_octets = job_k_octets) 
+
+        #raise ipp.errors.ServerErrorOperationNotSupported
 
     @handler_for(ipp.OperationCodes.GET_JOBS)
     def get_jobs(self, request, response):
@@ -376,7 +411,66 @@ class GutenbachRequestHandler(object):
 
         It is up to the IPP object to interpret the URI and subsequently
         'pull' the document from the source referenced by the URI string."""
-        raise ipp.errors.ServerErrorOperationNotSupported
+        operation = request.attribute_groups[0]
+        document = request.data        
+        user_name = None
+        job_name = None
+        job_k_octets = None
+        document_format = None
+        document_natural_language = None
+        compression = None
+        last_document = None
+
+
+        # requested printer uri
+        if 'printer-uri' not in operation:
+            raise ipp.errors.ClientErrorBadRequest("Missing 'printer-uri' attribute")
+        printer_uri = verify_attribute(operation['printer-uri'], ipp.PrinterUri)[0]
+        if printer_uri not in self.printer.uris:
+            raise ipp.errors.ClientErrorAttributes(
+                str(operation['printer-uri']), operation['printer-uri'])
+
+        if 'requesting-user-name' in operation:
+            user_name = verify_attribute(
+                operation['requesting-user-name'], ipp.RequestingUserName)[0]
+
+        if 'job-name' in operation:
+            job_name = verify_attribute(
+                operation['job-name'], ipp.JobName)[0]
+
+        if 'job-k-octets' in operation:
+            job_k_octets = verify_attribute(
+                operation['job-k-octets'], ipp.JobKOctets)[0]
+
+        if 'ipp-attribute-fidelity' in operation:
+            pass # don't care
+        if 'job-impressions' in operation:
+            pass # don't care
+        if 'job-media-sheets' in operation:
+            pass # don't care
+
+        # get attributes from the printer and add to response
+        try:
+            job_id = self.printer.print_uri(document,
+                    document_name               = document_name,
+                    document_format             = document_format,
+                    document_natural_language   = document_natural_language,
+                    requesting_user_name        = user_name,
+                    compression                 = compression,
+                    job_name                    = job_name,
+                    job_k_octets                = job_k_octets)
+        except InvalidJobException:
+            raise ipp.errors.ClientErrorNotFound("bad job: %d" % job_id)
+
+
+        attrs = self.printer.get_job_attributes(job_id)
+     
+        #Actually append the attributes we pulled
+        response.attribute_groups.append(ipp.AttributeGroup(
+            ipp.AttributeTags.JOB, attrs))
+
+ 
+       #raise ipp.errors.ServerErrorOperationNotSupported
 
     @handler_for(ipp.OperationCodes.CREATE_JOB)
     def create_job(self, request, response):
