@@ -43,7 +43,11 @@ logger = None
 def error(self, request=None, client_address=None):
     logger.fatal(traceback.format_exc())
     self.gutenbach_printer.running = False
-    sys.exit(1)
+    try:
+        if self.gutenbach_printer.isAlive():
+            self.gutenbach_printer.stop()
+    finally:
+        sys.exit(1)
 
 def new_logfile(logfile):
     if os.path.exists(logfile):
@@ -79,10 +83,10 @@ def start(config):
     httpd = BaseHTTPServer.HTTPServer(server_address, IPPServer)
     httpd.handle_error = error.__get__(httpd)
     httpd.gutenbach_printer = gutenbach
-    while gutenbach.isAlive():
-        try:
+    try:
+        while gutenbach.isAlive():
             httpd.handle_request()
-        except:
-            error(httpd)
+    except:
+        error(httpd)
 
 __all__.append('start')
