@@ -477,7 +477,7 @@ class GutenbachJob(object):
 
         """
         
-        if self.is_playing:
+        if self.player and self.player.is_playing:
             self.player._callback = None
             self.player.mplayer_stop()
 
@@ -500,7 +500,7 @@ class GutenbachJob(object):
 
         """
 
-        if self.is_playing:
+        if self.player and self.player.is_playing:
             self.player._callback = None
             self.player.mplayer_stop()
 
