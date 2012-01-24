@@ -173,7 +173,7 @@ class GutenbachJob(object):
     @property
     def is_playing(self):
         """Whether the job is currently playing (regardless of whether
-        it's paused).
+        it's Paused).
 
         """
 
@@ -189,7 +189,8 @@ class GutenbachJob(object):
 
         return self.is_valid and \
                self.player is not None and \
-               self.player.is_paused        
+               self.player.paused and \
+               self.player.is_playing
 
     @property
     def is_done(self):
@@ -200,9 +201,12 @@ class GutenbachJob(object):
 
         return (self.is_valid and \
                 self.player is not None and \
-                self.player.is_done) or \
+                self.player.done) or \
                 (self._why_done == "canceled" or \
                  self._why_done == "aborted")
+
+    def wait_done(self):
+        self.player.wait_done()
 
     @property
     def is_completed(self):

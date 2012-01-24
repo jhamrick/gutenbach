@@ -41,7 +41,7 @@ class TestEmptyGutenbachPrinter(unittest.TestCase):
     def testFinishedJobs(self):
         self.assertEqual(self.printer.finished_jobs, [])
     def testPendingJobs(self):
-        self.assertEqual(self.printer.pending_jobs, [])
+        self.assertTrue(self.printer.pending_jobs.empty())
     def testCurrentJob(self):
         self.assertEqual(self.printer.current_job, None)
     def testJobs(self):
@@ -57,10 +57,6 @@ class TestEmptyGutenbachPrinter(unittest.TestCase):
     def testState(self):
         self.assertEqual(self.printer.state, States.STOPPED)
 
-    def testStartJob(self):
-        self.assertRaises(RuntimeError, self.printer.start_job)
-    def testCompleteJob(self):
-        self.assertRaises(RuntimeError, self.printer.complete_job)
     def testGetJob(self):
         self.assertRaises(RuntimeError, self.printer.get_job, 0)
 

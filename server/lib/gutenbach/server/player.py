@@ -18,10 +18,11 @@ class Player(threading.Thread):
             self.player = None
             self._callback = None
             self._paused = False
+            self._paused_condition = threading.Condition(self.lock)
             self._done = False
+            self._done_condition = threading.Condition(self.lock)
             self._dryrun = False
             self._dryrun_time = 0.5
-            self._lag = 0.01
 
     @property
     @sync
@@ -29,22 +30,56 @@ class Player(threading.Thread):
         if self._dryrun:
             return self.ident is not None and \
                    self.isAlive() and \
-                   not self.is_done
+                   not self.done
         else:
             return self.ident is not None and \
                    self.isAlive() and \
-                   not self.is_done and \
+                   not self.done and \
                    self.player is not None and \
                    self.player.poll() is None
-        
+
+
+    # DONE
     @property
     @sync
-    def is_paused(self):
-        return self.is_playing and self._paused
-
-    @property
-    def is_done(self):
+    def done(self):
         return self._done
+    @done.setter
+    @sync
+    def done(self, val):
+        if (self._done != val):
+            self._done = val
+            self._done_condition.notifyAll()
+    @sync
+    def wait_done(self):
+        """Wait for the player to finish playing.
+
+        Requires that the main thread be started.
+        """
+        while not self._done:
+            self._done_condition.wait()
+
+    # PAUSED
+    @property
+    @sync
+    def paused(self):
+        return self._paused
+    @paused.setter
+    @sync
+    def paused(self, val):
+        if (self._paused != val):
+            self._paused = val
+            self._paused_condition.notifyAll()
+
+    @sync
+    def wait_unpaused(self):
+        """Wait for the player to finish playing.
+
+        Requires that the main thread be started.
+        """
+        while self._paused:
+            self._paused_condition.wait()
+
 
     @property
     def callback(self):
@@ -56,61 +91,54 @@ class Player(threading.Thread):
 
     def start(self):
         super(Player, self).start()
-        time.sleep(self._lag)
 
     def run(self):
-        if self.fh is None:
-            raise ValueError, "file handler is None"
-        
-        logger.info("playing file '%s'" % self.fh.name)
+        try:
+            if self.fh is None:
+                raise ValueError, "file handler is None"
 
-        with self.lock:
-            self._paused = False
-            self._done = False
+            logger.info("playing file '%s'" % self.fh.name)
 
-        command = ["mplayer", "-really-quiet", "-slave", self.fh.name]
-        logger.info("running '%s'", " ".join(command))
-
-        if self._dryrun:
-            step = 0.01
-            while self._dryrun_time > 0:
-                time.sleep(step)
-                self._dryrun_time -= step
-                while self.is_paused:
-                    time.sleep(0.01)
-
-        else:
             with self.lock:
-                self.player = subprocess.Popen(
-                    command,
-                    stdin=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    stdout=subprocess.PIPE)
+                self.paused = False
+                self.done = False
 
-            # wait for mplayer to finish
-            while True:
+            command = ["mplayer", "-really-quiet", "-slave", self.fh.name]
+            logger.info("running '%s'", " ".join(command))
+
+            if self._dryrun:
+                step = 0.01
+                while self._dryrun_time > 0:
+                    time.sleep(step)
+                    self._dryrun_time -= step
+                    self.wait_unpaused()
+            else:
                 with self.lock:
-                    playing = self.is_playing
-                if not playing:
-                    break
-                time.sleep(0.1)
+                    self.player = subprocess.Popen(
+                        command,
+                        stdin=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        stdout=subprocess.PIPE)
 
-            logger.info("mplayer finished with code %d" % self.player.returncode)
-        
-            # get output from mplayer and log it
+                # wait for mplayer to finish
+                self.player.wait()
+
+                logger.info("mplayer finished with code %d" % self.player.returncode)
+
+                # get output from mplayer and log it
+                with self.lock:
+                    stderr = self.player.stderr.read()
+                    stdout = self.player.stdout.read()
+
+                if stderr.strip() != "":
+                    logger.error(stderr)
+                if stdout.strip() != "":
+                    logger.debug(stdout)
+        finally:
             with self.lock:
-                stderr = self.player.stderr.read()
-                stdout = self.player.stdout.read()
-            
-            if stderr.strip() != "":
-                logger.error(stderr)
-            if stdout.strip() != "":
-                logger.debug(stdout)
-
-        with self.lock:
-            if self.callback:
-                self.callback()
-            self._done = True
+                if self.callback:
+                    self.callback()
+                self.done = True
 
     def mplayer_pause(self):
         # Note: Inner lock due to sleep.
@@ -118,11 +146,10 @@ class Player(threading.Thread):
             if self.is_playing:
                 if not self._dryrun:
                     self.player.stdin.write("pause\n")
-                self._paused = not(self._paused)
-                logger.info("paused: %s", self.is_paused)
+                self.paused = not(self.paused)
+                logger.info("paused: %s", self.paused)
             else:
                 logger.warning("trying to pause non-playing job")
-        time.sleep(self._lag)
 
     def mplayer_stop(self):
         # Note: Inner lock due to join.
@@ -132,7 +159,7 @@ class Player(threading.Thread):
                     self.player.stdin.write("quit\n")
                 else:
                     self._dryrun_time = 0.0
-                self._paused = False
+                self.paused = False
                 logger.info("stopped")
             else:
                 logger.warning("trying to stop non-playing job")

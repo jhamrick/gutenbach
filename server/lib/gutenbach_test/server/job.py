@@ -175,8 +175,7 @@ class TestGutenbachJobOperations(unittest.TestCase):
         self.assertTrue(self.job.is_playing)
         self.assertFalse(self.job.is_paused)
         
-        while self.job.is_playing:
-            time.sleep(0.1)
+        self.job.wait_done()
             
         self.assertTrue(self.job.is_done)
         self.assertTrue(self.job.is_completed)
@@ -224,5 +223,5 @@ class TestGutenbachJobOperations(unittest.TestCase):
         self.assertTrue(self.job.is_ready)
 
 if __name__ == "__main__":
-    logging.basicConfig(loglevel=logging.CRITICAL)
+    logging.basicConfig(loglevel=logging.DEBUG)
     unittest.main()

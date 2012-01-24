@@ -10,9 +10,11 @@ import tempfile
 import threading
 import time
 import traceback
+from queue import PausingQueue
 
 # initialize logger
 logger = logging.getLogger(__name__)
+
 
 class GutenbachPrinter(threading.Thread):
 
@@ -78,13 +80,12 @@ class GutenbachPrinter(threading.Thread):
         self.time_created = int(time.time())
 
         self.finished_jobs = []
-        self.pending_jobs = []
+        self.lock = threading.RLock()
+        self.pending_jobs = PausingQueue(self.lock)
         self.current_job = None
         self.jobs = {}
 
-        self.lock = threading.RLock()
         self._running = False
-        self.paused = False
 
         # CUPS ignores jobs with id 0, so we have to start at 1
         self._next_job_id = 1
@@ -97,20 +98,33 @@ class GutenbachPrinter(threading.Thread):
     def __str__(self):
         return "<Printer '%s'>" % self.name
 
+    @property
+    def paused(self):
+        return self.pending_jobs.paused
+    @paused.setter
+    @sync
+    def paused(self, val):
+        self.pending_jobs.paused = val
+
     def run(self):
         self._running = True
-        while self._running:
-            with self.lock:
-                try:
-                    if self.current_job is None:
-                        self.start_job()
-                    elif self.current_job.is_done:
-                        self.complete_job()
-                except:
-                    self._running = False
-                    logger.fatal(traceback.format_exc())
-                    break
-            time.sleep(0.1)
+        try:
+            while self._running:
+                with self.lock:
+                    try:
+                        self.current_job  = self.get_job(self.pending_jobs.pop())
+                    except IndexError:
+                        self.current_job = None
+                        continue;
+                    self.current_job.play()
+                self.current_job.wait_done()
+                with self.lock:
+                    self.finished_jobs.append(self.current_job.id)
+                    self.current_job = None
+
+        except:
+            self._running = False
+            logger.fatal(traceback.format_exc())
 
     def stop(self):
         with self.lock:
@@ -122,6 +136,8 @@ class GutenbachPrinter(threading.Thread):
                     pass
                 
             self._running = False
+            self.pending_jobs.interrupt()
+
         if self.ident is not None and self.isAlive():
             self.join()
 
@@ -178,7 +194,7 @@ class GutenbachPrinter(threading.Thread):
     @property
     @sync
     def active_jobs(self):
-        jobs = self.pending_jobs[:]
+        jobs = self.pending_jobs.copy()
         if self.current_job is not None:
             jobs.insert(0, self.current_job.id)
         return jobs
@@ -196,28 +212,6 @@ class GutenbachPrinter(threading.Thread):
     def assert_running(self):
         if not self.is_running:
             raise RuntimeError, "%s not started" % str(self)
-
-    @sync
-    def start_job(self):
-        self.assert_running()
-        if not self.paused and self.current_job is None:
-            try:
-                job_id = self.pending_jobs.pop(0)
-                self.current_job = self.get_job(job_id)
-                self.current_job.play()
-            except IndexError:
-                self.current_job = None
-                    
-    @sync
-    def complete_job(self):
-        self.assert_running()
-        if not self.paused and self.current_job is not None:
-            try:
-                if not self.current_job.is_done:
-                    self.current_job.stop()
-            finally:
-                self.finished_jobs.append(self.current_job.id)
-                self.current_job = None
 
     @sync
     def get_job(self, job_id):
@@ -2007,6 +2001,4 @@ class GutenbachPrinter(threading.Thread):
         # completes, this one will go next
         
         self.assert_running()
-        job = self.get_job(job_id)
-        job.priority = 1 # XXX we need to actually do something
-                         # correct here
+        self.pending_jobs.promote(job_id)
