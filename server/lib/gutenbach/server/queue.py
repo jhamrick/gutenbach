@@ -91,3 +91,7 @@ class PausingQueue(object):
     @sync
     def __contains__(self, val):
         return val in self._items
+
+    @sync
+    def remove(self, item):
+        self._items.remove(item)
