@@ -11,7 +11,7 @@ class GutenbachJob(object):
 
     def __init__(self, job_id=None, creator=None, name=None,
                  priority=None, document=None):
-	"""Create an empty Gutenbach job.
+        """Create an empty Gutenbach job.
 
         Parameters
         ----------
@@ -25,13 +25,12 @@ class GutenbachJob(object):
             The priority of the job, used for ordering.
         document : file object
             A file object containing the job data.
-
-	"""
+        """
 
         self.player = None
         self.document = None
 
-	self.id = job_id
+        self.id = job_id
         self.creator = creator
         self.name = name
         self.priority = priority
@@ -42,7 +41,7 @@ class GutenbachJob(object):
             self.spool(document)
 
     def __repr__(self):
-	return str(self)
+        return str(self)
 
     def __str__(self):
         return "<Job %d '%s'>" % (self.id, self.name)

@@ -7,9 +7,9 @@ __all__ = [
 
 class InvalidJobException(Exception):
     def __init__(self, jobid):
-	self.jobid = jobid
+        self.jobid = jobid
     def __str__(self):
-	return "Job does not exist: %d" % self.jobid
+        return "Job does not exist: %d" % self.jobid
 
 class InvalidPrinterStateException(Exception):
     errstr = {

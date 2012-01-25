@@ -74,7 +74,7 @@ class AttributeGroup(object):
 
     def __delitem__(self, name):
         self.attributes = filter(lambda x: x.name != name,
-				 self.attributes)
+                 self.attributes)
 
     def append(self, attribute):
         return self.extend([attribute])
